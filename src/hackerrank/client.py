@@ -36,7 +36,7 @@ from hackerrank.types import (
 _API_V3 = "/x/api/v3"
 
 
-def _drop_none(data: dict[str, object]) -> dict[str, object]:
+def _drop_none(data: dict[str, object], /) -> dict[str, object]:
     """Return a copy of ``data`` with ``None`` values removed.
 
     Args:
@@ -105,7 +105,7 @@ class _Namespace:
         return response
 
 
-def _coerce_int(value: object) -> int:
+def _coerce_int(value: object, /) -> int:
     """Coerce ``value`` to an ``int``, defaulting to ``0``.
 
     Args:
@@ -128,7 +128,7 @@ def _coerce_int(value: object) -> int:
     return 0
 
 
-def _coerce_str(value: object) -> str:
+def _coerce_str(value: object, /) -> str:
     """Coerce ``value`` to a ``str``, defaulting to ``""``.
 
     Args:
@@ -145,6 +145,7 @@ def _coerce_str(value: object) -> str:
 def _make_page[T](
     items: list[T],
     metadata: dict[str, object],
+    /,
 ) -> Page[T]:
     """Wrap ``items`` and ``metadata`` into a ``Page``.
 
@@ -282,9 +283,7 @@ class InterviewsNamespace(_Namespace):
                 "notes": notes,
                 "resume_url": resume_url,
                 "interviewers": (
-                    list(interviewers)
-                    if interviewers is not None
-                    else None
+                    list(interviewers) if interviewers is not None else None
                 ),
                 "result_url": result_url,
                 "candidate": candidate,
@@ -391,9 +390,7 @@ class InterviewsNamespace(_Namespace):
         """
         response = self._request(
             method="GET",
-            url=(
-                f"{_API_V3}/interviews/{interview_id}/transcript"
-            ),
+            url=(f"{_API_V3}/interviews/{interview_id}/transcript"),
         )
         return InterviewTranscript.from_dict(data=response.json())
 
@@ -479,9 +476,7 @@ class InterviewTemplatesNamespace(_Namespace):
         """
         response = self._request(
             method="GET",
-            url=(
-                f"{_API_V3}/interview_templates/{template_id}"
-            ),
+            url=(f"{_API_V3}/interview_templates/{template_id}"),
         )
         return InterviewTemplate.from_dict(data=response.json())
 
@@ -518,9 +513,7 @@ class InterviewTemplatesNamespace(_Namespace):
         )
         self._request(
             method="PUT",
-            url=(
-                f"{_API_V3}/interview_templates/{template_id}"
-            ),
+            url=(f"{_API_V3}/interview_templates/{template_id}"),
             json=body,
         )
 
@@ -532,9 +525,7 @@ class InterviewTemplatesNamespace(_Namespace):
         """
         self._request(
             method="DELETE",
-            url=(
-                f"{_API_V3}/interview_templates/{template_id}"
-            ),
+            url=(f"{_API_V3}/interview_templates/{template_id}"),
         )
 
 
@@ -609,9 +600,7 @@ class QuestionsNamespace(_Namespace):
                 "problem_statement": problem_statement,
                 "recommended_duration": recommended_duration,
                 "tags": list(tags) if tags is not None else None,
-                "options": (
-                    list(options) if options is not None else None
-                ),
+                "options": (list(options) if options is not None else None),
                 "answer": (
                     list(answer)
                     if isinstance(answer, Sequence)
@@ -681,9 +670,7 @@ class QuestionsNamespace(_Namespace):
                 "problem_statement": problem_statement,
                 "recommended_duration": recommended_duration,
                 "tags": list(tags) if tags is not None else None,
-                "options": (
-                    list(options) if options is not None else None
-                ),
+                "options": (list(options) if options is not None else None),
                 "answer": (
                     list(answer)
                     if isinstance(answer, Sequence)
@@ -712,9 +699,7 @@ class QuestionsNamespace(_Namespace):
         """
         self._request(
             method="PUT",
-            url=(
-                f"{_API_V3}/questions/{question_id}/custom_codestubs"
-            ),
+            url=(f"{_API_V3}/questions/{question_id}/custom_codestubs"),
             json=codestubs,
         )
 
@@ -735,9 +720,7 @@ class QuestionsNamespace(_Namespace):
         """
         response = self._request(
             method="PUT",
-            url=(
-                f"{_API_V3}/questions/{question_id}/generate"
-            ),
+            url=(f"{_API_V3}/questions/{question_id}/generate"),
             json=body if body is not None else {},
         )
         result: dict[str, object] = dict(response.json())
@@ -760,9 +743,7 @@ class QuestionsNamespace(_Namespace):
         """
         response = self._request(
             method="POST",
-            url=(
-                f"{_API_V3}/questions/{question_id}/testcases"
-            ),
+            url=(f"{_API_V3}/questions/{question_id}/testcases"),
             json=body,
         )
         result: dict[str, object] = dict(response.json())
@@ -784,10 +765,7 @@ class QuestionsNamespace(_Namespace):
         """
         self._request(
             method="PUT",
-            url=(
-                f"{_API_V3}/questions/{question_id}/testcases/"
-                f"{testcase_id}"
-            ),
+            url=(f"{_API_V3}/questions/{question_id}/testcases/{testcase_id}"),
             json=body,
         )
 
@@ -805,10 +783,7 @@ class QuestionsNamespace(_Namespace):
         """
         self._request(
             method="DELETE",
-            url=(
-                f"{_API_V3}/questions/{question_id}/testcases/"
-                f"{testcase_id}"
-            ),
+            url=(f"{_API_V3}/questions/{question_id}/testcases/{testcase_id}"),
         )
 
     def delete_all_testcases(self, *, question_id: str) -> None:
@@ -819,10 +794,7 @@ class QuestionsNamespace(_Namespace):
         """
         self._request(
             method="DELETE",
-            url=(
-                f"{_API_V3}/questions/{question_id}/testcases/"
-                f"delete_all"
-            ),
+            url=(f"{_API_V3}/questions/{question_id}/testcases/delete_all"),
         )
 
 
@@ -995,10 +967,7 @@ class TestCandidatesNamespace(_Namespace):
             params["additional_fields"] = additional_fields
         response = self._request(
             method="GET",
-            url=(
-                f"{_API_V3}/tests/{test_id}/candidates/"
-                f"{candidate_id}"
-            ),
+            url=(f"{_API_V3}/tests/{test_id}/candidates/{candidate_id}"),
             params=params or None,
         )
         return TestCandidate.from_dict(data=response.json())
@@ -1057,10 +1026,7 @@ class TestCandidatesNamespace(_Namespace):
         )
         self._request(
             method="PUT",
-            url=(
-                f"{_API_V3}/tests/{test_id}/candidates/"
-                f"{candidate_id}"
-            ),
+            url=(f"{_API_V3}/tests/{test_id}/candidates/{candidate_id}"),
             json=body,
         )
 
@@ -1079,8 +1045,7 @@ class TestCandidatesNamespace(_Namespace):
         self._request(
             method="DELETE",
             url=(
-                f"{_API_V3}/tests/{test_id}/candidates/"
-                f"{candidate_id}/invite"
+                f"{_API_V3}/tests/{test_id}/candidates/{candidate_id}/invite"
             ),
         )
 
@@ -1099,8 +1064,7 @@ class TestCandidatesNamespace(_Namespace):
         self._request(
             method="DELETE",
             url=(
-                f"{_API_V3}/tests/{test_id}/candidates/"
-                f"{candidate_id}/report"
+                f"{_API_V3}/tests/{test_id}/candidates/{candidate_id}/report"
             ),
         )
 
@@ -1125,10 +1089,7 @@ class TestCandidatesNamespace(_Namespace):
         """
         response = self._request(
             method="GET",
-            url=(
-                f"{_API_V3}/tests/{test_id}/candidates/"
-                f"{candidate_id}/pdf"
-            ),
+            url=(f"{_API_V3}/tests/{test_id}/candidates/{candidate_id}/pdf"),
             params={"format": format_},
         )
         result: dict[str, object] = dict(response.json())
@@ -1158,12 +1119,10 @@ class TestsNamespace(_Namespace):
             base_url=base_url,
             headers=headers,
         )
-        self.candidates: TestCandidatesNamespace = (
-            TestCandidatesNamespace(
-                transport=transport,
-                base_url=base_url,
-                headers=headers,
-            )
+        self.candidates: TestCandidatesNamespace = TestCandidatesNamespace(
+            transport=transport,
+            base_url=base_url,
+            headers=headers,
         )
 
     def list(
@@ -1188,9 +1147,7 @@ class TestsNamespace(_Namespace):
         )
         payload = response.json()
         raw_items = list(payload.get("data", []))
-        items: list[Test] = [
-            Test.from_dict(data=item) for item in raw_items
-        ]
+        items: list[Test] = [Test.from_dict(data=item) for item in raw_items]
         return _make_page(items, payload)
 
     def create(
@@ -1284,42 +1241,30 @@ class TestsNamespace(_Namespace):
                 "master_password": master_password,
                 "hide_compile_test": hide_compile_test,
                 "tags": list(tags) if tags is not None else None,
-                "role_ids": (
-                    list(role_ids) if role_ids is not None else None
-                ),
+                "role_ids": (list(role_ids) if role_ids is not None else None),
                 "experience": (
-                    list(experience)
-                    if experience is not None
-                    else None
+                    list(experience) if experience is not None else None
                 ),
                 "questions": (
-                    list(questions)
-                    if questions is not None
-                    else None
+                    list(questions) if questions is not None else None
                 ),
                 "mcq_incorrect_score": mcq_incorrect_score,
                 "mcq_correct_score": mcq_correct_score,
                 "shuffle_questions": shuffle_questions,
                 "test_admins": (
-                    list(test_admins)
-                    if test_admins is not None
-                    else None
+                    list(test_admins) if test_admins is not None else None
                 ),
                 "hide_template": hide_template,
                 "enable_acknowledgement": enable_acknowledgement,
                 "enable_proctoring": enable_proctoring,
-                "enable_advanced_proctoring": (
-                    enable_advanced_proctoring
-                ),
+                "enable_advanced_proctoring": (enable_advanced_proctoring),
                 "enable_secure_assessment_mode": (
                     enable_secure_assessment_mode
                 ),
                 "enable_ml_plagiarism_analysis": (
                     enable_ml_plagiarism_analysis
                 ),
-                "enable_photo_identification": (
-                    enable_photo_identification
-                ),
+                "enable_photo_identification": (enable_photo_identification),
                 "ide_config": ide_config,
             },
         )
@@ -1500,9 +1445,7 @@ class UsersNamespace(_Namespace):
         )
         payload = response.json()
         raw_items = list(payload.get("data", []))
-        items: list[User] = [
-            User.from_dict(data=item) for item in raw_items
-        ]
+        items: list[User] = [User.from_dict(data=item) for item in raw_items]
         return _make_page(items, payload)
 
     def search(
@@ -1534,9 +1477,7 @@ class UsersNamespace(_Namespace):
         )
         payload = response.json()
         raw_items = list(payload.get("data", []))
-        items: list[User] = [
-            User.from_dict(data=item) for item in raw_items
-        ]
+        items: list[User] = [User.from_dict(data=item) for item in raw_items]
         return _make_page(items, payload)
 
     def create(
@@ -1599,24 +1540,14 @@ class UsersNamespace(_Namespace):
                 "tests_permission": tests_permission,
                 "interviews_permission": interviews_permission,
                 "candidates_permission": candidates_permission,
-                "shared_questions_permission": (
-                    shared_questions_permission
-                ),
-                "shared_tests_permission": (
-                    shared_tests_permission
-                ),
-                "shared_interviews_permission": (
-                    shared_interviews_permission
-                ),
-                "shared_candidates_permission": (
-                    shared_candidates_permission
-                ),
+                "shared_questions_permission": (shared_questions_permission),
+                "shared_tests_permission": (shared_tests_permission),
+                "shared_interviews_permission": (shared_interviews_permission),
+                "shared_candidates_permission": (shared_candidates_permission),
                 "company_admin": company_admin,
                 "team_admin": team_admin,
                 "teams": (
-                    [{"id": t} for t in teams]
-                    if teams is not None
-                    else None
+                    [{"id": t} for t in teams] if teams is not None else None
                 ),
             },
         )
@@ -1796,12 +1727,10 @@ class TeamsNamespace(_Namespace):
             base_url=base_url,
             headers=headers,
         )
-        self.memberships: TeamMembershipsNamespace = (
-            TeamMembershipsNamespace(
-                transport=transport,
-                base_url=base_url,
-                headers=headers,
-            )
+        self.memberships: TeamMembershipsNamespace = TeamMembershipsNamespace(
+            transport=transport,
+            base_url=base_url,
+            headers=headers,
         )
 
     def list(
@@ -1826,9 +1755,7 @@ class TeamsNamespace(_Namespace):
         )
         payload = response.json()
         raw_items = list(payload.get("data", []))
-        items: list[Team] = [
-            Team.from_dict(data=item) for item in raw_items
-        ]
+        items: list[Team] = [Team.from_dict(data=item) for item in raw_items]
         return _make_page(items, payload)
 
     def create(
@@ -1864,9 +1791,7 @@ class TeamsNamespace(_Namespace):
                     list(locations) if locations is not None else None
                 ),
                 "departments": (
-                    list(departments)
-                    if departments is not None
-                    else None
+                    list(departments) if departments is not None else None
                 ),
             },
         )
@@ -1924,9 +1849,7 @@ class TeamsNamespace(_Namespace):
                     list(locations) if locations is not None else None
                 ),
                 "departments": (
-                    list(departments)
-                    if departments is not None
-                    else None
+                    list(departments) if departments is not None else None
                 ),
             },
         )
@@ -2122,18 +2045,17 @@ class ATSNamespace(_Namespace):
             base_url=base_url,
             headers=headers,
         )
-        self.codescreen: ATSCodeScreenNamespace = (
-            ATSCodeScreenNamespace(
-                transport=transport,
-                base_url=base_url,
-                headers=headers,
-            )
+        self.codescreen: ATSCodeScreenNamespace = ATSCodeScreenNamespace(
+            transport=transport,
+            base_url=base_url,
+            headers=headers,
         )
 
 
 def _make_scim_page[T](
     items: list[T],
     payload: dict[str, object],
+    /,
 ) -> SCIMPage[T]:
     """Wrap items and a SCIM payload into a ``SCIMPage``.
 
@@ -2145,11 +2067,12 @@ def _make_scim_page[T](
         The populated ``SCIMPage`` instance.
     """
     schemas_raw = payload.get("schemas")
-    schemas: list[str] = (
-        [s for s in schemas_raw if isinstance(s, str)]
-        if isinstance(schemas_raw, list)
-        else []
-    )
+    schemas: list[str] = []
+    if isinstance(schemas_raw, list):
+        schemas.extend(
+            str(item)  # pyright: ignore[reportUnknownArgumentType]
+            for item in schemas_raw  # pyright: ignore[reportUnknownVariableType]
+        )
     start_index = _coerce_int(payload.get("startIndex")) or 1
     return SCIMPage(
         items,
@@ -2186,9 +2109,7 @@ class SCIMUsersNamespace(_Namespace):
         )
         payload = response.json()
         raw = list(payload.get("Resources", []))
-        items: list[SCIMUser] = [
-            SCIMUser.from_dict(data=item) for item in raw
-        ]
+        items: list[SCIMUser] = [SCIMUser.from_dict(data=item) for item in raw]
         return _make_scim_page(items, payload)
 
     def create(
@@ -2309,9 +2230,7 @@ class SCIMGroupsNamespace(_Namespace):
         )
         payload = response.json()
         raw = list(payload.get("Resources", []))
-        items: list[SCIMTeam] = [
-            SCIMTeam.from_dict(data=item) for item in raw
-        ]
+        items: list[SCIMTeam] = [SCIMTeam.from_dict(data=item) for item in raw]
         return _make_scim_page(items, payload)
 
     def create(self, *, body: dict[str, object]) -> SCIMTeam:

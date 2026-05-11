@@ -26,20 +26,23 @@ def fixture_mock_hackerrank_api(
     openapi_spec_path = request.config.rootpath / "openapi.json"
     spec_text = openapi_spec_path.read_text(encoding="utf-8")
     openapi_spec: dict[str, object] = json.loads(s=spec_text)
-    raw_paths = openapi_spec.get("paths", {})
-    if isinstance(raw_paths, dict):
+    raw_paths_obj = openapi_spec.get("paths", {})
+    if isinstance(raw_paths_obj, dict):
         cleaned_paths: dict[str, dict[str, object]] = {}
-        for path, ops in raw_paths.items():
-            if not isinstance(ops, dict):
+        for raw_key, raw_value in raw_paths_obj.items():  # pyright: ignore[reportUnknownVariableType]
+            if not isinstance(raw_key, str):
                 continue
-            cleaned = path.split("?", 1)[0]
-            existing = cleaned_paths.get(cleaned)
-            if existing is not None:
-                merged: dict[str, object] = dict(existing)
-                merged.update(ops)
-                cleaned_paths[cleaned] = merged
-            else:
-                cleaned_paths[cleaned] = dict(ops)
+            if not isinstance(raw_value, dict):
+                continue
+            cleaned = raw_key.split(sep="?", maxsplit=1)[0]
+            merged: dict[str, object] = dict(cleaned_paths.get(cleaned, {}))
+            new_entries: dict[str, object] = {
+                op_key: op_val
+                for op_key, op_val in raw_value.items()  # pyright: ignore[reportUnknownVariableType]
+                if isinstance(op_key, str)
+            }
+            merged.update(new_entries)
+            cleaned_paths[cleaned] = merged
         openapi_spec["paths"] = cleaned_paths
     with respx.mock(
         base_url=_BASE_URL,

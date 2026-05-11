@@ -191,8 +191,8 @@ class TestErrorHandling:
 
     @staticmethod
     @pytest.mark.parametrize(
-        ("status_code", "expected"),
-        [
+        argnames=("status_code", "expected"),
+        argvalues=[
             (HTTPStatus.BAD_REQUEST, BadRequestError),
             (HTTPStatus.UNAUTHORIZED, AuthenticationError),
             (HTTPStatus.FORBIDDEN, ForbiddenError),
@@ -234,7 +234,7 @@ class TestErrorHandling:
             )
             client = HackerRank(api_key="test-key")
             try:
-                with pytest.raises(expected):
+                with pytest.raises(expected_exception=expected):
                     client.tests.list()
             finally:
                 client.close()
@@ -255,7 +255,7 @@ class TestErrorHandling:
             )
             client = HackerRank(api_key="test-key")
             try:
-                with pytest.raises(HackerRankError):
+                with pytest.raises(expected_exception=HackerRankError):
                     client.tests.list()
             finally:
                 client.close()
@@ -282,7 +282,7 @@ class TestTransportResponse:
             headers={},
             content=b"{}",
         )
-        with pytest.raises(HTTPStatusError):
+        with pytest.raises(expected_exception=HTTPStatusError):
             response.raise_for_status()
 
     @staticmethod

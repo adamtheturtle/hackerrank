@@ -2,7 +2,7 @@
 
 from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import ClassVar, Self, TypeVar
+from typing import ClassVar, Self
 
 from beartype import beartype
 
@@ -27,16 +27,13 @@ from hackerrank._dict_types import (
     UserTeamMembershipDict,
 )
 
-_T = TypeVar("_T")
-
-
 @beartype
-class Page(list[_T]):
+class Page[T](list[T]):
     """A page of results with HackerRank's pagination metadata."""
 
     def __init__(
         self,
-        iterable: Iterable[_T] = (),
+        iterable: Iterable[T] = (),
         /,
         *,
         page_total: int,
@@ -69,7 +66,7 @@ class Page(list[_T]):
         self.total = total
 
     @property
-    def data(self) -> list[_T]:
+    def data(self) -> list[T]:
         """Return the items as a plain list.
 
         Returns:
@@ -79,7 +76,7 @@ class Page(list[_T]):
 
 
 @beartype
-class SCIMPage(list[_T]):
+class SCIMPage[T](list[T]):
     """A SCIM v2 paginated response.
 
     SCIM uses a different envelope from the v3 API.
@@ -87,7 +84,7 @@ class SCIMPage(list[_T]):
 
     def __init__(
         self,
-        iterable: Iterable[_T] = (),
+        iterable: Iterable[T] = (),
         /,
         *,
         schemas: list[str],
@@ -581,8 +578,7 @@ class TestCandidate:
             feedback=data.get("feedback"),
             percentage_score=data.get("percentage_score"),
             candidate_details=[
-                CandidateDetail.from_dict(data=item)
-                for item in raw_details
+                CandidateDetail.from_dict(data=item) for item in raw_details
             ]
             if raw_details is not None
             else None,
@@ -994,7 +990,6 @@ class SCIMTeam:
         """
         return cls(
             id=data["id"],
-            display_name=data.get("displayName")
-            or data.get("diplayName"),
+            display_name=data.get("displayName") or data.get("diplayName"),
             schemas=data.get("schemas"),
         )
