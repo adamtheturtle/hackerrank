@@ -27,6 +27,7 @@ from hackerrank._dict_types import (
     UserTeamMembershipDict,
 )
 
+
 @beartype
 class Page[T](list[T]):
     """A page of results with HackerRank's pagination metadata."""

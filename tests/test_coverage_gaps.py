@@ -183,7 +183,9 @@ class TestHackerRankErrorRegistry:
 
     @staticmethod
     def test_unknown_status_falls_back_to_base_error() -> None:
-        """An unmapped status returns the base ``HackerRankError`` type."""
+        """An unmapped status returns the base ``HackerRankError``
+        type.
+        """
         unmapped_status = 418
         response = TransportResponse(
             status_code=unmapped_status,
