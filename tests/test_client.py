@@ -2,6 +2,7 @@
 
 from http import HTTPStatus
 
+import httpx
 import pytest
 import respx
 
@@ -219,8 +220,6 @@ class TestErrorHandling:
             status_code: The HTTP status code to simulate.
             expected: The expected exception subclass.
         """
-        import httpx  # noqa: PLC0415
-
         with respx.mock(
             base_url="https://www.hackerrank.com",
             assert_all_called=False,
@@ -242,8 +241,6 @@ class TestErrorHandling:
     @staticmethod
     def test_unknown_status_uses_base_error() -> None:
         """An unmapped status raises the base ``HackerRankError``."""
-        import httpx  # noqa: PLC0415
-
         with respx.mock(
             base_url="https://www.hackerrank.com",
             assert_all_called=False,

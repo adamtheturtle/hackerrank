@@ -2,7 +2,7 @@
 
 from collections.abc import Sequence
 from http import HTTPStatus
-from typing import Self
+from typing import Self, cast
 
 from beartype import beartype
 
@@ -126,12 +126,11 @@ def _make_scim_page[T](
         A populated ``SCIMPage`` instance.
     """
     schemas_raw = payload.get("schemas")
-    schemas: list[str] = []
-    if isinstance(schemas_raw, list):
-        schemas.extend(
-            str(item)  # pyright: ignore[reportUnknownArgumentType]
-            for item in schemas_raw  # pyright: ignore[reportUnknownVariableType]
-        )
+    schemas: list[str] = (
+        list(cast("list[str]", schemas_raw))
+        if isinstance(schemas_raw, list)
+        else []
+    )
     start_index = _coerce_int(payload.get("startIndex")) or 1
     return SCIMPage(
         items,
