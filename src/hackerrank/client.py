@@ -564,7 +564,7 @@ class QuestionsNamespace(_Namespace):
         self,
         *,
         name: str,
-        type: str,  # noqa: A002
+        type: str,  # noqa: A002  # pylint: disable=redefined-builtin
         internal_notes: str | None = None,
         languages: Sequence[str] | None = None,
         problem_statement: str | None = None,
@@ -636,7 +636,7 @@ class QuestionsNamespace(_Namespace):
         *,
         question_id: str,
         name: str | None = None,
-        type: str | None = None,  # noqa: A002
+        type: str | None = None,  # noqa: A002  # pylint: disable=redefined-builtin
         internal_notes: str | None = None,
         languages: Sequence[str] | None = None,
         problem_statement: str | None = None,
@@ -1664,7 +1664,7 @@ class TeamMembershipsNamespace(_Namespace):
         *,
         team_id: str,
         user_id: str,
-        license: str | None = None,  # noqa: A002
+        license: str | None = None,  # noqa: A002  # pylint: disable=redefined-builtin
     ) -> UserTeamMembership:
         """Add a user to a team.
 

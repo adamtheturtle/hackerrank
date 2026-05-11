@@ -38,7 +38,7 @@ class TestPage:
             total=0,
         )
         assert page.total == 0
-        assert page.data == []
+        assert not page.data
 
     @staticmethod
     def test_construct_with_items() -> None:

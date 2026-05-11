@@ -31,6 +31,8 @@ _BASE_URL = "https://www.hackerrank.com"
 class TestCoercionHelpers:
     """Tests for the private pagination coercion helpers."""
 
+    # pylint: disable=protected-access
+
     @staticmethod
     @pytest.mark.parametrize(
         argnames=("value", "expected"),
@@ -178,7 +180,7 @@ class TestHackerRankErrorRegistry:
         class _UnregisteredError(HackerRankError):
             """A subclass with no status_code mapping."""
 
-        registry = HackerRankError._registry  # noqa: SLF001  # pyright: ignore[reportPrivateUsage]
+        registry = HackerRankError._registry  # noqa: SLF001  # pyright: ignore[reportPrivateUsage]  # pylint: disable=protected-access
         assert _UnregisteredError not in registry.values()
 
     @staticmethod
@@ -193,7 +195,7 @@ class TestHackerRankErrorRegistry:
             content=b"{}",
         )
         err = HackerRankError.from_response(response=response)
-        assert type(err) is HackerRankError
+        assert type(err) is HackerRankError  # pylint: disable=unidiomatic-typecheck
         assert err.status_code == unmapped_status
         assert err.content == b"{}"
 
