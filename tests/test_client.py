@@ -2,6 +2,7 @@
 
 from http import HTTPStatus
 
+import httpx
 import pytest
 import respx
 
@@ -191,8 +192,8 @@ class TestErrorHandling:
 
     @staticmethod
     @pytest.mark.parametrize(
-        ("status_code", "expected"),
-        [
+        argnames=("status_code", "expected"),
+        argvalues=[
             (HTTPStatus.BAD_REQUEST, BadRequestError),
             (HTTPStatus.UNAUTHORIZED, AuthenticationError),
             (HTTPStatus.FORBIDDEN, ForbiddenError),
@@ -219,8 +220,6 @@ class TestErrorHandling:
             status_code: The HTTP status code to simulate.
             expected: The expected exception subclass.
         """
-        import httpx  # noqa: PLC0415
-
         with respx.mock(
             base_url="https://www.hackerrank.com",
             assert_all_called=False,
@@ -234,7 +233,7 @@ class TestErrorHandling:
             )
             client = HackerRank(api_key="test-key")
             try:
-                with pytest.raises(expected):
+                with pytest.raises(expected_exception=expected):
                     client.tests.list()
             finally:
                 client.close()
@@ -242,8 +241,6 @@ class TestErrorHandling:
     @staticmethod
     def test_unknown_status_uses_base_error() -> None:
         """An unmapped status raises the base ``HackerRankError``."""
-        import httpx  # noqa: PLC0415
-
         with respx.mock(
             base_url="https://www.hackerrank.com",
             assert_all_called=False,
@@ -255,7 +252,7 @@ class TestErrorHandling:
             )
             client = HackerRank(api_key="test-key")
             try:
-                with pytest.raises(HackerRankError):
+                with pytest.raises(expected_exception=HackerRankError):
                     client.tests.list()
             finally:
                 client.close()
@@ -282,7 +279,7 @@ class TestTransportResponse:
             headers={},
             content=b"{}",
         )
-        with pytest.raises(HTTPStatusError):
+        with pytest.raises(expected_exception=HTTPStatusError):
             response.raise_for_status()
 
     @staticmethod

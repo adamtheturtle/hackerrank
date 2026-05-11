@@ -38,24 +38,26 @@ class TestPage:
             total=0,
         )
         assert page.total == 0
-        assert page.data == []
+        assert not page.data
 
     @staticmethod
     def test_construct_with_items() -> None:
         """Items pass through ``Page`` as a list."""
+        expected_items = [1, 2, 3]
+        expected_total = len(expected_items)
         page: Page[int] = Page(
-            [1, 2, 3],
-            page_total=3,
+            expected_items,
+            page_total=expected_total,
             offset=0,
             previous="",
             next_="",
             first="",
             last="",
-            total=3,
+            total=expected_total,
         )
-        assert list(page) == [1, 2, 3]
-        assert page.data == [1, 2, 3]
-        assert page.total == 3
+        assert list(page) == expected_items
+        assert page.data == expected_items
+        assert page.total == expected_total
 
 
 class TestSCIMPage:
@@ -94,16 +96,17 @@ class TestFromDict:
     @staticmethod
     def test_test_from_dict() -> None:
         """``Test.from_dict`` populates the dataclass."""
+        duration_minutes = 60
         test = Test.from_dict(
             data={
                 "id": "t1",
                 "name": "My Test",
-                "duration": 60,
+                "duration": duration_minutes,
             },
         )
         assert test.id == "t1"
         assert test.name == "My Test"
-        assert test.duration == 60
+        assert test.duration == duration_minutes
 
     @staticmethod
     def test_question_from_dict() -> None:
@@ -133,14 +136,15 @@ class TestFromDict:
     @staticmethod
     def test_team_from_dict() -> None:
         """``Team.from_dict`` populates the dataclass."""
+        developer_cap = 10
         team = Team.from_dict(
             data={
                 "id": "tm1",
                 "name": "Engineering",
-                "developer_cap": 10,
+                "developer_cap": developer_cap,
             },
         )
-        assert team.developer_cap == 10
+        assert team.developer_cap == developer_cap
 
     @staticmethod
     def test_user_team_membership_from_dict() -> None:

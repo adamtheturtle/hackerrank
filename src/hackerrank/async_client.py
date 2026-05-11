@@ -2,7 +2,7 @@
 
 from collections.abc import Sequence
 from http import HTTPStatus
-from typing import Self
+from typing import Self, cast
 
 from beartype import beartype
 
@@ -36,7 +36,7 @@ from hackerrank.types import (
 _API_V3 = "/x/api/v3"
 
 
-def _drop_none(data: dict[str, object]) -> dict[str, object]:
+def _drop_none(data: dict[str, object], /) -> dict[str, object]:
     """Return a copy of ``data`` with ``None`` values removed.
 
     Args:
@@ -48,7 +48,7 @@ def _drop_none(data: dict[str, object]) -> dict[str, object]:
     return {k: v for k, v in data.items() if v is not None}
 
 
-def _coerce_int(value: object) -> int:
+def _coerce_int(value: object, /) -> int:
     """Coerce ``value`` to ``int``, defaulting to ``0``.
 
     Args:
@@ -71,7 +71,7 @@ def _coerce_int(value: object) -> int:
     return 0
 
 
-def _coerce_str(value: object) -> str:
+def _coerce_str(value: object, /) -> str:
     """Coerce ``value`` to ``str``, defaulting to ``""``.
 
     Args:
@@ -88,6 +88,7 @@ def _coerce_str(value: object) -> str:
 def _make_page[T](
     items: list[T],
     metadata: dict[str, object],
+    /,
 ) -> Page[T]:
     """Wrap ``items`` and ``metadata`` into a ``Page``.
 
@@ -113,6 +114,7 @@ def _make_page[T](
 def _make_scim_page[T](
     items: list[T],
     payload: dict[str, object],
+    /,
 ) -> SCIMPage[T]:
     """Wrap items and a SCIM payload into a ``SCIMPage``.
 
@@ -125,7 +127,7 @@ def _make_scim_page[T](
     """
     schemas_raw = payload.get("schemas")
     schemas: list[str] = (
-        [s for s in schemas_raw if isinstance(s, str)]
+        list(cast("list[str]", schemas_raw))
         if isinstance(schemas_raw, list)
         else []
     )
@@ -290,9 +292,7 @@ class AsyncInterviewsNamespace(_AsyncNamespace):
                 "send_email": send_email,
                 "metadata": metadata,
                 "interviewers": (
-                    list(interviewers)
-                    if interviewers is not None
-                    else None
+                    list(interviewers) if interviewers is not None else None
                 ),
             },
         )
@@ -344,9 +344,7 @@ class AsyncInterviewsNamespace(_AsyncNamespace):
         """
         response = await self._request(
             method="GET",
-            url=(
-                f"{_API_V3}/interviews/{interview_id}/transcript"
-            ),
+            url=(f"{_API_V3}/interviews/{interview_id}/transcript"),
         )
         return InterviewTranscript.from_dict(data=response.json())
 
@@ -397,9 +395,7 @@ class AsyncInterviewTemplatesNamespace(_AsyncNamespace):
         """
         response = await self._request(
             method="GET",
-            url=(
-                f"{_API_V3}/interview_templates/{template_id}"
-            ),
+            url=(f"{_API_V3}/interview_templates/{template_id}"),
         )
         return InterviewTemplate.from_dict(data=response.json())
 
@@ -534,10 +530,7 @@ class AsyncTestCandidatesNamespace(_AsyncNamespace):
         """
         response = await self._request(
             method="GET",
-            url=(
-                f"{_API_V3}/tests/{test_id}/candidates/"
-                f"{candidate_id}"
-            ),
+            url=(f"{_API_V3}/tests/{test_id}/candidates/{candidate_id}"),
         )
         return TestCandidate.from_dict(data=response.json())
 
@@ -595,9 +588,7 @@ class AsyncTestsNamespace(_AsyncNamespace):
         )
         payload = response.json()
         raw_items = list(payload.get("data", []))
-        items: list[Test] = [
-            Test.from_dict(data=item) for item in raw_items
-        ]
+        items: list[Test] = [Test.from_dict(data=item) for item in raw_items]
         return _make_page(items, payload)
 
     async def get(
@@ -707,9 +698,7 @@ class AsyncUsersNamespace(_AsyncNamespace):
         )
         payload = response.json()
         raw_items = list(payload.get("data", []))
-        items: list[User] = [
-            User.from_dict(data=item) for item in raw_items
-        ]
+        items: list[User] = [User.from_dict(data=item) for item in raw_items]
         return _make_page(items, payload)
 
     async def get(self, *, user_id: str) -> User:
@@ -754,9 +743,7 @@ class AsyncTeamsNamespace(_AsyncNamespace):
         )
         payload = response.json()
         raw_items = list(payload.get("data", []))
-        items: list[Team] = [
-            Team.from_dict(data=item) for item in raw_items
-        ]
+        items: list[Team] = [Team.from_dict(data=item) for item in raw_items]
         return _make_page(items, payload)
 
     async def get(self, *, team_id: str) -> Team:
@@ -916,9 +903,7 @@ class AsyncSCIMNamespace(_AsyncNamespace):
         )
         payload = response.json()
         raw = list(payload.get("Resources", []))
-        items: list[SCIMUser] = [
-            SCIMUser.from_dict(data=item) for item in raw
-        ]
+        items: list[SCIMUser] = [SCIMUser.from_dict(data=item) for item in raw]
         return _make_scim_page(items, payload)
 
     async def list_groups(
@@ -943,9 +928,7 @@ class AsyncSCIMNamespace(_AsyncNamespace):
         )
         payload = response.json()
         raw = list(payload.get("Resources", []))
-        items: list[SCIMTeam] = [
-            SCIMTeam.from_dict(data=item) for item in raw
-        ]
+        items: list[SCIMTeam] = [SCIMTeam.from_dict(data=item) for item in raw]
         return _make_scim_page(items, payload)
 
 
@@ -974,12 +957,10 @@ class AsyncHackerRank:
             "Authorization": f"Bearer {api_key}",
             "Accept": "application/json",
         }
-        self.interviews: AsyncInterviewsNamespace = (
-            AsyncInterviewsNamespace(
-                transport=resolved_transport,
-                base_url=base_url,
-                headers=headers,
-            )
+        self.interviews: AsyncInterviewsNamespace = AsyncInterviewsNamespace(
+            transport=resolved_transport,
+            base_url=base_url,
+            headers=headers,
         )
         self.interview_templates: AsyncInterviewTemplatesNamespace = (
             AsyncInterviewTemplatesNamespace(
@@ -988,24 +969,20 @@ class AsyncHackerRank:
                 headers=headers,
             )
         )
-        self.questions: AsyncQuestionsNamespace = (
-            AsyncQuestionsNamespace(
-                transport=resolved_transport,
-                base_url=base_url,
-                headers=headers,
-            )
+        self.questions: AsyncQuestionsNamespace = AsyncQuestionsNamespace(
+            transport=resolved_transport,
+            base_url=base_url,
+            headers=headers,
         )
         self.tests: AsyncTestsNamespace = AsyncTestsNamespace(
             transport=resolved_transport,
             base_url=base_url,
             headers=headers,
         )
-        self.templates: AsyncTemplatesNamespace = (
-            AsyncTemplatesNamespace(
-                transport=resolved_transport,
-                base_url=base_url,
-                headers=headers,
-            )
+        self.templates: AsyncTemplatesNamespace = AsyncTemplatesNamespace(
+            transport=resolved_transport,
+            base_url=base_url,
+            headers=headers,
         )
         self.users: AsyncUsersNamespace = AsyncUsersNamespace(
             transport=resolved_transport,
@@ -1017,12 +994,10 @@ class AsyncHackerRank:
             base_url=base_url,
             headers=headers,
         )
-        self.audit_logs: AsyncAuditLogsNamespace = (
-            AsyncAuditLogsNamespace(
-                transport=resolved_transport,
-                base_url=base_url,
-                headers=headers,
-            )
+        self.audit_logs: AsyncAuditLogsNamespace = AsyncAuditLogsNamespace(
+            transport=resolved_transport,
+            base_url=base_url,
+            headers=headers,
         )
         self.ats: AsyncATSNamespace = AsyncATSNamespace(
             transport=resolved_transport,
