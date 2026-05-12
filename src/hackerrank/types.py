@@ -16,7 +16,6 @@ from hackerrank._dict_types import (
     InterviewTranscriptDict,
     InterviewTranscriptMessageDict,
     InviterDict,
-    JSONValue,
     QuestionDict,
     SCIMTeamDict,
     SCIMUserDict,
@@ -27,6 +26,7 @@ from hackerrank._dict_types import (
     UserDict,
     UserTeamMembershipDict,
 )
+from hackerrank._dict_types import JSONValue as JSONValue  # noqa: PLC0414
 
 
 @beartype
