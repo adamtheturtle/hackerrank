@@ -28,8 +28,6 @@ from hackerrank._dict_types import (
     UserTeamMembershipDict,
 )
 
-__all__ = ["JSONValue"]
-
 
 @beartype
 class Page[T](list[T]):
