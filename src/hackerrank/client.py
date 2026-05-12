@@ -39,7 +39,7 @@ _API_V3 = "/x/api/v3"
 
 
 def _drop_none(
-    data: Mapping[str, JSONValue | None],
+    data: Mapping[str, JSONValue],
     /,
 ) -> dict[str, JSONValue]:
     """Return a copy of ``data`` with ``None`` values removed.
