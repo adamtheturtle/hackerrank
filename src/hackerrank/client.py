@@ -1,7 +1,8 @@
 """HackerRank for Work API client."""
 
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from http import HTTPStatus
+from types import TracebackType
 from typing import Self, cast
 
 from beartype import beartype
@@ -20,6 +21,7 @@ from hackerrank.types import (
     InterviewTemplate,
     InterviewTranscript,
     Inviter,
+    JSONValue,
     Page,
     Question,
     SCIMPage,
@@ -36,7 +38,10 @@ from hackerrank.types import (
 _API_V3 = "/x/api/v3"
 
 
-def _drop_none(data: dict[str, object], /) -> dict[str, object]:
+def _drop_none(
+    data: Mapping[str, JSONValue | None],
+    /,
+) -> dict[str, JSONValue]:
     """Return a copy of ``data`` with ``None`` values removed.
 
     Args:
@@ -76,7 +81,7 @@ class _Namespace:
         method: str,
         url: str,
         params: dict[str, str | int] | None = None,
-        json: object | None = None,
+        json: Mapping[str, JSONValue] | None = None,
     ) -> TransportResponse:
         """Make an HTTP request.
 
@@ -144,7 +149,7 @@ def _coerce_str(value: object, /) -> str:
 
 def _make_page[T](
     items: list[T],
-    metadata: dict[str, object],
+    metadata: Mapping[str, JSONValue],
     /,
 ) -> Page[T]:
     """Wrap ``items`` and ``metadata`` into a ``Page``.
@@ -252,9 +257,9 @@ class InterviewsNamespace(_Namespace):
         resume_url: str | None = None,
         interviewers: Sequence[str] | None = None,
         result_url: str | None = None,
-        candidate: dict[str, object] | None = None,
+        candidate: Mapping[str, JSONValue] | None = None,
         send_email: bool | None = None,
-        metadata: dict[str, object] | None = None,
+        metadata: Mapping[str, JSONValue] | None = None,
         interview_template_id: int | None = None,
     ) -> Interview:
         """Create an interview.
@@ -324,9 +329,9 @@ class InterviewsNamespace(_Namespace):
         notes: str | None = None,
         resume_url: str | None = None,
         result_url: str | None = None,
-        candidate: dict[str, object] | None = None,
+        candidate: Mapping[str, JSONValue] | None = None,
         send_email: bool | None = None,
-        metadata: dict[str, object] | None = None,
+        metadata: Mapping[str, JSONValue] | None = None,
         interview_template_id: int | None = None,
     ) -> None:
         """Update an interview.
@@ -689,7 +694,7 @@ class QuestionsNamespace(_Namespace):
         self,
         *,
         question_id: str,
-        codestubs: dict[str, object],
+        codestubs: Mapping[str, JSONValue],
     ) -> None:
         """Update custom code-stubs for a question.
 
@@ -707,8 +712,8 @@ class QuestionsNamespace(_Namespace):
         self,
         *,
         question_id: str,
-        body: dict[str, object] | None = None,
-    ) -> dict[str, object]:
+        body: Mapping[str, JSONValue] | None = None,
+    ) -> dict[str, JSONValue]:
         """Generate code-stubs for a question.
 
         Args:
@@ -723,15 +728,15 @@ class QuestionsNamespace(_Namespace):
             url=(f"{_API_V3}/questions/{question_id}/generate"),
             json=body if body is not None else {},
         )
-        result: dict[str, object] = dict(response.json())
+        result: dict[str, JSONValue] = dict(response.json())
         return result
 
     def add_testcase(
         self,
         *,
         question_id: str,
-        body: dict[str, object],
-    ) -> dict[str, object]:
+        body: Mapping[str, JSONValue],
+    ) -> dict[str, JSONValue]:
         """Add a test case to a question.
 
         Args:
@@ -746,7 +751,7 @@ class QuestionsNamespace(_Namespace):
             url=(f"{_API_V3}/questions/{question_id}/testcases"),
             json=body,
         )
-        result: dict[str, object] = dict(response.json())
+        result: dict[str, JSONValue] = dict(response.json())
         return result
 
     def update_testcase(
@@ -754,7 +759,7 @@ class QuestionsNamespace(_Namespace):
         *,
         question_id: str,
         testcase_id: str,
-        body: dict[str, object],
+        body: Mapping[str, JSONValue],
     ) -> None:
         """Update an existing test case.
 
@@ -882,9 +887,9 @@ class TestCandidatesNamespace(_Namespace):
         invite_valid_to: str | None = None,
         force: bool | None = None,
         force_reattempt: bool | None = None,
-        accommodations: dict[str, object] | None = None,
-        invite_metadata: dict[str, object] | None = None,
-        webhook_authentication: dict[str, object] | None = None,
+        accommodations: Mapping[str, JSONValue] | None = None,
+        invite_metadata: Mapping[str, JSONValue] | None = None,
+        webhook_authentication: Mapping[str, JSONValue] | None = None,
         accept_result_updates: bool | None = None,
         subject: str | None = None,
         message: str | None = None,
@@ -981,14 +986,14 @@ class TestCandidatesNamespace(_Namespace):
         ats_state: int | None = None,
         invite_valid_from: str | None = None,
         invite_valid_to: str | None = None,
-        invite_metadata: dict[str, object] | None = None,
+        invite_metadata: Mapping[str, JSONValue] | None = None,
         evaluator_email: str | None = None,
         test_finish_url: str | None = None,
         test_result_url: str | None = None,
-        webhook_authentication: dict[str, object] | None = None,
+        webhook_authentication: Mapping[str, JSONValue] | None = None,
         accept_result_updates: bool | None = None,
         tags: Sequence[str] | None = None,
-        accommodations: dict[str, object] | None = None,
+        accommodations: Mapping[str, JSONValue] | None = None,
     ) -> None:
         """Update a candidate.
 
@@ -1074,7 +1079,7 @@ class TestCandidatesNamespace(_Namespace):
         test_id: str,
         candidate_id: str,
         format_: str = "url",
-    ) -> dict[str, object]:
+    ) -> dict[str, JSONValue]:
         """Retrieve the PDF report for a candidate.
 
         Args:
@@ -1092,7 +1097,7 @@ class TestCandidatesNamespace(_Namespace):
             url=(f"{_API_V3}/tests/{test_id}/candidates/{candidate_id}/pdf"),
             params={"format": format_},
         )
-        result: dict[str, object] = dict(response.json())
+        result: dict[str, JSONValue] = dict(response.json())
         return result
 
 
@@ -1304,7 +1309,7 @@ class TestsNamespace(_Namespace):
         self,
         *,
         test_id: str,
-        body: dict[str, object],
+        body: Mapping[str, JSONValue],
     ) -> None:
         """Update a test using a raw payload.
 
@@ -1577,7 +1582,7 @@ class UsersNamespace(_Namespace):
         self,
         *,
         user_id: str,
-        body: dict[str, object],
+        body: Mapping[str, JSONValue],
     ) -> None:
         """Update a user.
 
@@ -1922,9 +1927,9 @@ class ATSCodePairNamespace(_Namespace):
         title: str | None = None,
         requisition_id: str | None = None,
         candidate_id: str | None = None,
-        candidate: dict[str, object] | None = None,
+        candidate: Mapping[str, JSONValue] | None = None,
         send_email: bool | None = None,
-        interview_metadata: dict[str, object] | None = None,
+        interview_metadata: Mapping[str, JSONValue] | None = None,
     ) -> ATSCodePair:
         """Invite a candidate to an ATS Codepair interview.
 
@@ -1970,11 +1975,11 @@ class ATSCodeScreenNamespace(_Namespace):
         candidate_id: str | None = None,
         send_email: bool | None = None,
         test_result_url: str | None = None,
-        webhook_authentication: dict[str, object] | None = None,
+        webhook_authentication: Mapping[str, JSONValue] | None = None,
         accept_result_updates: bool | None = None,
         force: bool | None = None,
         force_reattempt_after: int | None = None,
-        accommodations: dict[str, object] | None = None,
+        accommodations: Mapping[str, JSONValue] | None = None,
     ) -> ATSCodeScreen:
         """Invite a candidate to a CodeScreen test.
 
@@ -2054,7 +2059,7 @@ class ATSNamespace(_Namespace):
 
 def _make_scim_page[T](
     items: list[T],
-    payload: dict[str, object],
+    payload: Mapping[str, JSONValue],
     /,
 ) -> SCIMPage[T]:
     """Wrap items and a SCIM payload into a ``SCIMPage``.
@@ -2114,7 +2119,7 @@ class SCIMUsersNamespace(_Namespace):
     def create(
         self,
         *,
-        body: dict[str, object],
+        body: Mapping[str, JSONValue],
     ) -> SCIMUser:
         """Create a SCIM user.
 
@@ -2150,7 +2155,7 @@ class SCIMUsersNamespace(_Namespace):
         self,
         *,
         scim_user_id: str,
-        body: dict[str, object],
+        body: Mapping[str, JSONValue],
     ) -> SCIMUser:
         """Replace a SCIM user (PUT).
 
@@ -2172,7 +2177,7 @@ class SCIMUsersNamespace(_Namespace):
         self,
         *,
         scim_user_id: str,
-        operations: Sequence[dict[str, object]],
+        operations: Sequence[Mapping[str, JSONValue]],
     ) -> SCIMUser:
         """Patch a SCIM user.
 
@@ -2183,7 +2188,9 @@ class SCIMUsersNamespace(_Namespace):
         Returns:
             The updated SCIM user.
         """
-        body: dict[str, object] = {"operations": list(operations)}
+        body: dict[str, JSONValue] = {
+            "operations": [dict(op) for op in operations],
+        }
         response = self._request(
             method="PATCH",
             url=f"/Users/{scim_user_id}",
@@ -2232,7 +2239,7 @@ class SCIMGroupsNamespace(_Namespace):
         items: list[SCIMTeam] = [SCIMTeam.from_dict(data=item) for item in raw]
         return _make_scim_page(items, payload)
 
-    def create(self, *, body: dict[str, object]) -> SCIMTeam:
+    def create(self, *, body: Mapping[str, JSONValue]) -> SCIMTeam:
         """Create a SCIM group.
 
         Args:
@@ -2267,7 +2274,7 @@ class SCIMGroupsNamespace(_Namespace):
         self,
         *,
         scim_group_id: str,
-        operations: Sequence[dict[str, object]],
+        operations: Sequence[Mapping[str, JSONValue]],
     ) -> SCIMTeam:
         """Patch a SCIM group.
 
@@ -2278,7 +2285,9 @@ class SCIMGroupsNamespace(_Namespace):
         Returns:
             The updated SCIM team.
         """
-        body: dict[str, object] = {"operations": list(operations)}
+        body: dict[str, JSONValue] = {
+            "operations": [dict(op) for op in operations],
+        }
         response = self._request(
             method="PATCH",
             url=f"/Groups/{scim_group_id}",
@@ -2431,7 +2440,7 @@ class HackerRank:
         self,
         _exc_type: type[BaseException] | None,
         _exc_val: BaseException | None,
-        _exc_tb: object,
+        _exc_tb: TracebackType | None,
     ) -> None:
         """Exit the context manager and close the transport."""
         self.close()
