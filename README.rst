@@ -38,8 +38,8 @@ Full Documentation
 
 See the `full documentation <https://adamtheturtle.github.io/hackerrank-api-python/>`__.
 
-.. |Build Status| image:: https://github.com/adamtheturtle/hackerrank-api-python/actions/workflows/ci.yml/badge.svg?branch=main
-   :target: https://github.com/adamtheturtle/hackerrank-api-python/actions
+.. |Build Status| image:: https://github.com/adamtheturtle/hackerrank/actions/workflows/ci.yml/badge.svg?branch=main
+   :target: https://github.com/adamtheturtle/hackerrank/actions
 .. |PyPI| image:: https://badge.fury.io/py/hackerrank-py.svg
    :target: https://badge.fury.io/py/hackerrank-py
 .. |minimum-python-version| replace:: 3.13
