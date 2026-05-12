@@ -106,7 +106,7 @@ class TestDict(TypedDict):
     role_ids: NotRequired[list[str]]
     experience: NotRequired[list[str]]
     questions: NotRequired[list[str]]
-    sections: NotRequired[dict[str, object]]
+    sections: NotRequired[list[dict[str, object]]]
     mcq_incorrect_score: NotRequired[int]
     mcq_correct_score: NotRequired[int]
     locked_by: NotRequired[str]

@@ -19,6 +19,9 @@ This is tested on Python |minimum-python-version|\+.
 Getting Started
 ---------------
 
+Generate an API token from the `HackerRank for Work tokens page`_ and
+pass it as ``api_key``:
+
 .. code-block:: python
 
    """Example usage."""
@@ -32,6 +35,8 @@ Getting Started
        sys.stdout.write(test.name)
    interview = client.interviews.create(title="My Interview")
    sys.stdout.write(interview.url or "")
+
+.. _HackerRank for Work tokens page: https://www.hackerrank.com/work/settings/token
 
 Full Documentation
 ------------------
