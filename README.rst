@@ -1,7 +1,7 @@
 |Build Status| |PyPI|
 
-hackerrank-py
-=============
+hackerrank
+==========
 
 Python library for the `HackerRank for Work API`_.
 
@@ -12,7 +12,7 @@ Installation
 
 .. code-block:: shell
 
-   pip install hackerrank-py
+   pip install hackerrank
 
 This is tested on Python |minimum-python-version|\+.
 
@@ -45,6 +45,6 @@ See the `full documentation <https://adamtheturtle.github.io/hackerrank/>`__.
 
 .. |Build Status| image:: https://github.com/adamtheturtle/hackerrank/actions/workflows/ci.yml/badge.svg?branch=main
    :target: https://github.com/adamtheturtle/hackerrank/actions
-.. |PyPI| image:: https://badge.fury.io/py/hackerrank-py.svg
-   :target: https://badge.fury.io/py/hackerrank-py
+.. |PyPI| image:: https://badge.fury.io/py/hackerrank.svg
+   :target: https://badge.fury.io/py/hackerrank
 .. |minimum-python-version| replace:: 3.13

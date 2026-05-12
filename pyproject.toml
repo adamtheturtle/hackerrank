@@ -6,7 +6,7 @@ requires = [
 ]
 
 [project]
-name = "hackerrank-py"
+name = "hackerrank"
 description = "Interact with the HackerRank for Work API."
 readme = { file = "README.rst", content-type = "text/x-rst" }
 keywords = [

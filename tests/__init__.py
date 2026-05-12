@@ -1,1 +1,1 @@
-"""Tests for hackerrank-py."""
+"""Tests for hackerrank."""
