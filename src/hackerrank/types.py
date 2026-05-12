@@ -379,7 +379,7 @@ class Test:
     role_ids: list[str] | None = None
     experience: list[str] | None = None
     questions: list[str] | None = None
-    sections: dict[str, object] | None = None
+    sections: list[dict[str, object]] | None = None
     mcq_incorrect_score: int | None = None
     mcq_correct_score: int | None = None
     locked_by: str | None = None
