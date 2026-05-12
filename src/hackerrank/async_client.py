@@ -1,7 +1,8 @@
 """Async HackerRank for Work API client."""
 
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from http import HTTPStatus
+from types import TracebackType
 from typing import Self, cast
 
 from beartype import beartype
@@ -20,6 +21,7 @@ from hackerrank.types import (
     InterviewTemplate,
     InterviewTranscript,
     Inviter,
+    JSONValue,
     Page,
     Question,
     SCIMPage,
@@ -36,7 +38,10 @@ from hackerrank.types import (
 _API_V3 = "/x/api/v3"
 
 
-def _drop_none(data: dict[str, object], /) -> dict[str, object]:
+def _drop_none(
+    data: Mapping[str, JSONValue | None],
+    /,
+) -> dict[str, JSONValue]:
     """Return a copy of ``data`` with ``None`` values removed.
 
     Args:
@@ -87,7 +92,7 @@ def _coerce_str(value: object, /) -> str:
 
 def _make_page[T](
     items: list[T],
-    metadata: dict[str, object],
+    metadata: Mapping[str, JSONValue],
     /,
 ) -> Page[T]:
     """Wrap ``items`` and ``metadata`` into a ``Page``.
@@ -113,7 +118,7 @@ def _make_page[T](
 
 def _make_scim_page[T](
     items: list[T],
-    payload: dict[str, object],
+    payload: Mapping[str, JSONValue],
     /,
 ) -> SCIMPage[T]:
     """Wrap items and a SCIM payload into a ``SCIMPage``.
@@ -195,7 +200,7 @@ class _AsyncNamespace:
         method: str,
         url: str,
         params: dict[str, str | int] | None = None,
-        json: object | None = None,
+        json: Mapping[str, JSONValue] | None = None,
     ) -> TransportResponse:
         """Make an async HTTP request.
 
@@ -262,9 +267,9 @@ class AsyncInterviewsNamespace(_AsyncNamespace):
         from_: str | None = None,
         to: str | None = None,
         interview_template_id: int | None = None,
-        candidate: dict[str, object] | None = None,
+        candidate: Mapping[str, JSONValue] | None = None,
         send_email: bool | None = None,
-        metadata: dict[str, object] | None = None,
+        metadata: Mapping[str, JSONValue] | None = None,
         interviewers: Sequence[str] | None = None,
     ) -> Interview:
         """Create an interview.
@@ -839,7 +844,7 @@ class AsyncATSNamespace(_AsyncNamespace):
     async def codepair_invite(
         self,
         *,
-        body: dict[str, object],
+        body: Mapping[str, JSONValue],
     ) -> ATSCodePair:
         """Invite a candidate to an ATS Codepair interview.
 
@@ -859,7 +864,7 @@ class AsyncATSNamespace(_AsyncNamespace):
     async def codescreen_invite(
         self,
         *,
-        body: dict[str, object],
+        body: Mapping[str, JSONValue],
     ) -> ATSCodeScreen:
         """Invite a candidate to a CodeScreen test.
 
@@ -1032,7 +1037,7 @@ class AsyncHackerRank:
         self,
         _exc_type: type[BaseException] | None,
         _exc_val: BaseException | None,
-        _exc_tb: object,
+        _exc_tb: TracebackType | None,
         /,
     ) -> None:
         """Exit the async context manager and close."""
