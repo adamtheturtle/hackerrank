@@ -10,7 +10,7 @@ from typing import Any, Protocol, Self, runtime_checkable
 import httpx
 from beartype import beartype
 
-from hackerrank._dict_types import JSONValue
+from hackerrank.types import JSONValue
 
 
 class HTTPStatusError(Exception):

@@ -1,8 +1,8 @@
 """Types for the HackerRank for Work API."""
 
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
-from typing import ClassVar, Self
+from typing import Any, ClassVar, Self
 
 from beartype import beartype
 
@@ -26,9 +26,22 @@ from hackerrank._dict_types import (
     UserDict,
     UserTeamMembershipDict,
 )
-from hackerrank._dict_types import (
-    JSONValue as JSONValue,  # noqa: PLC0414  # pylint: disable=useless-import-alias
+
+type JSONValue = (
+    str | int | float | bool | None | Sequence[Any] | Mapping[str, Any]
 )
+"""A JSON-compatible value.
+
+Used for free-form fields such as ``metadata``, ``candidate``,
+``accommodations`` and ``webhook_authentication`` — anything where
+the HackerRank API accepts or returns an opaque blob constrained
+only to be JSON-serialisable.
+
+``Sequence`` / ``Mapping`` (rather than ``list`` / ``dict``) make
+the alias accept narrower concrete types such as ``dict[str, str]``
+without invariance issues. The inner ``Any`` keeps the alias
+non-recursive so ``@beartype`` can resolve it at runtime.
+"""
 
 
 @beartype
