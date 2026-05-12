@@ -26,7 +26,9 @@ from hackerrank._dict_types import (
     UserDict,
     UserTeamMembershipDict,
 )
-from hackerrank._dict_types import JSONValue as JSONValue  # noqa: PLC0414  # pylint: disable=useless-import-alias
+from hackerrank._dict_types import (
+    JSONValue as JSONValue,  # noqa: PLC0414  # pylint: disable=useless-import-alias
+)
 
 
 @beartype
