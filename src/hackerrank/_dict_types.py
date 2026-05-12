@@ -1,6 +1,6 @@
 """TypedDict types describing raw HackerRank API response shapes."""
 
-from typing import NotRequired, TypedDict
+from typing import Any, NotRequired, TypedDict
 
 
 class InterviewDict(TypedDict):
@@ -16,8 +16,8 @@ class InterviewDict(TypedDict):
     resume_url: NotRequired[str]
     interviewers: NotRequired[list[str]]
     result_url: NotRequired[str]
-    candidate: NotRequired[dict[str, object]]
-    metadata: NotRequired[dict[str, object]]
+    candidate: NotRequired[dict[str, Any]]
+    metadata: NotRequired[dict[str, Any]]
     report_url: NotRequired[str]
     ended_at: NotRequired[str]
     interview_template_id: NotRequired[int]
@@ -106,7 +106,7 @@ class TestDict(TypedDict):
     role_ids: NotRequired[list[str]]
     experience: NotRequired[list[str]]
     questions: NotRequired[list[str]]
-    sections: NotRequired[dict[str, object]]
+    sections: NotRequired[list[dict[str, Any]]]
     mcq_incorrect_score: NotRequired[int]
     mcq_correct_score: NotRequired[int]
     locked_by: NotRequired[str]
@@ -154,7 +154,7 @@ class TestCandidateDict(TypedDict):
     invite_valid_from: NotRequired[str]
     invite_valid_to: NotRequired[str]
     invite_link: NotRequired[str]
-    invite_metadata: NotRequired[dict[str, object]]
+    invite_metadata: NotRequired[dict[str, Any]]
     evaluator_email: NotRequired[str]
     test_finish_url: NotRequired[str]
     test_result_url: NotRequired[str]
@@ -163,17 +163,17 @@ class TestCandidateDict(TypedDict):
     report_url: NotRequired[str]
     authenticated_report_url: NotRequired[str]
     pdf_url: NotRequired[str]
-    scores_tags_split: NotRequired[dict[str, object]]
-    scores_skills_split: NotRequired[dict[str, object]]
+    scores_tags_split: NotRequired[dict[str, Any]]
+    scores_skills_split: NotRequired[dict[str, Any]]
     added_time: NotRequired[int]
     unclaimed_added_time: NotRequired[int]
-    comments: NotRequired[dict[str, object]]
+    comments: NotRequired[dict[str, Any]]
     performance_summary: NotRequired[str]
     ip_address: NotRequired[str]
-    questions: NotRequired[dict[str, object]]
-    plagiarism: NotRequired[dict[str, object]]
+    questions: NotRequired[dict[str, Any]]
+    plagiarism: NotRequired[dict[str, Any]]
     plagiarism_status: NotRequired[bool]
-    max_code_similarity: NotRequired[dict[str, object]]
+    max_code_similarity: NotRequired[dict[str, Any]]
     feedback: NotRequired[str]
     percentage_score: NotRequired[float]
     candidate_details: NotRequired[list[CandidateDetailDict]]
@@ -274,7 +274,7 @@ class AuditLogDict(TypedDict):
     user: NotRequired[str]
     action: str
     modified_fields: NotRequired[list[str]]
-    modified_values: NotRequired[dict[str, object]]
+    modified_values: NotRequired[dict[str, Any]]
     ip_address: NotRequired[str]
     created_at: NotRequired[str]
 
@@ -285,9 +285,9 @@ class ATSCodePairDict(TypedDict):
     title: NotRequired[str]
     requisition_id: NotRequired[str]
     candidate_id: NotRequired[str]
-    candidate: NotRequired[dict[str, object]]
+    candidate: NotRequired[dict[str, Any]]
     send_email: NotRequired[bool]
-    interview_metadata: NotRequired[dict[str, object]]
+    interview_metadata: NotRequired[dict[str, Any]]
 
 
 class ATSCodeScreenDict(TypedDict):
@@ -306,12 +306,12 @@ class SCIMUserDict(TypedDict):
 
     id: str
     userName: str
-    name: NotRequired[dict[str, object]]
+    name: NotRequired[dict[str, Any]]
     active: NotRequired[bool]
     role: NotRequired[str]
     team_admin: NotRequired[bool]
     company_admin: NotRequired[bool]
-    emails: NotRequired[list[dict[str, object]]]
+    emails: NotRequired[list[dict[str, Any]]]
     schemas: NotRequired[list[str]]
 
 

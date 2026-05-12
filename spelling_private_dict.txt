@@ -30,6 +30,7 @@ html
 http
 https
 httpx
+invariance
 inviters
 io
 iterable

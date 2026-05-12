@@ -1,8 +1,8 @@
 """Types for the HackerRank for Work API."""
 
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
-from typing import ClassVar, Self
+from typing import Any, ClassVar, Self
 
 from beartype import beartype
 
@@ -26,6 +26,22 @@ from hackerrank._dict_types import (
     UserDict,
     UserTeamMembershipDict,
 )
+
+type JSONValue = (
+    str | int | float | bool | None | Sequence[Any] | Mapping[str, Any]
+)
+"""A JSON-compatible value.
+
+Used for free-form fields such as ``metadata``, ``candidate``,
+``accommodations`` and ``webhook_authentication`` — anything where
+the HackerRank API accepts or returns an opaque blob constrained
+only to be JSON-serialisable.
+
+``Sequence`` / ``Mapping`` (rather than ``list`` / ``dict``) make
+the alias accept narrower concrete types such as ``dict[str, str]``
+without invariance issues. The inner ``Any`` keeps the alias
+non-recursive so ``@beartype`` can resolve it at runtime.
+"""
 
 
 @beartype
@@ -150,8 +166,8 @@ class Interview:
     resume_url: str | None = None
     interviewers: list[str] | None = None
     result_url: str | None = None
-    candidate: dict[str, object] | None = None
-    metadata: dict[str, object] | None = None
+    candidate: dict[str, JSONValue] | None = None
+    metadata: dict[str, JSONValue] | None = None
     report_url: str | None = None
     ended_at: str | None = None
     interview_template_id: int | None = None
@@ -379,7 +395,7 @@ class Test:
     role_ids: list[str] | None = None
     experience: list[str] | None = None
     questions: list[str] | None = None
-    sections: dict[str, object] | None = None
+    sections: list[dict[str, JSONValue]] | None = None
     mcq_incorrect_score: int | None = None
     mcq_correct_score: int | None = None
     locked_by: str | None = None
@@ -487,7 +503,7 @@ class TestCandidate:
     invite_valid_from: str | None = None
     invite_valid_to: str | None = None
     invite_link: str | None = None
-    invite_metadata: dict[str, object] | None = None
+    invite_metadata: dict[str, JSONValue] | None = None
     evaluator_email: str | None = None
     test_finish_url: str | None = None
     test_result_url: str | None = None
@@ -496,17 +512,17 @@ class TestCandidate:
     report_url: str | None = None
     authenticated_report_url: str | None = None
     pdf_url: str | None = None
-    scores_tags_split: dict[str, object] | None = None
-    scores_skills_split: dict[str, object] | None = None
+    scores_tags_split: dict[str, JSONValue] | None = None
+    scores_skills_split: dict[str, JSONValue] | None = None
     added_time: int | None = None
     unclaimed_added_time: int | None = None
-    comments: dict[str, object] | None = None
+    comments: dict[str, JSONValue] | None = None
     performance_summary: str | None = None
     ip_address: str | None = None
-    questions: dict[str, object] | None = None
-    plagiarism: dict[str, object] | None = None
+    questions: dict[str, JSONValue] | None = None
+    plagiarism: dict[str, JSONValue] | None = None
     plagiarism_status: bool | None = None
-    max_code_similarity: dict[str, object] | None = None
+    max_code_similarity: dict[str, JSONValue] | None = None
     feedback: str | None = None
     percentage_score: float | None = None
     candidate_details: list[CandidateDetail] | None = None
@@ -840,7 +856,7 @@ class AuditLog:
     action: str
     user: str | None = None
     modified_fields: list[str] | None = None
-    modified_values: dict[str, object] | None = None
+    modified_values: dict[str, JSONValue] | None = None
     ip_address: str | None = None
     created_at: str | None = None
 
@@ -874,9 +890,9 @@ class ATSCodePair:
     title: str | None = None
     requisition_id: str | None = None
     candidate_id: str | None = None
-    candidate: dict[str, object] | None = None
+    candidate: dict[str, JSONValue] | None = None
     send_email: bool | None = None
-    interview_metadata: dict[str, object] | None = None
+    interview_metadata: dict[str, JSONValue] | None = None
 
     @classmethod
     def from_dict(cls, data: ATSCodePairDict) -> Self:
@@ -939,12 +955,12 @@ class SCIMUser:
 
     id: str
     user_name: str
-    name: dict[str, object] | None = None
+    name: dict[str, JSONValue] | None = None
     active: bool | None = None
     role: str | None = None
     team_admin: bool | None = None
     company_admin: bool | None = None
-    emails: list[dict[str, object]] | None = None
+    emails: list[dict[str, JSONValue]] | None = None
     schemas: list[str] | None = None
 
     @classmethod

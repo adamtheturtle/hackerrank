@@ -1,12 +1,16 @@
 """Transport abstractions for the HackerRank for Work API."""
 
 import json as json_module
+from collections.abc import Mapping
 from dataclasses import dataclass
 from http import HTTPStatus
+from types import TracebackType
 from typing import Any, Protocol, Self, runtime_checkable
 
 import httpx
 from beartype import beartype
+
+from hackerrank.types import JSONValue
 
 
 class HTTPStatusError(Exception):
@@ -75,7 +79,7 @@ class Transport(Protocol):
         url: str,
         headers: dict[str, str],
         params: dict[str, str | int] | None = None,
-        json: object | None = None,
+        json: Mapping[str, JSONValue] | None = None,
     ) -> TransportResponse:
         """Make an HTTP request.
 
@@ -123,7 +127,7 @@ class HTTPXTransport:
         self,
         _exc_type: type[BaseException] | None,
         _exc_val: BaseException | None,
-        _exc_tb: object,
+        _exc_tb: TracebackType | None,
     ) -> None:
         """Exit the context manager and close the client."""
         self.close()
@@ -135,7 +139,7 @@ class HTTPXTransport:
         url: str,
         headers: dict[str, str],
         params: dict[str, str | int] | None = None,
-        json: object | None = None,
+        json: Mapping[str, JSONValue] | None = None,
     ) -> TransportResponse:
         """Make an HTTP request using ``httpx``.
 
@@ -175,7 +179,7 @@ class AsyncTransport(Protocol):
         url: str,
         headers: dict[str, str],
         params: dict[str, str | int] | None = None,
-        json: object | None = None,
+        json: Mapping[str, JSONValue] | None = None,
     ) -> TransportResponse:
         """Make an async HTTP request.
 
@@ -217,7 +221,7 @@ class AsyncHTTPXTransport:
         self,
         _exc_type: type[BaseException] | None,
         _exc_val: BaseException | None,
-        _exc_tb: object,
+        _exc_tb: TracebackType | None,
         /,
     ) -> None:
         """Exit the async context manager and close."""
@@ -230,7 +234,7 @@ class AsyncHTTPXTransport:
         url: str,
         headers: dict[str, str],
         params: dict[str, str | int] | None = None,
-        json: object | None = None,
+        json: Mapping[str, JSONValue] | None = None,
     ) -> TransportResponse:
         """Make an async HTTP request using ``httpx``.
 
