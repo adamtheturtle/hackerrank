@@ -36,7 +36,7 @@ Getting Started
 Full Documentation
 ------------------
 
-See the `full documentation <https://adamtheturtle.github.io/hackerrank-api-python/>`__.
+See the `full documentation <https://adamtheturtle.github.io/hackerrank/>`__.
 
 .. |Build Status| image:: https://github.com/adamtheturtle/hackerrank/actions/workflows/ci.yml/badge.svg?branch=main
    :target: https://github.com/adamtheturtle/hackerrank/actions
