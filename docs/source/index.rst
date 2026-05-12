@@ -6,7 +6,7 @@ Installation
 
 .. code-block:: console
 
-   $ pip install hackerrank-py
+   $ pip install hackerrank
 
 This is tested on Python |minimum-python-version|\+.
 
