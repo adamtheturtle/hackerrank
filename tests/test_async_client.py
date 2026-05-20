@@ -18,17 +18,17 @@ class TestAsyncHackerRank:
     def test_namespaces_are_attached() -> None:
         """The async client exposes the expected namespaces."""
         client = AsyncHackerRank(api_key="test-key")
-        assert hasattr(client, "interviews")
-        assert hasattr(client, "interview_templates")
-        assert hasattr(client, "questions")
-        assert hasattr(client, "tests")
-        assert hasattr(client.tests, "candidates")
-        assert hasattr(client, "templates")
-        assert hasattr(client, "users")
-        assert hasattr(client, "teams")
-        assert hasattr(client, "audit_logs")
-        assert hasattr(client, "ats")
-        assert hasattr(client, "scim")
+        _ = client.interviews
+        _ = client.interview_templates
+        _ = client.questions
+        _ = client.tests
+        _ = client.tests.candidates
+        _ = client.templates
+        _ = client.users
+        _ = client.teams
+        _ = client.audit_logs
+        _ = client.ats
+        _ = client.scim
 
     @staticmethod
     @pytest.mark.asyncio

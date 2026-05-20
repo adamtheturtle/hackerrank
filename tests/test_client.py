@@ -86,22 +86,22 @@ class TestHackerRank:
     def test_namespaces_are_attached() -> None:
         """The client exposes the expected namespaces."""
         client = HackerRank(api_key="test-key")
-        assert hasattr(client, "interviews")
-        assert hasattr(client, "interview_templates")
-        assert hasattr(client, "questions")
-        assert hasattr(client, "tests")
-        assert hasattr(client.tests, "candidates")
-        assert hasattr(client, "templates")
-        assert hasattr(client, "users")
-        assert hasattr(client, "teams")
-        assert hasattr(client.teams, "memberships")
-        assert hasattr(client, "audit_logs")
-        assert hasattr(client, "ats")
-        assert hasattr(client.ats, "codepair")
-        assert hasattr(client.ats, "codescreen")
-        assert hasattr(client, "scim")
-        assert hasattr(client.scim, "users")
-        assert hasattr(client.scim, "groups")
+        _ = client.interviews
+        _ = client.interview_templates
+        _ = client.questions
+        _ = client.tests
+        _ = client.tests.candidates
+        _ = client.templates
+        _ = client.users
+        _ = client.teams
+        _ = client.teams.memberships
+        _ = client.audit_logs
+        _ = client.ats
+        _ = client.ats.codepair
+        _ = client.ats.codescreen
+        _ = client.scim
+        _ = client.scim.users
+        _ = client.scim.groups
 
 
 class TestHTTPXTransport:
