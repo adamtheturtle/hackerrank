@@ -3,7 +3,7 @@
 from collections.abc import Mapping, Sequence
 from http import HTTPStatus
 from types import TracebackType
-from typing import Self, cast
+from typing import Self, cast  # noqa: TID251
 
 from beartype import beartype
 

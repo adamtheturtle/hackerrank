@@ -18,6 +18,7 @@ class TestAsyncHackerRank:
     def test_namespaces_are_attached() -> None:
         """The async client exposes the expected namespaces."""
         client = AsyncHackerRank(api_key="test-key")
+        # pylint: disable=bad-builtin
         assert hasattr(client, "interviews")
         assert hasattr(client, "interview_templates")
         assert hasattr(client, "questions")
