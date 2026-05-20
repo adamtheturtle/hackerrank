@@ -184,7 +184,6 @@ DEPRECATED_BUILTINS.bad-functions = [
     "map",
     "setattr",
 ]
-
 "MESSAGES CONTROL".enable = [
     "bad-inline-option",
     "deprecated-pragma",
