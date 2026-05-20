@@ -2073,7 +2073,7 @@ def _make_scim_page[T](
     """
     schemas_raw = payload.get("schemas")
     schemas: list[str] = (
-        list(cast("list[str]", schemas_raw))  # noqa: TID251
+        list(cast("list[str]", schemas_raw))
         if isinstance(schemas_raw, list)
         else []
     )

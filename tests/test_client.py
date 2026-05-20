@@ -86,22 +86,23 @@ class TestHackerRank:
     def test_namespaces_are_attached() -> None:
         """The client exposes the expected namespaces."""
         client = HackerRank(api_key="test-key")
-        assert hasattr(client, "interviews")  # pylint: disable=bad-builtin
-        assert hasattr(client, "interview_templates")  # pylint: disable=bad-builtin
-        assert hasattr(client, "questions")  # pylint: disable=bad-builtin
-        assert hasattr(client, "tests")  # pylint: disable=bad-builtin
-        assert hasattr(client.tests, "candidates")  # pylint: disable=bad-builtin
-        assert hasattr(client, "templates")  # pylint: disable=bad-builtin
-        assert hasattr(client, "users")  # pylint: disable=bad-builtin
-        assert hasattr(client, "teams")  # pylint: disable=bad-builtin
-        assert hasattr(client.teams, "memberships")  # pylint: disable=bad-builtin
-        assert hasattr(client, "audit_logs")  # pylint: disable=bad-builtin
-        assert hasattr(client, "ats")  # pylint: disable=bad-builtin
-        assert hasattr(client.ats, "codepair")  # pylint: disable=bad-builtin
-        assert hasattr(client.ats, "codescreen")  # pylint: disable=bad-builtin
-        assert hasattr(client, "scim")  # pylint: disable=bad-builtin
-        assert hasattr(client.scim, "users")  # pylint: disable=bad-builtin
-        assert hasattr(client.scim, "groups")  # pylint: disable=bad-builtin
+        # pylint: disable=bad-builtin
+        assert hasattr(client, "interviews")
+        assert hasattr(client, "interview_templates")
+        assert hasattr(client, "questions")
+        assert hasattr(client, "tests")
+        assert hasattr(client.tests, "candidates")
+        assert hasattr(client, "templates")
+        assert hasattr(client, "users")
+        assert hasattr(client, "teams")
+        assert hasattr(client.teams, "memberships")
+        assert hasattr(client, "audit_logs")
+        assert hasattr(client, "ats")
+        assert hasattr(client.ats, "codepair")
+        assert hasattr(client.ats, "codescreen")
+        assert hasattr(client, "scim")
+        assert hasattr(client.scim, "users")
+        assert hasattr(client.scim, "groups")
 
 
 class TestHTTPXTransport:

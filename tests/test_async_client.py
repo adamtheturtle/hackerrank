@@ -18,17 +18,18 @@ class TestAsyncHackerRank:
     def test_namespaces_are_attached() -> None:
         """The async client exposes the expected namespaces."""
         client = AsyncHackerRank(api_key="test-key")
-        assert hasattr(client, "interviews")  # pylint: disable=bad-builtin
-        assert hasattr(client, "interview_templates")  # pylint: disable=bad-builtin
-        assert hasattr(client, "questions")  # pylint: disable=bad-builtin
-        assert hasattr(client, "tests")  # pylint: disable=bad-builtin
-        assert hasattr(client.tests, "candidates")  # pylint: disable=bad-builtin
-        assert hasattr(client, "templates")  # pylint: disable=bad-builtin
-        assert hasattr(client, "users")  # pylint: disable=bad-builtin
-        assert hasattr(client, "teams")  # pylint: disable=bad-builtin
-        assert hasattr(client, "audit_logs")  # pylint: disable=bad-builtin
-        assert hasattr(client, "ats")  # pylint: disable=bad-builtin
-        assert hasattr(client, "scim")  # pylint: disable=bad-builtin
+        # pylint: disable=bad-builtin
+        assert hasattr(client, "interviews")
+        assert hasattr(client, "interview_templates")
+        assert hasattr(client, "questions")
+        assert hasattr(client, "tests")
+        assert hasattr(client.tests, "candidates")
+        assert hasattr(client, "templates")
+        assert hasattr(client, "users")
+        assert hasattr(client, "teams")
+        assert hasattr(client, "audit_logs")
+        assert hasattr(client, "ats")
+        assert hasattr(client, "scim")
 
     @staticmethod
     @pytest.mark.asyncio
