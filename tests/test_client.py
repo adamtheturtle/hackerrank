@@ -86,22 +86,22 @@ class TestHackerRank:
     def test_namespaces_are_attached() -> None:
         """The client exposes the expected namespaces."""
         client = HackerRank(api_key="test-key")
-        _ = client.interviews
-        _ = client.interview_templates
-        _ = client.questions
-        _ = client.tests
-        _ = client.tests.candidates
-        _ = client.templates
-        _ = client.users
-        _ = client.teams
-        _ = client.teams.memberships
-        _ = client.audit_logs
-        _ = client.ats
-        _ = client.ats.codepair
-        _ = client.ats.codescreen
-        _ = client.scim
-        _ = client.scim.users
-        _ = client.scim.groups
+        assert hasattr(client, "interviews")  # pylint: disable=bad-builtin
+        assert hasattr(client, "interview_templates")  # pylint: disable=bad-builtin
+        assert hasattr(client, "questions")  # pylint: disable=bad-builtin
+        assert hasattr(client, "tests")  # pylint: disable=bad-builtin
+        assert hasattr(client.tests, "candidates")  # pylint: disable=bad-builtin
+        assert hasattr(client, "templates")  # pylint: disable=bad-builtin
+        assert hasattr(client, "users")  # pylint: disable=bad-builtin
+        assert hasattr(client, "teams")  # pylint: disable=bad-builtin
+        assert hasattr(client.teams, "memberships")  # pylint: disable=bad-builtin
+        assert hasattr(client, "audit_logs")  # pylint: disable=bad-builtin
+        assert hasattr(client, "ats")  # pylint: disable=bad-builtin
+        assert hasattr(client.ats, "codepair")  # pylint: disable=bad-builtin
+        assert hasattr(client.ats, "codescreen")  # pylint: disable=bad-builtin
+        assert hasattr(client, "scim")  # pylint: disable=bad-builtin
+        assert hasattr(client.scim, "users")  # pylint: disable=bad-builtin
+        assert hasattr(client.scim, "groups")  # pylint: disable=bad-builtin
 
 
 class TestHTTPXTransport:
