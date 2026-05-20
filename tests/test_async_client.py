@@ -2,6 +2,7 @@
 
 import pytest
 
+import hackerrank.async_client as async_client_module
 from hackerrank.async_client import AsyncHackerRank
 
 
@@ -18,18 +19,44 @@ class TestAsyncHackerRank:
     def test_namespaces_are_attached() -> None:
         """The async client exposes the expected namespaces."""
         client = AsyncHackerRank(api_key="test-key")
-        # pylint: disable=bad-builtin
-        assert hasattr(client, "interviews")
-        assert hasattr(client, "interview_templates")
-        assert hasattr(client, "questions")
-        assert hasattr(client, "tests")
-        assert hasattr(client.tests, "candidates")
-        assert hasattr(client, "templates")
-        assert hasattr(client, "users")
-        assert hasattr(client, "teams")
-        assert hasattr(client, "audit_logs")
-        assert hasattr(client, "ats")
-        assert hasattr(client, "scim")
+        assert isinstance(
+            client.interviews,
+            async_client_module.AsyncInterviewsNamespace,
+        )
+        assert isinstance(
+            client.interview_templates,
+            async_client_module.AsyncInterviewTemplatesNamespace,
+        )
+        assert isinstance(
+            client.questions,
+            async_client_module.AsyncQuestionsNamespace,
+        )
+        assert isinstance(
+            client.tests,
+            async_client_module.AsyncTestsNamespace,
+        )
+        assert isinstance(
+            client.tests.candidates,
+            async_client_module.AsyncTestCandidatesNamespace,
+        )
+        assert isinstance(
+            client.templates,
+            async_client_module.AsyncTemplatesNamespace,
+        )
+        assert isinstance(
+            client.users,
+            async_client_module.AsyncUsersNamespace,
+        )
+        assert isinstance(
+            client.teams,
+            async_client_module.AsyncTeamsNamespace,
+        )
+        assert isinstance(
+            client.audit_logs,
+            async_client_module.AsyncAuditLogsNamespace,
+        )
+        assert isinstance(client.ats, async_client_module.AsyncATSNamespace)
+        assert isinstance(client.scim, async_client_module.AsyncSCIMNamespace)
 
     @staticmethod
     @pytest.mark.asyncio

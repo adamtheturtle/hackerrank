@@ -6,6 +6,7 @@ import httpx
 import pytest
 import respx
 
+import hackerrank.client as client_module
 from hackerrank.client import HackerRank
 from hackerrank.exceptions import (
     AuthenticationError,
@@ -86,23 +87,40 @@ class TestHackerRank:
     def test_namespaces_are_attached() -> None:
         """The client exposes the expected namespaces."""
         client = HackerRank(api_key="test-key")
-        # pylint: disable=bad-builtin
-        assert hasattr(client, "interviews")
-        assert hasattr(client, "interview_templates")
-        assert hasattr(client, "questions")
-        assert hasattr(client, "tests")
-        assert hasattr(client.tests, "candidates")
-        assert hasattr(client, "templates")
-        assert hasattr(client, "users")
-        assert hasattr(client, "teams")
-        assert hasattr(client.teams, "memberships")
-        assert hasattr(client, "audit_logs")
-        assert hasattr(client, "ats")
-        assert hasattr(client.ats, "codepair")
-        assert hasattr(client.ats, "codescreen")
-        assert hasattr(client, "scim")
-        assert hasattr(client.scim, "users")
-        assert hasattr(client.scim, "groups")
+        assert isinstance(client.interviews, client_module.InterviewsNamespace)
+        assert isinstance(
+            client.interview_templates,
+            client_module.InterviewTemplatesNamespace,
+        )
+        assert isinstance(client.questions, client_module.QuestionsNamespace)
+        assert isinstance(client.tests, client_module.TestsNamespace)
+        assert isinstance(
+            client.tests.candidates,
+            client_module.TestCandidatesNamespace,
+        )
+        assert isinstance(client.templates, client_module.TemplatesNamespace)
+        assert isinstance(client.users, client_module.UsersNamespace)
+        assert isinstance(client.teams, client_module.TeamsNamespace)
+        assert isinstance(
+            client.teams.memberships,
+            client_module.TeamMembershipsNamespace,
+        )
+        assert isinstance(client.audit_logs, client_module.AuditLogsNamespace)
+        assert isinstance(client.ats, client_module.ATSNamespace)
+        assert isinstance(
+            client.ats.codepair,
+            client_module.ATSCodePairNamespace,
+        )
+        assert isinstance(
+            client.ats.codescreen,
+            client_module.ATSCodeScreenNamespace,
+        )
+        assert isinstance(client.scim, client_module.SCIMNamespace)
+        assert isinstance(client.scim.users, client_module.SCIMUsersNamespace)
+        assert isinstance(
+            client.scim.groups,
+            client_module.SCIMGroupsNamespace,
+        )
 
 
 class TestHTTPXTransport:
