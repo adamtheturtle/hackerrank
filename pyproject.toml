@@ -94,13 +94,13 @@ urls.Source = "https://github.com/adamtheturtle/hackerrank"
 dev = []
 
 [tool.setuptools]
-zip-safe = false
-package-data.hackerrank = [
-    "py.typed",
-]
 packages.find.where = [
     "src",
 ]
+package-data.hackerrank = [
+    "py.typed",
+]
+zip-safe = false
 
 [tool.distutils]
 bdist_wheel.universal = true
@@ -151,15 +151,57 @@ lint.flake8-tidy-imports.banned-api."typing.cast".msg = "typing.cast is banned: 
 lint.pydocstyle.convention = "google"
 
 [tool.pylint]
+"MESSAGES CONTROL".disable = [
+    "duplicate-code",
+    "line-too-long",
+    "locally-disabled",
+    "missing-return-type-doc",
+    "missing-type-doc",
+    "too-few-public-methods",
+    "too-many-arguments",
+    "too-many-instance-attributes",
+    "too-many-lines",
+    "too-many-locals",
+    "too-many-return-statements",
+    "ungrouped-imports",
+    "unused-import",
+    "useless-type-doc",
+    "wrong-import-order",
+]
+"MESSAGES CONTROL".enable = [
+    "bad-inline-option",
+    "deprecated-pragma",
+    "file-ignored",
+    "spelling",
+    "use-symbolic-message-instead",
+    "useless-suppression",
+]
+"MESSAGES CONTROL".per-file-ignores = [
+    "docs/source/conf.py:invalid-name",
+    "docs/source/doccmd_*.py:invalid-name",
+    "doccmd_README_rst_*.py:invalid-name",
+]
+DEPRECATED_BUILTINS.bad-functions = [
+    # Use Pylint until Ruff can ban bare builtin calls, or until custom rules
+    # make this removable:
+    # https://github.com/astral-sh/ruff/issues/10079
+    # https://github.com/astral-sh/ruff/issues/970
+    "filter",
+    "getattr",
+    "hasattr",
+    "map",
+    "setattr",
+]
 # Allow the body of an if to be on the same line as the test if there is no
 # else.
 FORMAT.single-line-if-stmt = false
-# Pickle collected data for later comparisons.
-MASTER.persistent = true
+# Return non-zero exit code if useless-suppression is emitted.
+MAIN.fail-on = [
+    "useless-suppression",
+]
 # Use multiple processes to speed up Pylint.
 MASTER.jobs = 0
 MASTER.load-plugins = [
-    "pylint_per_file_ignores",
     "pylint.extensions.bad_builtin",
     "pylint.extensions.comparison_placement",
     "pylint.extensions.consider_refactoring_into_while_condition",
@@ -175,81 +217,44 @@ MASTER.load-plugins = [
     "pylint.extensions.redefined_variable_type",
     "pylint.extensions.set_membership",
     "pylint.extensions.typing",
+    "pylint_per_file_ignores",
 ]
+# Pickle collected data for later comparisons.
+MASTER.persistent = true
 MASTER.unsafe-load-any-extension = false
-# Return non-zero exit code if useless-suppression is emitted.
-MAIN.fail-on = [
-    "useless-suppression",
-]
-DEPRECATED_BUILTINS.bad-functions = [
-    # Use Pylint until Ruff can ban bare builtin calls, or until custom rules
-    # make this removable:
-    # https://github.com/astral-sh/ruff/issues/10079
-    # https://github.com/astral-sh/ruff/issues/970
-    "filter",
-    "getattr",
-    "hasattr",
-    "map",
-    "setattr",
-]
-"MESSAGES CONTROL".enable = [
-    "bad-inline-option",
-    "deprecated-pragma",
-    "file-ignored",
-    "spelling",
-    "use-symbolic-message-instead",
-    "useless-suppression",
-]
-"MESSAGES CONTROL".disable = [
-    "too-few-public-methods",
-    "too-many-locals",
-    "too-many-arguments",
-    "too-many-instance-attributes",
-    "too-many-return-statements",
-    "too-many-lines",
-    "locally-disabled",
-    "line-too-long",
-    "unused-import",
-    "ungrouped-imports",
-    "missing-type-doc",
-    "missing-return-type-doc",
-    "duplicate-code",
-    "wrong-import-order",
-    "useless-type-doc",
-]
-"MESSAGES CONTROL".per-file-ignores = [
-    "docs/source/conf.py:invalid-name",
-    "docs/source/doccmd_*.py:invalid-name",
-    "doccmd_README_rst_*.py:invalid-name",
-]
 SPELLING.spelling-dict = "en_US"
 SPELLING.spelling-private-dict-file = "spelling_private_dict.txt"
 SPELLING.spelling-store-unknown-words = "no"
 
+[tool.interrogate]
+fail-under = 100
+verbose = 2
+omit-covered-files = true
+
 [tool.check-manifest]
 ignore = [
+    "*.enc",
     ".checkmake-config.ini",
+    ".git_archival.txt",
+    ".pre-commit-config.yaml",
     ".prettierrc",
     ".yamlfmt",
-    "*.enc",
-    ".pre-commit-config.yaml",
     "CHANGELOG.rst",
-    "newsfragments",
-    "newsfragments/**",
-    "CODE_OF_CONDUCT.rst",
-    "CONTRIBUTING.rst",
-    "LICENSE",
-    "Makefile",
     "ci",
     "ci/**",
+    "CODE_OF_CONDUCT.rst",
+    "CONTRIBUTING.rst",
     "doc8.ini",
     "docs",
     "docs/**",
-    ".git_archival.txt",
+    "LICENSE",
+    "lint.mk",
+    "Makefile",
+    "newsfragments",
+    "newsfragments/**",
     "spelling_private_dict.txt",
     "tests",
     "tests/**",
-    "lint.mk",
     "zizmor.yml",
 ]
 
@@ -259,16 +264,263 @@ optional_dependencies_dev_groups = [
     "release",
 ]
 
+[tool.vulture]
+exclude = [ ".venv" ]
+ignore_names = [
+    # Async context manager dunder
+    "__aexit__",
+    # pytest fixtures - we name fixtures like this for this purpose
+    "_fixture_*",
+    # Public dataclass / TypedDict fields - these are read by API
+    # consumers, not by us, so vulture cannot see the reads.
+    "accept_result_updates",
+    "accommodations",
+    "action",
+    "activated",
+    "active",
+    # Public method names exposed on namespace classes
+    "add_testcase",
+    "added_time",
+    "archive",
+    # Public client / namespace entry points
+    "AsyncHackerRank",
+    # Namespace attributes (read via `getattr` / dotted access)
+    "ats",
+    "ats_state",
+    "attempt_endtime",
+    "attempt_events",
+    "attempt_starttime",
+    "audit_logs",
+    "authenticated_report_url",
+    # Exception subclasses (registered by `__init_subclass__`)
+    "AuthenticationError",
+    "author",
+    # Sphinx
+    "autoclass_content",
+    "autodoc_member_order",
+    "BadRequestError",
+    "cancel_invite",
+    "candidate",
+    "candidate_details",
+    "candidate_id",
+    "candidates",
+    "candidates_invited",
+    "codepair",
+    "codepair_invite",
+    "codescreen",
+    "codescreen_invite",
+    "comments",
+    "company_admin",
+    "ConflictError",
+    "copybutton_exclude",
+    "country",
+    "create",
+    "default",
+    "delete",
+    "delete_all_testcases",
+    "delete_report",
+    "delete_testcase",
+    "departments",
+    "developer_cap",
+    "developer_count",
+    "diplayName",
+    "display_name",
+    "displayName",
+    "duration",
+    "editor_access",
+    "editor_paste_count",
+    "email",
+    "emails",
+    "ended_at",
+    "evaluator_email",
+    "experience",
+    "extensions",
+    "feedback",
+    "field_name",
+    "firstname",
+    "fixture_*",
+    "ForbiddenError",
+    "force",
+    "force_reattempt",
+    "force_reattempt_after",
+    "from_",
+    "full_name",
+    "generate_codestubs",
+    "get_report_pdf",
+    "get_transcript",
+    "groups",
+    "HackerRank",
+    "html_show_copyright",
+    "html_show_sourcelink",
+    "html_show_sphinx",
+    "html_theme",
+    "html_theme_options",
+    "html_title",
+    "htmlhelp_basename",
+    "id",
+    "ide_config",
+    "import_template",
+    "instructions",
+    "integrity_status",
+    "integrity_summary",
+    "internal_notes",
+    "intersphinx_mapping",
+    "interview_metadata",
+    "interview_template_id",
+    "interview_templates",
+    "interviewers",
+    "interviews",
+    "invite",
+    "invite_as",
+    "invite_email_done",
+    "invite_link",
+    "invite_metadata",
+    "invite_valid",
+    "invite_valid_from",
+    "invite_valid_to",
+    "invited_on",
+    "ip_address",
+    "language",
+    "languages",
+    "last_activity_time",
+    "lastname",
+    "license",
+    "linkcheck_ignore",
+    "linkcheck_retries",
+    "list_groups",
+    "list_inviters",
+    "list_members",
+    "list_users",
+    "locations",
+    "locked",
+    "locked_by",
+    "master_doc",
+    "master_password",
+    "max_code_similarity",
+    "max_score",
+    "mcq_correct_score",
+    "mcq_incorrect_score",
+    "memberships",
+    "message_id",
+    "messageId",
+    "messages",
+    "modified_fields",
+    "modified_values",
+    # ``Page.next`` shadows the builtin ``next`` so vulture sees it
+    # as unused even when the attribute is read.
+    "next",
+    "nitpick_ignore",
+    "nitpick_ignore_regex",
+    "nitpicky",
+    "notes",
+    "NotFoundError",
+    "operations",
+    "out_of_window_duration",
+    "out_of_window_events",
+    "owner",
+    "page_total",
+    "params",
+    "patch",
+    "pdf_url",
+    "percentage_score",
+    "performance_summary",
+    "phone",
+    "plagiarism",
+    "plagiarism_status",
+    "proctor_images",
+    "project_copyright",
+    "public_login_url",
+    "pygments_style",
+    # pytest configuration
+    "pytest_collect_file",
+    "pytest_plugins",
+    "raise_for_status",
+    "RateLimitError",
+    "recommended_duration",
+    "recruiter_cap",
+    "recruiter_count",
+    "replace",
+    "report_url",
+    "request",
+    "requisition_id",
+    "result_url",
+    "resume_url",
+    "role",
+    "role_ids",
+    "roles",
+    "rst_prolog",
+    "scim",
+    "scim_group_id",
+    "scim_user_id",
+    "score",
+    "scorecard",
+    "scores_skills_split",
+    "scores_tags_split",
+    "sections",
+    "send_email",
+    "ServerError",
+    "shared_candidates_permission",
+    "shared_interviews_permission",
+    "shared_questions_permission",
+    "shared_tests_permission",
+    "short_login_url",
+    "shuffle_questions",
+    "source_id",
+    "source_suffix",
+    "source_type",
+    "spelling_word_list_filename",
+    "starred",
+    "starttime",
+    "state",
+    "status",
+    "subject",
+    "tags",
+    "team",
+    "team_admin",
+    "team_share",
+    "teams",
+    "templates",
+    "templates_path",
+    "test",
+    "test_admins",
+    "test_finish_url",
+    "test_result_url",
+    "testcase_id",
+    "tests",
+    "text",
+    "thumbs_up",
+    "timestamp",
+    "timezone",
+    "title",
+    "to",
+    "towncrier_draft_autoversion_mode",
+    "towncrier_draft_include_empty",
+    "towncrier_draft_working_directory",
+    "type",
+    "unclaimed_added_time",
+    "unique_id",
+    "UnprocessableEntityError",
+    "update_codestubs",
+    "update_testcase",
+    "user",
+    "user_name",
+    "userName",
+    "users",
+    "value",
+    "warning_is_error",
+    "webhook_authentication",
+]
+
 [tool.pyproject-fmt]
 indent = 4
 keep_full_version = true
 max_supported_python = "3.14"
 
 [tool.mypy]
-strict = true
 files = [ "." ]
 exclude = [ "build" ]
 follow_untyped_imports = true
+strict = true
 plugins = [
     "mypy_strict_kwargs",
 ]
@@ -277,14 +529,14 @@ plugins = [
 errors.non-exhaustive-match = "error"
 
 [tool.pyright]
+typeCheckingMode = "strict"
 enableTypeIgnoreComments = false
 reportUnnecessaryTypeIgnoreComment = true
-typeCheckingMode = "strict"
 
 [tool.pytest]
-xfail_strict = true
-log_cli = true
 asyncio_mode = "strict"
+log_cli = true
+xfail_strict = true
 
 [tool.coverage]
 run.branch = true
@@ -305,11 +557,11 @@ filename = "CHANGELOG.rst"
 # date) followed by a flat bullet list with no per-type sub-headings.
 template = "docs/towncrier_template.rst.jinja"
 title_format = "{version}"
+issue_format = "#{issue}"
 # ``title_format`` underline first, then any nested headings.  A bare
 # version such as ``2026.05.18`` underlined with ``-`` matches every
 # pre-towncrier entry in CHANGELOG.rst.
 underlines = [ "-", "~", "^" ]
-issue_format = "#{issue}"
 type = [
     # A single, unnamed fragment type keeps the assembled output as one
     # flat bullet list, matching the historical changelog (which never
@@ -326,11 +578,6 @@ split-summary-body = false
 max-line-length = 75
 linewrap-full-docstring = true
 
-[tool.interrogate]
-fail-under = 100
-omit-covered-files = true
-verbose = 2
-
 [tool.doc8]
 max_line_length = 2000
 ignore_path = [
@@ -341,253 +588,6 @@ ignore_path = [
     "./src/*.egg-info/",
     "./src/*/_setuptools_scm_version.txt",
 ]
-
-[tool.vulture]
-ignore_names = [
-    # Async context manager dunder
-    "__aexit__",
-    # pytest configuration
-    "pytest_collect_file",
-    "pytest_plugins",
-    # pytest fixtures - we name fixtures like this for this purpose
-    "_fixture_*",
-    "fixture_*",
-    # Sphinx
-    "autoclass_content",
-    "autodoc_member_order",
-    "copybutton_exclude",
-    "extensions",
-    "html_show_copyright",
-    "html_show_sourcelink",
-    "html_show_sphinx",
-    "html_theme",
-    "html_theme_options",
-    "html_title",
-    "htmlhelp_basename",
-    "intersphinx_mapping",
-    "language",
-    "linkcheck_ignore",
-    "linkcheck_retries",
-    "master_doc",
-    "nitpicky",
-    "nitpick_ignore",
-    "nitpick_ignore_regex",
-    "project_copyright",
-    "pygments_style",
-    "rst_prolog",
-    "source_suffix",
-    "spelling_word_list_filename",
-    "templates_path",
-    "warning_is_error",
-    # Exception subclasses (registered by `__init_subclass__`)
-    "AuthenticationError",
-    "BadRequestError",
-    "ConflictError",
-    "ForbiddenError",
-    "NotFoundError",
-    "RateLimitError",
-    "ServerError",
-    "UnprocessableEntityError",
-    # Public client / namespace entry points
-    "AsyncHackerRank",
-    "HackerRank",
-    # Namespace attributes (read via `getattr` / dotted access)
-    "ats",
-    "audit_logs",
-    "candidates",
-    "codepair",
-    "codescreen",
-    "groups",
-    "interview_templates",
-    "interviews",
-    "memberships",
-    "scim",
-    "templates",
-    "tests",
-    "users",
-    # Public method names exposed on namespace classes
-    "add_testcase",
-    "archive",
-    "cancel_invite",
-    "codepair_invite",
-    "codescreen_invite",
-    "create",
-    "delete",
-    "delete_all_testcases",
-    "delete_report",
-    "delete_testcase",
-    "generate_codestubs",
-    "get_report_pdf",
-    "get_transcript",
-    "invite",
-    "list_groups",
-    "list_inviters",
-    "list_members",
-    "list_users",
-    "patch",
-    "raise_for_status",
-    "replace",
-    "update_codestubs",
-    "update_testcase",
-    # Public dataclass / TypedDict fields - these are read by API
-    # consumers, not by us, so vulture cannot see the reads.
-    "accept_result_updates",
-    "accommodations",
-    "action",
-    "activated",
-    "active",
-    "added_time",
-    "ats_state",
-    "attempt_endtime",
-    "attempt_events",
-    "attempt_starttime",
-    "authenticated_report_url",
-    "author",
-    "candidate",
-    "candidate_details",
-    "candidate_id",
-    "candidates_invited",
-    "comments",
-    "company_admin",
-    "country",
-    "default",
-    "departments",
-    "developer_cap",
-    "developer_count",
-    "diplayName",
-    "display_name",
-    "displayName",
-    "duration",
-    "editor_access",
-    "editor_paste_count",
-    "email",
-    "emails",
-    "ended_at",
-    "evaluator_email",
-    "experience",
-    "feedback",
-    "field_name",
-    "firstname",
-    "force",
-    "force_reattempt",
-    "force_reattempt_after",
-    "from_",
-    "full_name",
-    "id",
-    "ide_config",
-    "import_template",
-    "instructions",
-    "integrity_status",
-    "integrity_summary",
-    "internal_notes",
-    "interview_metadata",
-    "interview_template_id",
-    "interviewers",
-    "invite_as",
-    "invite_email_done",
-    "invite_link",
-    "invite_metadata",
-    "invite_valid",
-    "invite_valid_from",
-    "invite_valid_to",
-    "invited_on",
-    "ip_address",
-    "languages",
-    "last_activity_time",
-    "lastname",
-    "license",
-    "locations",
-    "locked",
-    "locked_by",
-    "master_password",
-    "max_code_similarity",
-    "max_score",
-    "mcq_correct_score",
-    "mcq_incorrect_score",
-    "message_id",
-    "messageId",
-    "messages",
-    "modified_fields",
-    "modified_values",
-    "notes",
-    "operations",
-    "out_of_window_duration",
-    "out_of_window_events",
-    "owner",
-    "page_total",
-    "params",
-    "pdf_url",
-    "percentage_score",
-    "performance_summary",
-    "phone",
-    "plagiarism",
-    "plagiarism_status",
-    "proctor_images",
-    "public_login_url",
-    "recommended_duration",
-    "recruiter_cap",
-    "recruiter_count",
-    "report_url",
-    "request",
-    "requisition_id",
-    "result_url",
-    "resume_url",
-    "role",
-    "role_ids",
-    "roles",
-    "scim_group_id",
-    "scim_user_id",
-    "scorecard",
-    "score",
-    "scores_skills_split",
-    "scores_tags_split",
-    "sections",
-    "send_email",
-    "shared_candidates_permission",
-    "shared_interviews_permission",
-    "shared_questions_permission",
-    "shared_tests_permission",
-    "short_login_url",
-    "shuffle_questions",
-    "source_id",
-    "source_type",
-    "starred",
-    "starttime",
-    "state",
-    "status",
-    "subject",
-    "tags",
-    "team",
-    "team_admin",
-    "team_share",
-    "teams",
-    "test",
-    "test_admins",
-    "test_finish_url",
-    "test_result_url",
-    "testcase_id",
-    "text",
-    "thumbs_up",
-    "timestamp",
-    "timezone",
-    "title",
-    "to",
-    "type",
-    "unclaimed_added_time",
-    "unique_id",
-    "user",
-    "user_name",
-    "userName",
-    "value",
-    "webhook_authentication",
-    # ``Page.next`` shadows the builtin ``next`` so vulture sees it
-    # as unused even when the attribute is read.
-    "next",
-    "towncrier_draft_autoversion_mode",
-    "towncrier_draft_include_empty",
-    "towncrier_draft_working_directory",
-]
-exclude = [ ".venv" ]
 
 [tool.yamlfix]
 section_whitelines = 1
