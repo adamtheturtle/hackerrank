@@ -3,7 +3,7 @@
 from collections.abc import Mapping, Sequence
 from http import HTTPStatus
 from types import TracebackType
-from typing import Self, cast  # noqa: TID251
+from typing import Self
 
 from beartype import beartype
 
@@ -2072,11 +2072,11 @@ def _make_scim_page[T](
         The populated ``SCIMPage`` instance.
     """
     schemas_raw = payload.get("schemas")
-    schemas: list[str] = (
-        list(cast("list[str]", schemas_raw))
-        if isinstance(schemas_raw, list)
-        else []
-    )
+    schemas: list[str] = [
+        item
+        for item in (schemas_raw if isinstance(schemas_raw, list) else [])
+        if isinstance(item, str)
+    ]
     start_index = _coerce_int(payload.get("startIndex")) or 1
     return SCIMPage(
         items,
