@@ -24,6 +24,7 @@ docstring
 endtime
 enum
 firstname
+fullstack
 github
 hackerrank
 html
@@ -62,6 +63,7 @@ schemas
 starttime
 str
 subclasses
+testcases
 todo
 txt
 typecheck

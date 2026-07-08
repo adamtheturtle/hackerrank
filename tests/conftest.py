@@ -253,6 +253,11 @@ def _response_for(  # noqa: C901, PLR0911, PLR0912  # pylint: disable=too-comple
             string=path,
         ):
             return httpx.Response(status_code=200, json={})
+        if path == "/x/api/v3/questions/q-with-body":
+            return httpx.Response(
+                status_code=200,
+                json=_QUESTION_OBJ,
+            )
         if re.fullmatch(pattern=r"/Users/[^/]+", string=path):
             return httpx.Response(
                 status_code=200,

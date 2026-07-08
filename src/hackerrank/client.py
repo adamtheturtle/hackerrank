@@ -231,17 +231,14 @@ def _question_body(
             "name": name,
             "type": type,
             "internal_notes": internal_notes,
-            "languages": (
-                list(languages) if languages is not None else None
-            ),
+            "languages": (list(languages) if languages is not None else None),
             "problem_statement": problem_statement,
             "recommended_duration": recommended_duration,
             "tags": list(tags) if tags is not None else None,
             "options": (list(options) if options is not None else None),
             "answer": (
                 list(answer)
-                if isinstance(answer, Sequence)
-                and not isinstance(answer, str)
+                if isinstance(answer, Sequence) and not isinstance(answer, str)
                 else answer
             ),
             "score": score,
@@ -258,9 +255,7 @@ def _question_body(
                 list(default_files) if default_files is not None else None
             ),
             "configuration": configuration,
-            "testcases": (
-                list(testcases) if testcases is not None else None
-            ),
+            "testcases": (list(testcases) if testcases is not None else None),
         },
     )
 

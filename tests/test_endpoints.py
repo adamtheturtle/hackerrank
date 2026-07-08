@@ -154,6 +154,10 @@ class TestSyncEndpoints:
             question_id="q1",
             answer=[1, 2],
         )
+        sync_client.questions.update(
+            question_id="q-with-body",
+            scoring_command="npm run grade",
+        )
         sync_client.questions.upload_project_zip(
             question_id="q1",
             file=b"zip",
@@ -533,6 +537,10 @@ class TestAsyncEndpoints:
         await async_client.questions.get(question_id="q1")
         await async_client.questions.update(
             question_id="q1",
+            scoring_command="npm run grade",
+        )
+        await async_client.questions.update(
+            question_id="q-with-body",
             scoring_command="npm run grade",
         )
         await async_client.questions.upload_project_zip(
