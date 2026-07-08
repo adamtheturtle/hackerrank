@@ -80,6 +80,7 @@ class Transport(Protocol):
         headers: dict[str, str],
         params: dict[str, str | int] | None = None,
         json: Mapping[str, JSONValue] | None = None,
+        files: Mapping[str, Any] | None = None,
     ) -> TransportResponse:
         """Make an HTTP request.
 
@@ -91,6 +92,7 @@ class Transport(Protocol):
             json: A JSON-serialisable body. When provided the
                 ``Content-Type`` header is set to
                 ``application/json``.
+            files: Files to send as multipart form-data.
 
         Returns:
             A ``TransportResponse`` populated from the HTTP
@@ -140,6 +142,7 @@ class HTTPXTransport:
         headers: dict[str, str],
         params: dict[str, str | int] | None = None,
         json: Mapping[str, JSONValue] | None = None,
+        files: Mapping[str, Any] | None = None,
     ) -> TransportResponse:
         """Make an HTTP request using ``httpx``.
 
@@ -149,6 +152,7 @@ class HTTPXTransport:
             headers: Request headers.
             params: Query parameters.
             json: A JSON-serialisable body.
+            files: Files to send as multipart form-data.
 
         Returns:
             A ``TransportResponse`` populated from the httpx
@@ -160,6 +164,7 @@ class HTTPXTransport:
             headers=headers,
             params=params,
             json=json,
+            files=files,
         )
         return TransportResponse(
             status_code=response.status_code,
@@ -180,6 +185,7 @@ class AsyncTransport(Protocol):
         headers: dict[str, str],
         params: dict[str, str | int] | None = None,
         json: Mapping[str, JSONValue] | None = None,
+        files: Mapping[str, Any] | None = None,
     ) -> TransportResponse:
         """Make an async HTTP request.
 
@@ -189,6 +195,7 @@ class AsyncTransport(Protocol):
             headers: Headers to send with the request.
             params: Query parameters.
             json: A JSON-serialisable body.
+            files: Files to send as multipart form-data.
 
         Returns:
             A ``TransportResponse`` populated from the HTTP
@@ -235,6 +242,7 @@ class AsyncHTTPXTransport:
         headers: dict[str, str],
         params: dict[str, str | int] | None = None,
         json: Mapping[str, JSONValue] | None = None,
+        files: Mapping[str, Any] | None = None,
     ) -> TransportResponse:
         """Make an async HTTP request using ``httpx``.
 
@@ -244,6 +252,7 @@ class AsyncHTTPXTransport:
             headers: Request headers.
             params: Query parameters.
             json: A JSON-serialisable body.
+            files: Files to send as multipart form-data.
 
         Returns:
             A ``TransportResponse`` populated from the httpx
@@ -255,6 +264,7 @@ class AsyncHTTPXTransport:
             headers=headers,
             params=params,
             json=json,
+            files=files,
         )
         return TransportResponse(
             status_code=response.status_code,

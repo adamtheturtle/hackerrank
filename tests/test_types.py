@@ -4,6 +4,7 @@ from hackerrank.types import (
     ATSCodePair,
     ATSCodeScreen,
     AuditLog,
+    Environment,
     Interview,
     InterviewTemplate,
     InterviewTranscript,
@@ -116,10 +117,31 @@ class TestFromDict:
                 "id": "q1",
                 "type": "code",
                 "name": "Reverse a string",
+                "environment_id": 92,
+                "fullstack_project_details": {"name": "PERN"},
             },
         )
         assert question.id == "q1"
         assert question.type == "code"
+        assert question.environment_id == 92
+        assert question.fullstack_project_details == {"name": "PERN"}
+
+    @staticmethod
+    def test_environment_from_dict() -> None:
+        """``Environment.from_dict`` populates the dataclass."""
+        environment = Environment.from_dict(
+            data={
+                "id": 92,
+                "name": "PERN",
+                "tags": ["fullstack"],
+                "runtime": [{"name": "Node", "version": "20"}],
+                "active": True,
+                "sample_project_url": "https://example.com/project.zip",
+            },
+        )
+        assert environment.id == 92
+        assert environment.runtime[0].name == "Node"
+        assert environment.active is True
 
     @staticmethod
     def test_user_from_dict() -> None:

@@ -43,6 +43,12 @@ _INTERVIEW_OBJ = {
     "url": "https://example.com/iv1",
 }
 _INTERVIEW_TEMPLATE_OBJ = {"id": 1, "name": "T"}
+_ENVIRONMENT_OBJ = {
+    "id": 92,
+    "name": "PERN",
+    "tags": ["fullstack"],
+    "runtime": [{"name": "Node", "version": "20"}],
+}
 _QUESTION_OBJ = {"id": "q1", "type": "code", "name": "Q"}
 _TEMPLATE_OBJ = {"id": "tpl1", "name": "T"}
 _USER_OBJ = {"id": "u1", "email": "u@x.com"}
@@ -78,6 +84,11 @@ def _response_for(  # noqa: C901, PLR0911, PLR0912  # pylint: disable=too-comple
             "/x/api/v3/audit_log",
         }:
             return httpx.Response(status_code=200, json=_PAGE)
+        if path == "/x/api/v3/environments":
+            return httpx.Response(
+                status_code=200,
+                json={"environments": [_ENVIRONMENT_OBJ]},
+            )
         if path.endswith(("/inviters", "/candidates")):
             return httpx.Response(status_code=200, json=_PAGE)
         if path.endswith(("/candidates/search", "/users/search")):
@@ -118,6 +129,19 @@ def _response_for(  # noqa: C901, PLR0911, PLR0912  # pylint: disable=too-comple
             return httpx.Response(
                 status_code=200,
                 json=_INTERVIEW_TEMPLATE_OBJ,
+            )
+        if re.fullmatch(pattern=r"/x/api/v3/environments/[^/]+", string=path):
+            return httpx.Response(
+                status_code=200,
+                json={
+                    "environment": {
+                        **_ENVIRONMENT_OBJ,
+                        "active": True,
+                        "sample_project_url": (
+                            "https://example.com/project.zip"
+                        ),
+                    },
+                },
             )
         if re.fullmatch(pattern=r"/x/api/v3/questions/[^/]+", string=path):
             return httpx.Response(
@@ -167,6 +191,17 @@ def _response_for(  # noqa: C901, PLR0911, PLR0912  # pylint: disable=too-comple
             return httpx.Response(
                 status_code=200,
                 json=_QUESTION_OBJ,
+            )
+        if re.fullmatch(
+            pattern=r"/x/api/v3/questions/[^/]+/upload_project_zip",
+            string=path,
+        ):
+            return httpx.Response(
+                status_code=200,
+                json={
+                    "file_url": "https://example.com/project.zip",
+                    "file_path": "question_projects/q1/project.zip",
+                },
             )
         if re.fullmatch(
             pattern=r"/x/api/v3/questions/[^/]+/testcases", string=path
