@@ -103,6 +103,23 @@ class TestSyncEndpoints:
             answer=[1, 2],
         )
         sync_client.questions.create(
+            name="Build a TODO app",
+            type="fullstack",
+            problem_statement="<p>Build it.</p>",
+            recommended_duration=60,
+            environment_id=92,
+            role_type="fullstack",
+            tags=["Medium"],
+            score=100.0,
+            internal_notes="n",
+            scoring_command="npm run score",
+            scoring_files=["score.test.js"],
+            readonly_paths=["README.md"],
+            default_files=["src/index.js"],
+            configuration={"menu": {"run": "npm start"}},
+            testcases=[{"name": "creates a todo", "weight": 1}],
+        )
+        sync_client.questions.create(
             name="Q",
             type="mcq",
             answer=1,
@@ -123,7 +140,27 @@ class TestSyncEndpoints:
         )
         sync_client.questions.update(
             question_id="q1",
+            score=100.0,
+            environment_id=92,
+            role_type="fullstack",
+            scoring_command="npm run grade",
+            scoring_files=["score.test.js"],
+            readonly_paths=["README.md"],
+            default_files=["src/index.js"],
+            configuration={"menu": {"run": "npm run dev"}},
+            testcases=[{"name": "creates a todo", "weight": 1}],
+        )
+        sync_client.questions.update(
+            question_id="q1",
             answer=[1, 2],
+        )
+        sync_client.questions.update(
+            question_id="q-with-body",
+            scoring_command="npm run grade",
+        )
+        sync_client.questions.upload_project_zip(
+            question_id="q1",
+            file=b"zip",
         )
         sync_client.questions.update_codestubs(
             question_id="q1",
@@ -150,6 +187,12 @@ class TestSyncEndpoints:
         sync_client.questions.delete_all_testcases(
             question_id="q1",
         )
+
+    @staticmethod
+    def test_environments(sync_client: HackerRank) -> None:
+        """Exercise the ``environments`` namespace."""
+        sync_client.environments.list()
+        sync_client.environments.get(environment_id=92)
 
     @staticmethod
     def test_tests(sync_client: HackerRank) -> None:
@@ -473,7 +516,46 @@ class TestAsyncEndpoints:
         """Exercise the async ``questions`` namespace."""
         await async_client.questions.list()
         await async_client.questions.list(limit=1, offset=0)
+        await async_client.questions.create(name="Q", type="code")
+        await async_client.questions.create(
+            name="Build a TODO app",
+            type="fullstack",
+            problem_statement="<p>Build it.</p>",
+            recommended_duration=60,
+            environment_id=92,
+            role_type="fullstack",
+            tags=["Medium"],
+            score=100.0,
+            internal_notes="n",
+            scoring_command="npm run score",
+            scoring_files=["score.test.js"],
+            readonly_paths=["README.md"],
+            default_files=["src/index.js"],
+            configuration={"menu": {"run": "npm start"}},
+            testcases=[{"name": "creates a todo", "weight": 1}],
+        )
         await async_client.questions.get(question_id="q1")
+        await async_client.questions.update(
+            question_id="q1",
+            scoring_command="npm run grade",
+        )
+        await async_client.questions.update(
+            question_id="q-with-body",
+            scoring_command="npm run grade",
+        )
+        await async_client.questions.upload_project_zip(
+            question_id="q1",
+            file=b"zip",
+        )
+
+    @staticmethod
+    @pytest.mark.asyncio
+    async def test_environments(
+        async_client: AsyncHackerRank,
+    ) -> None:
+        """Exercise the async ``environments`` namespace."""
+        await async_client.environments.list()
+        await async_client.environments.get(environment_id=92)
 
     @staticmethod
     @pytest.mark.asyncio

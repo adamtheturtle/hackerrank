@@ -265,7 +265,7 @@ optional_dependencies_dev_groups = [
 ]
 
 [tool.vulture]
-exclude = [ ".venv" ]
+exclude = [ ".context", ".venv" ]
 ignore_names = [
     # Async context manager dunder
     "__aexit__",
@@ -337,6 +337,8 @@ ignore_names = [
     "extensions",
     "feedback",
     "field_name",
+    "file_path",
+    "file_url",
     "firstname",
     "fixture_*",
     "ForbiddenError",
@@ -350,6 +352,7 @@ ignore_names = [
     "get_transcript",
     "groups",
     "HackerRank",
+    "has_valid_stacks",
     "html_show_copyright",
     "html_show_sourcelink",
     "html_show_sphinx",
@@ -483,6 +486,7 @@ ignore_names = [
     "templates_path",
     "test",
     "test_admins",
+    "test_case_count",
     "test_finish_url",
     "test_result_url",
     "testcase_id",

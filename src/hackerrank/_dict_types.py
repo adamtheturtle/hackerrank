@@ -60,6 +60,24 @@ class InterviewTemplateDict(TypedDict):
     editor_access: NotRequired[bool]
 
 
+class EnvironmentRuntimeDict(TypedDict):
+    """A runtime component for a project-question environment."""
+
+    name: str
+    version: str
+
+
+class EnvironmentDict(TypedDict):
+    """A project-question environment."""
+
+    id: int
+    name: str
+    tags: list[str]
+    runtime: list[EnvironmentRuntimeDict]
+    active: NotRequired[bool]
+    sample_project_url: NotRequired[str]
+
+
 class QuestionDict(TypedDict):
     """A HackerRank question."""
 
@@ -78,6 +96,13 @@ class QuestionDict(TypedDict):
     max_score: NotRequired[float]
     options: NotRequired[list[str]]
     answer: NotRequired[int | list[int]]
+    test_case_count: NotRequired[int]
+    role_type: NotRequired[str]
+    environment_id: NotRequired[int]
+    file_url: NotRequired[str]
+    file_path: NotRequired[str]
+    has_valid_stacks: NotRequired[bool]
+    fullstack_project_details: NotRequired[dict[str, Any]]
 
 
 class TestDict(TypedDict):

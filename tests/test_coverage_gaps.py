@@ -158,9 +158,10 @@ class TestAsyncCloseOwnership:
                 headers: dict[str, str],
                 params: dict[str, str | int] | None = None,
                 json: object | None = None,
+                files: object | None = None,
             ) -> TransportResponse:  # pragma: no cover
                 """Make a request."""
-                del method, url, headers, params, json
+                del method, url, headers, params, json, files
                 raise NotImplementedError
 
         client = AsyncHackerRank(

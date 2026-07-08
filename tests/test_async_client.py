@@ -28,6 +28,10 @@ class TestAsyncHackerRank:
             async_client_module.AsyncInterviewTemplatesNamespace,
         )
         assert isinstance(
+            client.environments,
+            async_client_module.AsyncEnvironmentsNamespace,
+        )
+        assert isinstance(
             client.questions,
             async_client_module.AsyncQuestionsNamespace,
         )

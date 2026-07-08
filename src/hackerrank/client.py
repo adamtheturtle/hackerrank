@@ -1,9 +1,10 @@
 """HackerRank for Work API client."""
 
+import builtins
 from collections.abc import Mapping, Sequence
 from http import HTTPStatus
 from types import TracebackType
-from typing import Self
+from typing import Any, BinaryIO, Self
 
 from beartype import beartype
 
@@ -17,6 +18,7 @@ from hackerrank.types import (
     ATSCodePair,
     ATSCodeScreen,
     AuditLog,
+    Environment,
     Interview,
     InterviewTemplate,
     InterviewTranscript,
@@ -82,6 +84,7 @@ class _Namespace:
         url: str,
         params: dict[str, str | int] | None = None,
         json: Mapping[str, JSONValue] | None = None,
+        files: Mapping[str, Any] | None = None,
     ) -> TransportResponse:
         """Make an HTTP request.
 
@@ -90,6 +93,7 @@ class _Namespace:
             url: The URL path.
             params: Query parameters.
             json: JSON-serialisable body.
+            files: Files to send as multipart form-data.
 
         Returns:
             The transport response.
@@ -104,6 +108,7 @@ class _Namespace:
             headers=self.headers,
             params=params,
             json=json,
+            files=files,
         )
         if response.status_code >= HTTPStatus.BAD_REQUEST:
             raise HackerRankError.from_response(response=response)
@@ -197,6 +202,62 @@ def _list_params(
     if extra:
         params.update(extra)
     return params
+
+
+def _question_body(
+    *,
+    name: str | None = None,
+    type: str | None = None,  # noqa: A002  # pylint: disable=redefined-builtin
+    internal_notes: str | None = None,
+    languages: Sequence[str] | None = None,
+    problem_statement: str | None = None,
+    recommended_duration: int | None = None,
+    tags: Sequence[str] | None = None,
+    options: Sequence[str] | None = None,
+    answer: int | Sequence[int] | None = None,
+    score: float | None = None,
+    environment_id: int | None = None,
+    role_type: str | None = None,
+    scoring_command: str | None = None,
+    scoring_files: Sequence[str] | None = None,
+    readonly_paths: Sequence[str] | None = None,
+    default_files: Sequence[str] | None = None,
+    configuration: Mapping[str, JSONValue] | None = None,
+    testcases: Sequence[Mapping[str, JSONValue]] | None = None,
+) -> dict[str, JSONValue]:
+    """Build a JSON body for question create/update calls."""
+    return _drop_none(
+        {
+            "name": name,
+            "type": type,
+            "internal_notes": internal_notes,
+            "languages": (list(languages) if languages is not None else None),
+            "problem_statement": problem_statement,
+            "recommended_duration": recommended_duration,
+            "tags": list(tags) if tags is not None else None,
+            "options": (list(options) if options is not None else None),
+            "answer": (
+                list(answer)
+                if isinstance(answer, Sequence) and not isinstance(answer, str)
+                else answer
+            ),
+            "score": score,
+            "environment_id": environment_id,
+            "role_type": role_type,
+            "scoring_command": scoring_command,
+            "scoring_files": (
+                list(scoring_files) if scoring_files is not None else None
+            ),
+            "readonly_paths": (
+                list(readonly_paths) if readonly_paths is not None else None
+            ),
+            "default_files": (
+                list(default_files) if default_files is not None else None
+            ),
+            "configuration": configuration,
+            "testcases": (list(testcases) if testcases is not None else None),
+        },
+    )
 
 
 @beartype
@@ -535,6 +596,39 @@ class InterviewTemplatesNamespace(_Namespace):
 
 
 @beartype
+class EnvironmentsNamespace(_Namespace):
+    """Namespace for project-question environment operations."""
+
+    def list(self) -> builtins.list[Environment]:
+        """List project-question environments.
+
+        Returns:
+            The available environments.
+        """
+        response = self._request(
+            method="GET",
+            url=f"{_API_V3}/environments",
+        )
+        raw_items = list(response.json().get("environments", []))
+        return [Environment.from_dict(data=item) for item in raw_items]
+
+    def get(self, *, environment_id: int) -> Environment:
+        """Retrieve a project-question environment.
+
+        Args:
+            environment_id: The id of the environment.
+
+        Returns:
+            The environment.
+        """
+        response = self._request(
+            method="GET",
+            url=f"{_API_V3}/environments/{environment_id}",
+        )
+        return Environment.from_dict(data=response.json()["environment"])
+
+
+@beartype
 class QuestionsNamespace(_Namespace):
     """Namespace for question operations."""
 
@@ -577,6 +671,15 @@ class QuestionsNamespace(_Namespace):
         tags: Sequence[str] | None = None,
         options: Sequence[str] | None = None,
         answer: int | Sequence[int] | None = None,
+        score: float | None = None,
+        environment_id: int | None = None,
+        role_type: str | None = None,
+        scoring_command: str | None = None,
+        scoring_files: Sequence[str] | None = None,
+        readonly_paths: Sequence[str] | None = None,
+        default_files: Sequence[str] | None = None,
+        configuration: Mapping[str, JSONValue] | None = None,
+        testcases: Sequence[Mapping[str, JSONValue]] | None = None,
     ) -> Question:
         """Create a question.
 
@@ -590,29 +693,38 @@ class QuestionsNamespace(_Namespace):
             tags: Tags.
             options: MCQ options.
             answer: Correct MCQ answer.
+            score: Maximum score for project questions.
+            environment_id: Environment id for a fullstack question.
+            role_type: Role type for a fullstack question.
+            scoring_command: Command used to score the submission.
+            scoring_files: Files that hold scoring tests.
+            readonly_paths: Paths the candidate cannot edit.
+            default_files: File paths opened by default.
+            configuration: Project configuration.
+            testcases: Project scoring test cases.
 
         Returns:
             The created question.
         """
-        body = _drop_none(
-            {
-                "name": name,
-                "type": type,
-                "internal_notes": internal_notes,
-                "languages": (
-                    list(languages) if languages is not None else None
-                ),
-                "problem_statement": problem_statement,
-                "recommended_duration": recommended_duration,
-                "tags": list(tags) if tags is not None else None,
-                "options": (list(options) if options is not None else None),
-                "answer": (
-                    list(answer)
-                    if isinstance(answer, Sequence)
-                    and not isinstance(answer, str)
-                    else answer
-                ),
-            },
+        body = _question_body(
+            name=name,
+            type=type,
+            internal_notes=internal_notes,
+            languages=languages,
+            problem_statement=problem_statement,
+            recommended_duration=recommended_duration,
+            tags=tags,
+            options=options,
+            answer=answer,
+            score=score,
+            environment_id=environment_id,
+            role_type=role_type,
+            scoring_command=scoring_command,
+            scoring_files=scoring_files,
+            readonly_paths=readonly_paths,
+            default_files=default_files,
+            configuration=configuration,
+            testcases=testcases,
         )
         response = self._request(
             method="POST",
@@ -641,7 +753,8 @@ class QuestionsNamespace(_Namespace):
         *,
         question_id: str,
         name: str | None = None,
-        type: str | None = None,  # noqa: A002  # pylint: disable=redefined-builtin
+        # pylint: disable-next=redefined-builtin
+        type: str | None = None,  # noqa: A002
         internal_notes: str | None = None,
         languages: Sequence[str] | None = None,
         problem_statement: str | None = None,
@@ -649,7 +762,16 @@ class QuestionsNamespace(_Namespace):
         tags: Sequence[str] | None = None,
         options: Sequence[str] | None = None,
         answer: int | Sequence[int] | None = None,
-    ) -> None:
+        score: float | None = None,
+        environment_id: int | None = None,
+        role_type: str | None = None,
+        scoring_command: str | None = None,
+        scoring_files: Sequence[str] | None = None,
+        readonly_paths: Sequence[str] | None = None,
+        default_files: Sequence[str] | None = None,
+        configuration: Mapping[str, JSONValue] | None = None,
+        testcases: Sequence[Mapping[str, JSONValue]] | None = None,
+    ) -> Question | None:
         """Update a question.
 
         Args:
@@ -663,32 +785,76 @@ class QuestionsNamespace(_Namespace):
             tags: New tags.
             options: New MCQ options.
             answer: New MCQ answer.
+            score: New maximum score.
+            environment_id: New environment id.
+            role_type: New role type.
+            scoring_command: New scoring command.
+            scoring_files: New scoring files.
+            readonly_paths: New read-only paths.
+            default_files: New default file paths.
+            configuration: Project configuration to merge.
+            testcases: New project scoring test cases.
+
+        Returns:
+            The updated question when returned by the API, otherwise
+            ``None``.
         """
-        body = _drop_none(
-            {
-                "name": name,
-                "type": type,
-                "internal_notes": internal_notes,
-                "languages": (
-                    list(languages) if languages is not None else None
-                ),
-                "problem_statement": problem_statement,
-                "recommended_duration": recommended_duration,
-                "tags": list(tags) if tags is not None else None,
-                "options": (list(options) if options is not None else None),
-                "answer": (
-                    list(answer)
-                    if isinstance(answer, Sequence)
-                    and not isinstance(answer, str)
-                    else answer
-                ),
-            },
+        body = _question_body(
+            name=name,
+            type=type,
+            internal_notes=internal_notes,
+            languages=languages,
+            problem_statement=problem_statement,
+            recommended_duration=recommended_duration,
+            tags=tags,
+            options=options,
+            answer=answer,
+            score=score,
+            environment_id=environment_id,
+            role_type=role_type,
+            scoring_command=scoring_command,
+            scoring_files=scoring_files,
+            readonly_paths=readonly_paths,
+            default_files=default_files,
+            configuration=configuration,
+            testcases=testcases,
         )
-        self._request(
+        response = self._request(
             method="PUT",
             url=f"{_API_V3}/questions/{question_id}",
             json=body,
         )
+        if response.content:
+            return Question.from_dict(data=response.json())
+        return None
+
+    def upload_project_zip(
+        self,
+        *,
+        question_id: str,
+        file: bytes | BinaryIO,
+        filename: str = "project.zip",
+        content_type: str = "application/zip",
+    ) -> dict[str, JSONValue]:
+        """Upload a project zip for a fullstack question.
+
+        Args:
+            question_id: The id of the question.
+            file: The zip file content or a binary file object.
+            filename: The multipart filename.
+            content_type: The multipart content type.
+
+        Returns:
+            The raw API response, including ``file_url`` and
+            ``file_path``.
+        """
+        response = self._request(
+            method="POST",
+            url=f"{_API_V3}/questions/{question_id}/upload_project_zip",
+            files={"file": (filename, file, content_type)},
+        )
+        result: dict[str, JSONValue] = dict(response.json())
+        return result
 
     def update_codestubs(
         self,
@@ -2378,6 +2544,11 @@ class HackerRank:
                 base_url=base_url,
                 headers=headers,
             )
+        )
+        self.environments: EnvironmentsNamespace = EnvironmentsNamespace(
+            transport=resolved_transport,
+            base_url=base_url,
+            headers=headers,
         )
         self.questions: QuestionsNamespace = QuestionsNamespace(
             transport=resolved_transport,

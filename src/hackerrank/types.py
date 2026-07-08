@@ -11,6 +11,8 @@ from hackerrank._dict_types import (
     ATSCodeScreenDict,
     AuditLogDict,
     CandidateDetailDict,
+    EnvironmentDict,
+    EnvironmentRuntimeDict,
     InterviewDict,
     InterviewTemplateDict,
     InterviewTranscriptDict,
@@ -315,6 +317,62 @@ class InterviewTemplate:
 
 @beartype
 @dataclass(frozen=True, kw_only=True)
+class EnvironmentRuntime:
+    """A runtime component for a project-question environment."""
+
+    name: str
+    version: str
+
+    @classmethod
+    def from_dict(cls, data: EnvironmentRuntimeDict) -> Self:
+        """Create from an API response dictionary.
+
+        Args:
+            data: The dictionary to convert.
+
+        Returns:
+            A new instance.
+        """
+        return cls(name=data["name"], version=data["version"])
+
+
+@beartype
+@dataclass(frozen=True, kw_only=True)
+class Environment:
+    """A project-question environment."""
+
+    id: int
+    name: str
+    tags: list[str]
+    runtime: list[EnvironmentRuntime]
+    active: bool | None = None
+    sample_project_url: str | None = None
+
+    @classmethod
+    def from_dict(cls, data: EnvironmentDict) -> Self:
+        """Create from an API response dictionary.
+
+        Args:
+            data: The dictionary to convert.
+
+        Returns:
+            A new instance.
+        """
+        return cls(
+            id=data["id"],
+            name=data["name"],
+            tags=data["tags"],
+            runtime=[
+                EnvironmentRuntime.from_dict(data=item)
+                for item in data["runtime"]
+            ],
+            active=data.get("active"),
+            sample_project_url=data.get("sample_project_url"),
+        )
+
+
+@beartype
+@dataclass(frozen=True, kw_only=True)
 class Question:
     """A HackerRank question."""
 
@@ -333,6 +391,13 @@ class Question:
     max_score: float | None = None
     options: list[str] | None = None
     answer: int | list[int] | None = None
+    test_case_count: int | None = None
+    role_type: str | None = None
+    environment_id: int | None = None
+    file_url: str | None = None
+    file_path: str | None = None
+    has_valid_stacks: bool | None = None
+    fullstack_project_details: dict[str, JSONValue] | None = None
 
     @classmethod
     def from_dict(cls, data: QuestionDict) -> Self:
@@ -362,6 +427,15 @@ class Question:
             max_score=data.get("max_score"),
             options=data.get("options"),
             answer=data.get("answer"),
+            test_case_count=data.get("test_case_count"),
+            role_type=data.get("role_type"),
+            environment_id=data.get("environment_id"),
+            file_url=data.get("file_url"),
+            file_path=data.get("file_path"),
+            has_valid_stacks=data.get("has_valid_stacks"),
+            fullstack_project_details=data.get(
+                "fullstack_project_details",
+            ),
         )
 
 

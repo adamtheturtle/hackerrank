@@ -72,9 +72,10 @@ class TestHackerRank:
                 headers: dict[str, str],
                 params: dict[str, str | int] | None = None,
                 json: object | None = None,
+                files: object | None = None,
             ) -> TransportResponse:  # pragma: no cover
                 """Make a request."""
-                del method, url, headers, params, json
+                del method, url, headers, params, json, files
                 raise NotImplementedError
 
         client = HackerRank(
@@ -91,6 +92,10 @@ class TestHackerRank:
         assert isinstance(
             client.interview_templates,
             client_module.InterviewTemplatesNamespace,
+        )
+        assert isinstance(
+            client.environments,
+            client_module.EnvironmentsNamespace,
         )
         assert isinstance(client.questions, client_module.QuestionsNamespace)
         assert isinstance(client.tests, client_module.TestsNamespace)
