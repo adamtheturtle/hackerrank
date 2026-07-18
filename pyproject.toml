@@ -102,7 +102,6 @@ package-data.hackerrank = [
 ]
 zip-safe = false
 
-
 [tool.setuptools_scm]
 # This keeps the start of the version the same as the last release.
 # This is useful for our documentation to include e.g. binary links
