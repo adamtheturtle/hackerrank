@@ -95,7 +95,7 @@ def _response_for(  # noqa: C901, PLR0911, PLR0912  # pylint: disable=too-comple
             return httpx.Response(status_code=200, json=_PAGE)
         if re.fullmatch(pattern=r"/x/api/v3/teams/[^/]+/users", string=path):
             return httpx.Response(status_code=200, json=_PAGE)
-        if path in {"/Users", "/Groups"}:
+        if path in {"/scim/v2/Users", "/scim/v2/Groups"}:
             return httpx.Response(status_code=200, json=_SCIM_PAGE)
         if path.endswith("/transcript"):
             return httpx.Response(
@@ -164,12 +164,12 @@ def _response_for(  # noqa: C901, PLR0911, PLR0912  # pylint: disable=too-comple
             )
         if re.fullmatch(pattern=r"/x/api/v3/teams/[^/]+", string=path):
             return httpx.Response(status_code=200, json=_TEAM_OBJ)
-        if re.fullmatch(pattern=r"/Users/[^/]+", string=path):
+        if re.fullmatch(pattern=r"/scim/v2/Users/[^/]+", string=path):
             return httpx.Response(
                 status_code=200,
                 json=_SCIM_USER_OBJ,
             )
-        if re.fullmatch(pattern=r"/Groups/[^/]+", string=path):
+        if re.fullmatch(pattern=r"/scim/v2/Groups/[^/]+", string=path):
             return httpx.Response(
                 status_code=200,
                 json=_SCIM_TEAM_OBJ,
@@ -237,12 +237,12 @@ def _response_for(  # noqa: C901, PLR0911, PLR0912  # pylint: disable=too-comple
                 status_code=200,
                 json={"email": "x@y.com"},
             )
-        if path == "/Users":
+        if path == "/scim/v2/Users":
             return httpx.Response(
                 status_code=200,
                 json=_SCIM_USER_OBJ,
             )
-        if path == "/Groups":
+        if path == "/scim/v2/Groups":
             return httpx.Response(
                 status_code=200,
                 json=_SCIM_TEAM_OBJ,
@@ -258,19 +258,19 @@ def _response_for(  # noqa: C901, PLR0911, PLR0912  # pylint: disable=too-comple
                 status_code=200,
                 json=_QUESTION_OBJ,
             )
-        if re.fullmatch(pattern=r"/Users/[^/]+", string=path):
+        if re.fullmatch(pattern=r"/scim/v2/Users/[^/]+", string=path):
             return httpx.Response(
                 status_code=200,
                 json=_SCIM_USER_OBJ,
             )
         return httpx.Response(status_code=204)
     if method == "PATCH":
-        if re.fullmatch(pattern=r"/Users/[^/]+", string=path):
+        if re.fullmatch(pattern=r"/scim/v2/Users/[^/]+", string=path):
             return httpx.Response(
                 status_code=200,
                 json=_SCIM_USER_OBJ,
             )
-        if re.fullmatch(pattern=r"/Groups/[^/]+", string=path):
+        if re.fullmatch(pattern=r"/scim/v2/Groups/[^/]+", string=path):
             return httpx.Response(
                 status_code=200,
                 json=_SCIM_TEAM_OBJ,
@@ -328,10 +328,10 @@ def fixture_stub_router() -> Generator[respx.MockRouter]:
         The respx mock router with a side-effect wired to
         ``_response_for``.
     """
-    with respx.mock(
-        base_url=_BASE_URL,
-        assert_all_called=False,
-    ) as router:
+    # No ``base_url`` guard: the v3 API and the SCIM v2 API live on
+    # different hosts, so the router must intercept both. Requests are
+    # dispatched by path inside ``_response_for``.
+    with respx.mock(assert_all_called=False) as router:
         router.route().mock(side_effect=_response_for)
         yield router
 
