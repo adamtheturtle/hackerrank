@@ -75,11 +75,31 @@ class TestAsyncHackerRank:
             async_client_module.AsyncTeamsNamespace,
         )
         assert isinstance(
+            client.teams.memberships,
+            async_client_module.AsyncTeamMembershipsNamespace,
+        )
+        assert isinstance(
             client.audit_logs,
             async_client_module.AsyncAuditLogsNamespace,
         )
         assert isinstance(client.ats, async_client_module.AsyncATSNamespace)
+        assert isinstance(
+            client.ats.codepair,
+            async_client_module.AsyncATSCodePairNamespace,
+        )
+        assert isinstance(
+            client.ats.codescreen,
+            async_client_module.AsyncATSCodeScreenNamespace,
+        )
         assert isinstance(client.scim, async_client_module.AsyncSCIMNamespace)
+        assert isinstance(
+            client.scim.users,
+            async_client_module.AsyncSCIMUsersNamespace,
+        )
+        assert isinstance(
+            client.scim.groups,
+            async_client_module.AsyncSCIMGroupsNamespace,
+        )
 
     @staticmethod
     @pytest.mark.asyncio

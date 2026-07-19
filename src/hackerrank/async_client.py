@@ -328,11 +328,14 @@ class AsyncInterviewsNamespace(_AsyncNamespace):
         title: str | None = None,
         from_: str | None = None,
         to: str | None = None,
-        interview_template_id: int | None = None,
+        notes: str | None = None,
+        resume_url: str | None = None,
+        interviewers: Sequence[str] | None = None,
+        result_url: str | None = None,
         candidate: Mapping[str, JSONValue] | None = None,
         send_email: bool | None = None,
         metadata: Mapping[str, JSONValue] | None = None,
-        interviewers: Sequence[str] | None = None,
+        interview_template_id: int | None = None,
     ) -> Interview:
         """Create an interview.
 
@@ -340,11 +343,14 @@ class AsyncInterviewsNamespace(_AsyncNamespace):
             title: Title of the interview.
             from_: Scheduled start time.
             to: Scheduled end time.
-            interview_template_id: Template to apply.
+            notes: Private notes.
+            resume_url: URL to the candidate resume.
+            interviewers: Emails of interviewers.
+            result_url: URL invoked when the interview ends.
             candidate: Candidate details.
             send_email: Whether to send an email invite.
             metadata: Arbitrary metadata.
-            interviewers: Emails of interviewers.
+            interview_template_id: Template to apply.
 
         Returns:
             The created interview.
@@ -354,13 +360,16 @@ class AsyncInterviewsNamespace(_AsyncNamespace):
                 "title": title,
                 "from": from_,
                 "to": to,
-                "interview_template_id": interview_template_id,
-                "candidate": candidate,
-                "send_email": send_email,
-                "metadata": metadata,
+                "notes": notes,
+                "resume_url": resume_url,
                 "interviewers": (
                     list(interviewers) if interviewers is not None else None
                 ),
+                "result_url": result_url,
+                "candidate": candidate,
+                "send_email": send_email,
+                "metadata": metadata,
+                "interview_template_id": interview_template_id,
             },
         )
         response = await self._request(
@@ -384,6 +393,56 @@ class AsyncInterviewsNamespace(_AsyncNamespace):
             url=f"{_API_V3}/interviews/{interview_id}",
         )
         return Interview.from_dict(data=response.json())
+
+    async def update(
+        self,
+        *,
+        interview_id: str,
+        title: str | None = None,
+        from_: str | None = None,
+        to: str | None = None,
+        notes: str | None = None,
+        resume_url: str | None = None,
+        result_url: str | None = None,
+        candidate: Mapping[str, JSONValue] | None = None,
+        send_email: bool | None = None,
+        metadata: Mapping[str, JSONValue] | None = None,
+        interview_template_id: int | None = None,
+    ) -> None:
+        """Update an interview.
+
+        Args:
+            interview_id: The id of the interview.
+            title: New title.
+            from_: New start time.
+            to: New end time.
+            notes: New private notes.
+            resume_url: New resume URL.
+            result_url: New result URL.
+            candidate: New candidate details.
+            send_email: Whether to send an email.
+            metadata: New metadata.
+            interview_template_id: New template id.
+        """
+        body = _drop_none(
+            {
+                "title": title,
+                "from": from_,
+                "to": to,
+                "notes": notes,
+                "resume_url": resume_url,
+                "result_url": result_url,
+                "candidate": candidate,
+                "send_email": send_email,
+                "metadata": metadata,
+                "interview_template_id": interview_template_id,
+            },
+        )
+        await self._request(
+            method="PUT",
+            url=f"{_API_V3}/interviews/{interview_id}",
+            json=body,
+        )
 
     async def delete(self, *, interview_id: str) -> None:
         """Delete an interview.
@@ -447,6 +506,45 @@ class AsyncInterviewTemplatesNamespace(_AsyncNamespace):
         ]
         return _make_page(items, payload)
 
+    async def create(
+        self,
+        *,
+        name: str,
+        roles: Sequence[str] | None = None,
+        team_share: int | None = None,
+        questions: Sequence[str] | None = None,
+        scorecard: int | None = None,
+    ) -> InterviewTemplate:
+        """Create an interview template.
+
+        Args:
+            name: The template name.
+            roles: Roles for the template.
+            team_share: Team-share flag.
+            questions: Associated question ids.
+            scorecard: Scorecard id.
+
+        Returns:
+            The created interview template.
+        """
+        body = _drop_none(
+            {
+                "name": name,
+                "roles": list(roles) if roles is not None else None,
+                "team_share": team_share,
+                "questions": (
+                    list(questions) if questions is not None else None
+                ),
+                "scorecard": scorecard,
+            },
+        )
+        response = await self._request(
+            method="POST",
+            url=f"{_API_V3}/interview_templates",
+            json=body,
+        )
+        return InterviewTemplate.from_dict(data=response.json())
+
     async def get(
         self,
         *,
@@ -465,6 +563,54 @@ class AsyncInterviewTemplatesNamespace(_AsyncNamespace):
             url=(f"{_API_V3}/interview_templates/{template_id}"),
         )
         return InterviewTemplate.from_dict(data=response.json())
+
+    async def update(
+        self,
+        *,
+        template_id: int | str,
+        name: str | None = None,
+        roles: Sequence[str] | None = None,
+        team_share: int | None = None,
+        questions: Sequence[str] | None = None,
+        scorecard: int | None = None,
+    ) -> None:
+        """Update an interview template.
+
+        Args:
+            template_id: The id of the template.
+            name: New name.
+            roles: New roles.
+            team_share: New team-share flag.
+            questions: New question ids.
+            scorecard: New scorecard id.
+        """
+        body = _drop_none(
+            {
+                "name": name,
+                "roles": list(roles) if roles is not None else None,
+                "team_share": team_share,
+                "questions": (
+                    list(questions) if questions is not None else None
+                ),
+                "scorecard": scorecard,
+            },
+        )
+        await self._request(
+            method="PUT",
+            url=(f"{_API_V3}/interview_templates/{template_id}"),
+            json=body,
+        )
+
+    async def delete(self, *, template_id: int | str) -> None:
+        """Delete an interview template.
+
+        Args:
+            template_id: The id of the template.
+        """
+        await self._request(
+            method="DELETE",
+            url=(f"{_API_V3}/interview_templates/{template_id}"),
+        )
 
 
 @beartype
@@ -726,6 +872,118 @@ class AsyncQuestionsNamespace(_AsyncNamespace):
         result: dict[str, JSONValue] = dict(response.json())
         return result
 
+    async def update_codestubs(
+        self,
+        *,
+        question_id: str,
+        codestubs: Mapping[str, JSONValue],
+    ) -> None:
+        """Update custom code-stubs for a question.
+
+        Args:
+            question_id: The id of the question.
+            codestubs: A mapping describing the code-stubs.
+        """
+        await self._request(
+            method="PUT",
+            url=(f"{_API_V3}/questions/{question_id}/custom_codestubs"),
+            json=codestubs,
+        )
+
+    async def generate_codestubs(
+        self,
+        *,
+        question_id: str,
+        body: Mapping[str, JSONValue] | None = None,
+    ) -> dict[str, JSONValue]:
+        """Generate code-stubs for a question.
+
+        Args:
+            question_id: The id of the question.
+            body: An optional request body.
+
+        Returns:
+            The raw API response.
+        """
+        response = await self._request(
+            method="PUT",
+            url=(f"{_API_V3}/questions/{question_id}/generate"),
+            json=body if body is not None else {},
+        )
+        result: dict[str, JSONValue] = dict(response.json())
+        return result
+
+    async def add_testcase(
+        self,
+        *,
+        question_id: str,
+        body: Mapping[str, JSONValue],
+    ) -> dict[str, JSONValue]:
+        """Add a test case to a question.
+
+        Args:
+            question_id: The id of the question.
+            body: The test-case payload.
+
+        Returns:
+            The raw API response.
+        """
+        response = await self._request(
+            method="POST",
+            url=(f"{_API_V3}/questions/{question_id}/testcases"),
+            json=body,
+        )
+        result: dict[str, JSONValue] = dict(response.json())
+        return result
+
+    async def update_testcase(
+        self,
+        *,
+        question_id: str,
+        testcase_id: str,
+        body: Mapping[str, JSONValue],
+    ) -> None:
+        """Update an existing test case.
+
+        Args:
+            question_id: The id of the question.
+            testcase_id: The id of the test case.
+            body: The test-case payload.
+        """
+        await self._request(
+            method="PUT",
+            url=(f"{_API_V3}/questions/{question_id}/testcases/{testcase_id}"),
+            json=body,
+        )
+
+    async def delete_testcase(
+        self,
+        *,
+        question_id: str,
+        testcase_id: str,
+    ) -> None:
+        """Delete a single test case.
+
+        Args:
+            question_id: The id of the question.
+            testcase_id: The id of the test case.
+        """
+        await self._request(
+            method="DELETE",
+            url=(f"{_API_V3}/questions/{question_id}/testcases/{testcase_id}"),
+        )
+
+    async def delete_all_testcases(self, *, question_id: str) -> None:
+        """Delete every test case on a question.
+
+        Args:
+            question_id: The id of the question.
+        """
+        await self._request(
+            method="DELETE",
+            url=(f"{_API_V3}/questions/{question_id}/testcases/delete_all"),
+        )
+
 
 @beartype
 class AsyncTestCandidatesNamespace(_AsyncNamespace):
@@ -760,6 +1018,42 @@ class AsyncTestCandidatesNamespace(_AsyncNamespace):
         ]
         return _make_page(items, payload)
 
+    async def search(
+        self,
+        *,
+        test_id: str,
+        search: str,
+        limit: int | None = None,
+        offset: int | None = None,
+    ) -> Page[TestCandidate]:
+        """Search candidates within a test.
+
+        Args:
+            test_id: The id of the test.
+            search: Search query.
+            limit: Number of records to fetch.
+            offset: Offset of records.
+
+        Returns:
+            A page of candidates.
+        """
+        params = _list_params(
+            limit=limit,
+            offset=offset,
+            extra={"search": search},
+        )
+        response = await self._request(
+            method="GET",
+            url=f"{_API_V3}/tests/{test_id}/candidates/search",
+            params=params,
+        )
+        payload = response.json()
+        raw_items = list(payload.get("data", []))
+        items: list[TestCandidate] = [
+            TestCandidate.from_dict(data=item) for item in raw_items
+        ]
+        return _make_page(items, payload)
+
     async def invite(
         self,
         *,
@@ -767,6 +1061,21 @@ class AsyncTestCandidatesNamespace(_AsyncNamespace):
         email: str,
         full_name: str | None = None,
         send_email: bool | None = None,
+        evaluator_email: str | None = None,
+        test_result_url: str | None = None,
+        test_finish_url: str | None = None,
+        tags: Sequence[str] | None = None,
+        invite_valid_from: str | None = None,
+        invite_valid_to: str | None = None,
+        force: bool | None = None,
+        force_reattempt: bool | None = None,
+        accommodations: Mapping[str, JSONValue] | None = None,
+        invite_metadata: Mapping[str, JSONValue] | None = None,
+        webhook_authentication: Mapping[str, JSONValue] | None = None,
+        accept_result_updates: bool | None = None,
+        subject: str | None = None,
+        message: str | None = None,
+        template: str | None = None,
     ) -> TestCandidate:
         """Invite a candidate to a test.
 
@@ -775,6 +1084,21 @@ class AsyncTestCandidatesNamespace(_AsyncNamespace):
             email: Candidate email address.
             full_name: Candidate full name.
             send_email: Whether to send the invitation email.
+            evaluator_email: Evaluator email.
+            test_result_url: URL to which results are posted.
+            test_finish_url: URL the candidate sees on finish.
+            tags: Tags to set on the candidate.
+            invite_valid_from: Invitation start time.
+            invite_valid_to: Invitation end time.
+            force: Force inviting even if previously invited.
+            force_reattempt: Allow re-attempt.
+            accommodations: Accommodation settings.
+            invite_metadata: Arbitrary metadata.
+            webhook_authentication: Webhook auth config.
+            accept_result_updates: Accept result updates flag.
+            subject: Custom email subject.
+            message: Custom email message.
+            template: Email template id.
 
         Returns:
             The created candidate.
@@ -784,6 +1108,21 @@ class AsyncTestCandidatesNamespace(_AsyncNamespace):
                 "email": email,
                 "full_name": full_name,
                 "send_email": send_email,
+                "evaluator_email": evaluator_email,
+                "test_result_url": test_result_url,
+                "test_finish_url": test_finish_url,
+                "tags": list(tags) if tags is not None else None,
+                "invite_valid_from": invite_valid_from,
+                "invite_valid_to": invite_valid_to,
+                "force": force,
+                "force_reattempt": force_reattempt,
+                "accommodations": accommodations,
+                "invite_metadata": invite_metadata,
+                "webhook_authentication": webhook_authentication,
+                "accept_result_updates": accept_result_updates,
+                "subject": subject,
+                "message": message,
+                "template": template,
             },
         )
         response = await self._request(
@@ -798,21 +1137,150 @@ class AsyncTestCandidatesNamespace(_AsyncNamespace):
         *,
         test_id: str,
         candidate_id: str,
+        additional_fields: str | None = None,
     ) -> TestCandidate:
         """Retrieve a single candidate.
 
         Args:
             test_id: The id of the test.
             candidate_id: The id of the candidate.
+            additional_fields: Comma-separated extra fields.
 
         Returns:
             The candidate.
         """
+        params: dict[str, str | int] = {}
+        if additional_fields is not None:
+            params["additional_fields"] = additional_fields
         response = await self._request(
             method="GET",
             url=(f"{_API_V3}/tests/{test_id}/candidates/{candidate_id}"),
+            params=params or None,
         )
         return TestCandidate.from_dict(data=response.json())
+
+    async def update(
+        self,
+        *,
+        test_id: str,
+        candidate_id: str,
+        full_name: str | None = None,
+        ats_state: int | None = None,
+        invite_valid_from: str | None = None,
+        invite_valid_to: str | None = None,
+        invite_metadata: Mapping[str, JSONValue] | None = None,
+        evaluator_email: str | None = None,
+        test_finish_url: str | None = None,
+        test_result_url: str | None = None,
+        webhook_authentication: Mapping[str, JSONValue] | None = None,
+        accept_result_updates: bool | None = None,
+        tags: Sequence[str] | None = None,
+        accommodations: Mapping[str, JSONValue] | None = None,
+    ) -> None:
+        """Update a candidate.
+
+        Args:
+            test_id: The id of the test.
+            candidate_id: The id of the candidate.
+            full_name: New full name.
+            ats_state: New ATS state.
+            invite_valid_from: New invitation start time.
+            invite_valid_to: New invitation end time.
+            invite_metadata: New invite metadata.
+            evaluator_email: New evaluator email.
+            test_finish_url: New finish URL.
+            test_result_url: New result URL.
+            webhook_authentication: New webhook auth.
+            accept_result_updates: New flag value.
+            tags: New tags.
+            accommodations: New accommodations.
+        """
+        body = _drop_none(
+            {
+                "full_name": full_name,
+                "ats_state": ats_state,
+                "invite_valid_from": invite_valid_from,
+                "invite_valid_to": invite_valid_to,
+                "invite_metadata": invite_metadata,
+                "evaluator_email": evaluator_email,
+                "test_finish_url": test_finish_url,
+                "test_result_url": test_result_url,
+                "webhook_authentication": webhook_authentication,
+                "accept_result_updates": accept_result_updates,
+                "tags": list(tags) if tags is not None else None,
+                "accommodations": accommodations,
+            },
+        )
+        await self._request(
+            method="PUT",
+            url=(f"{_API_V3}/tests/{test_id}/candidates/{candidate_id}"),
+            json=body,
+        )
+
+    async def cancel_invite(
+        self,
+        *,
+        test_id: str,
+        candidate_id: str,
+    ) -> None:
+        """Cancel a candidate's invitation.
+
+        Args:
+            test_id: The id of the test.
+            candidate_id: The id of the candidate.
+        """
+        await self._request(
+            method="DELETE",
+            url=(
+                f"{_API_V3}/tests/{test_id}/candidates/{candidate_id}/invite"
+            ),
+        )
+
+    async def delete_report(
+        self,
+        *,
+        test_id: str,
+        candidate_id: str,
+    ) -> None:
+        """Delete the report for a candidate.
+
+        Args:
+            test_id: The id of the test.
+            candidate_id: The id of the candidate.
+        """
+        await self._request(
+            method="DELETE",
+            url=(
+                f"{_API_V3}/tests/{test_id}/candidates/{candidate_id}/report"
+            ),
+        )
+
+    async def get_report_pdf(
+        self,
+        *,
+        test_id: str,
+        candidate_id: str,
+        format_: str = "url",
+    ) -> dict[str, JSONValue]:
+        """Retrieve the PDF report for a candidate.
+
+        Args:
+            test_id: The id of the test.
+            candidate_id: The id of the candidate.
+            format_: Format of the PDF (e.g. ``"url"``).
+
+        Returns:
+            The raw API response. When ``format_`` is
+            ``"url"`` the response typically contains a URL
+            for downloading the PDF.
+        """
+        response = await self._request(
+            method="GET",
+            url=(f"{_API_V3}/tests/{test_id}/candidates/{candidate_id}/pdf"),
+            params={"format": format_},
+        )
+        result: dict[str, JSONValue] = dict(response.json())
+        return result
 
 
 @beartype
@@ -871,24 +1339,197 @@ class AsyncTestsNamespace(_AsyncNamespace):
         items: list[Test] = [Test.from_dict(data=item) for item in raw_items]
         return _make_page(items, payload)
 
+    async def create(
+        self,
+        *,
+        name: str,
+        starttime: str | None = None,
+        endtime: str | None = None,
+        duration: int | None = None,
+        instructions: str | None = None,
+        locked: bool | None = None,
+        draft: bool | None = None,
+        languages: Sequence[str] | None = None,
+        candidate_details: Sequence[str] | None = None,
+        custom_acknowledge_text: str | None = None,
+        cutoff_score: int | None = None,
+        master_password: str | None = None,
+        hide_compile_test: bool | None = None,
+        tags: Sequence[str] | None = None,
+        role_ids: Sequence[str] | None = None,
+        experience: Sequence[str] | None = None,
+        questions: Sequence[str] | None = None,
+        mcq_incorrect_score: int | None = None,
+        mcq_correct_score: int | None = None,
+        shuffle_questions: bool | None = None,
+        test_admins: Sequence[str] | None = None,
+        hide_template: bool | None = None,
+        enable_acknowledgement: bool | None = None,
+        enable_proctoring: bool | None = None,
+        enable_advanced_proctoring: bool | None = None,
+        enable_secure_assessment_mode: bool | None = None,
+        enable_ml_plagiarism_analysis: bool | None = None,
+        enable_photo_identification: bool | None = None,
+        ide_config: str | None = None,
+    ) -> Test:
+        """Create a test.
+
+        Args:
+            name: The name of the test.
+            starttime: Test start time.
+            endtime: Test end time.
+            duration: Test duration in minutes.
+            instructions: Test instructions.
+            locked: Whether the test is locked.
+            draft: Whether the test is a draft.
+            languages: Allowed programming languages.
+            candidate_details: Candidate detail fields.
+            custom_acknowledge_text: Custom acknowledge text.
+            cutoff_score: The cut-off score.
+            master_password: Master password for the test.
+            hide_compile_test: Hide compile-test option.
+            tags: Tags applied to the test.
+            role_ids: Role ids associated with the test.
+            experience: Experience-level metadata.
+            questions: Question ids to include.
+            mcq_incorrect_score: Score for incorrect MCQ.
+            mcq_correct_score: Score for correct MCQ.
+            shuffle_questions: Whether to shuffle.
+            test_admins: Test admin user ids.
+            hide_template: Hide the template flag.
+            enable_acknowledgement: Enable acknowledgement.
+            enable_proctoring: Enable proctoring.
+            enable_advanced_proctoring: Advanced proctoring.
+            enable_secure_assessment_mode: Secure mode flag.
+            enable_ml_plagiarism_analysis: ML plagiarism.
+            enable_photo_identification: Photo ID flag.
+            ide_config: IDE configuration.
+
+        Returns:
+            The created test.
+        """
+        body = _drop_none(
+            {
+                "name": name,
+                "starttime": starttime,
+                "endtime": endtime,
+                "duration": duration,
+                "instructions": instructions,
+                "locked": locked,
+                "draft": draft,
+                "languages": (
+                    list(languages) if languages is not None else None
+                ),
+                "candidate_details": (
+                    list(candidate_details)
+                    if candidate_details is not None
+                    else None
+                ),
+                "custom_acknowledge_text": custom_acknowledge_text,
+                "cutoff_score": cutoff_score,
+                "master_password": master_password,
+                "hide_compile_test": hide_compile_test,
+                "tags": list(tags) if tags is not None else None,
+                "role_ids": (list(role_ids) if role_ids is not None else None),
+                "experience": (
+                    list(experience) if experience is not None else None
+                ),
+                "questions": (
+                    list(questions) if questions is not None else None
+                ),
+                "mcq_incorrect_score": mcq_incorrect_score,
+                "mcq_correct_score": mcq_correct_score,
+                "shuffle_questions": shuffle_questions,
+                "test_admins": (
+                    list(test_admins) if test_admins is not None else None
+                ),
+                "hide_template": hide_template,
+                "enable_acknowledgement": enable_acknowledgement,
+                "enable_proctoring": enable_proctoring,
+                "enable_advanced_proctoring": (enable_advanced_proctoring),
+                "enable_secure_assessment_mode": (
+                    enable_secure_assessment_mode
+                ),
+                "enable_ml_plagiarism_analysis": (
+                    enable_ml_plagiarism_analysis
+                ),
+                "enable_photo_identification": (enable_photo_identification),
+                "ide_config": ide_config,
+            },
+        )
+        response = await self._request(
+            method="POST",
+            url=f"{_API_V3}/tests",
+            json=body,
+        )
+        return Test.from_dict(data=response.json())
+
     async def get(
         self,
         *,
         test_id: str,
+        additional_fields: str | None = None,
     ) -> Test:
         """Retrieve a test.
 
         Args:
             test_id: The id of the test.
+            additional_fields: Comma-separated extra fields.
 
         Returns:
             The test.
         """
+        params: dict[str, str | int] = {}
+        if additional_fields is not None:
+            params["additional_fields"] = additional_fields
         response = await self._request(
             method="GET",
             url=f"{_API_V3}/tests/{test_id}",
+            params=params or None,
         )
         return Test.from_dict(data=response.json())
+
+    async def update(
+        self,
+        *,
+        test_id: str,
+        body: Mapping[str, JSONValue],
+    ) -> None:
+        """Update a test using a raw payload.
+
+        Args:
+            test_id: The id of the test.
+            body: A mapping of fields to update. See the
+                HackerRank API documentation for the
+                supported fields.
+        """
+        await self._request(
+            method="PUT",
+            url=f"{_API_V3}/tests/{test_id}",
+            json=body,
+        )
+
+    async def delete(self, *, test_id: str) -> None:
+        """Delete a test.
+
+        Args:
+            test_id: The id of the test.
+        """
+        await self._request(
+            method="DELETE",
+            url=f"{_API_V3}/tests/{test_id}",
+        )
+
+    async def archive(self, *, test_id: str) -> None:
+        """Archive a test.
+
+        Args:
+            test_id: The id of the test.
+        """
+        await self._request(
+            method="POST",
+            url=f"{_API_V3}/tests/{test_id}/archive",
+        )
 
     async def list_inviters(
         self,
@@ -951,6 +1592,21 @@ class AsyncTemplatesNamespace(_AsyncNamespace):
         ]
         return _make_page(items, payload)
 
+    async def get(self, *, template_id: str) -> Template:
+        """Retrieve an invite template.
+
+        Args:
+            template_id: The id of the template.
+
+        Returns:
+            The template.
+        """
+        response = await self._request(
+            method="GET",
+            url=f"{_API_V3}/templates/{template_id}",
+        )
+        return Template.from_dict(data=response.json())
+
 
 @beartype
 class AsyncUsersNamespace(_AsyncNamespace):
@@ -981,6 +1637,116 @@ class AsyncUsersNamespace(_AsyncNamespace):
         items: list[User] = [User.from_dict(data=item) for item in raw_items]
         return _make_page(items, payload)
 
+    async def search(
+        self,
+        *,
+        search: str,
+        limit: int | None = None,
+        offset: int | None = None,
+    ) -> Page[User]:
+        """Search users.
+
+        Args:
+            search: Search query.
+            limit: Number of records to fetch.
+            offset: Offset of records.
+
+        Returns:
+            A page of users.
+        """
+        params = _list_params(
+            limit=limit,
+            offset=offset,
+            extra={"search": search},
+        )
+        response = await self._request(
+            method="GET",
+            url=f"{_API_V3}/users/search",
+            params=params,
+        )
+        payload = response.json()
+        raw_items = list(payload.get("data", []))
+        items: list[User] = [User.from_dict(data=item) for item in raw_items]
+        return _make_page(items, payload)
+
+    async def create(
+        self,
+        *,
+        email: str,
+        firstname: str | None = None,
+        lastname: str | None = None,
+        country: str | None = None,
+        role: str | None = None,
+        send_email: bool | None = None,
+        phone: str | None = None,
+        questions_permission: int | None = None,
+        tests_permission: int | None = None,
+        interviews_permission: int | None = None,
+        candidates_permission: int | None = None,
+        shared_questions_permission: int | None = None,
+        shared_tests_permission: int | None = None,
+        shared_interviews_permission: int | None = None,
+        shared_candidates_permission: int | None = None,
+        company_admin: bool | None = None,
+        team_admin: bool | None = None,
+        teams: Sequence[str] | None = None,
+    ) -> User:
+        """Create a user.
+
+        Args:
+            email: Email address.
+            firstname: First name.
+            lastname: Last name.
+            country: Country.
+            role: Role.
+            send_email: Send invite email flag.
+            phone: Phone number.
+            questions_permission: Permission level.
+            tests_permission: Permission level.
+            interviews_permission: Permission level.
+            candidates_permission: Permission level.
+            shared_questions_permission: Permission level.
+            shared_tests_permission: Permission level.
+            shared_interviews_permission: Permission level.
+            shared_candidates_permission: Permission level.
+            company_admin: Company admin flag.
+            team_admin: Team admin flag.
+            teams: Team ids the user belongs to.
+
+        Returns:
+            The created user.
+        """
+        body = _drop_none(
+            {
+                "email": email,
+                "firstname": firstname,
+                "lastname": lastname,
+                "country": country,
+                "role": role,
+                "send_email": send_email,
+                "phone": phone,
+                "questions_permission": questions_permission,
+                "tests_permission": tests_permission,
+                "interviews_permission": interviews_permission,
+                "candidates_permission": candidates_permission,
+                "shared_questions_permission": (shared_questions_permission),
+                "shared_tests_permission": (shared_tests_permission),
+                "shared_interviews_permission": (shared_interviews_permission),
+                "shared_candidates_permission": (shared_candidates_permission),
+                "company_admin": company_admin,
+                "team_admin": team_admin,
+                "teams": (
+                    [{"id": t} for t in teams] if teams is not None else None
+                ),
+            },
+        )
+        response = await self._request(
+            method="POST",
+            url=f"{_API_V3}/users",
+            json=body,
+        )
+        return User.from_dict(data=response.json())
+
     async def get(self, *, user_id: str) -> User:
         """Retrieve a user.
 
@@ -996,52 +1762,43 @@ class AsyncUsersNamespace(_AsyncNamespace):
         )
         return User.from_dict(data=response.json())
 
-
-@beartype
-class AsyncTeamsNamespace(_AsyncNamespace):
-    """Async namespace for team operations."""
-
-    async def list(
+    async def update(
         self,
         *,
-        limit: int | None = None,
-        offset: int | None = None,
-    ) -> Page[Team]:
-        """List teams.
+        user_id: str,
+        body: Mapping[str, JSONValue],
+    ) -> None:
+        """Update a user.
 
         Args:
-            limit: Number of records to fetch.
-            offset: Offset of records.
-
-        Returns:
-            A page of teams.
+            user_id: The id of the user.
+            body: A mapping of fields to update. See the
+                HackerRank API documentation for the
+                supported fields.
         """
-        response = await self._request(
-            method="GET",
-            url=f"{_API_V3}/teams",
-            params=_list_params(limit=limit, offset=offset),
+        await self._request(
+            method="PUT",
+            url=f"{_API_V3}/users/{user_id}",
+            json=body,
         )
-        payload = response.json()
-        raw_items = list(payload.get("data", []))
-        items: list[Team] = [Team.from_dict(data=item) for item in raw_items]
-        return _make_page(items, payload)
 
-    async def get(self, *, team_id: str) -> Team:
-        """Retrieve a team.
+    async def delete(self, *, user_id: str) -> None:
+        """Lock (deactivate) a user.
 
         Args:
-            team_id: The id of the team.
-
-        Returns:
-            The team.
+            user_id: The id of the user.
         """
-        response = await self._request(
-            method="GET",
-            url=f"{_API_V3}/teams/{team_id}",
+        await self._request(
+            method="DELETE",
+            url=f"{_API_V3}/users/{user_id}",
         )
-        return Team.from_dict(data=response.json())
 
-    async def list_members(
+
+@beartype
+class AsyncTeamMembershipsNamespace(_AsyncNamespace):
+    """Async namespace for user-team membership operations."""
+
+    async def list(
         self,
         *,
         team_id: str,
@@ -1069,6 +1826,240 @@ class AsyncTeamsNamespace(_AsyncNamespace):
             UserTeamMembership.from_dict(data=item) for item in raw_items
         ]
         return _make_page(items, payload)
+
+    async def get(
+        self,
+        *,
+        team_id: str,
+        user_id: str,
+    ) -> UserTeamMembership:
+        """Retrieve a single membership.
+
+        Args:
+            team_id: The id of the team.
+            user_id: The id of the user.
+
+        Returns:
+            The membership.
+        """
+        response = await self._request(
+            method="GET",
+            url=f"{_API_V3}/teams/{team_id}/users/{user_id}",
+        )
+        return UserTeamMembership.from_dict(data=response.json())
+
+    async def create(
+        self,
+        *,
+        team_id: str,
+        user_id: str,
+        license: str | None = None,  # noqa: A002  # pylint: disable=redefined-builtin
+    ) -> UserTeamMembership:
+        """Add a user to a team.
+
+        Args:
+            team_id: The id of the team.
+            user_id: The id of the user.
+            license: License kind to assign.
+
+        Returns:
+            The created membership.
+        """
+        params: dict[str, str | int] = {}
+        if license is not None:
+            params["license"] = license
+        response = await self._request(
+            method="POST",
+            url=f"{_API_V3}/teams/{team_id}/users/{user_id}",
+            params=params or None,
+        )
+        return UserTeamMembership.from_dict(data=response.json())
+
+    async def delete(
+        self,
+        *,
+        team_id: str,
+        user_id: str,
+    ) -> None:
+        """Remove a user from a team.
+
+        Args:
+            team_id: The id of the team.
+            user_id: The id of the user.
+        """
+        await self._request(
+            method="DELETE",
+            url=f"{_API_V3}/teams/{team_id}/users/{user_id}",
+        )
+
+
+@beartype
+class AsyncTeamsNamespace(_AsyncNamespace):
+    """Async namespace for team operations."""
+
+    def __init__(
+        self,
+        *,
+        transport: AsyncTransport,
+        base_url: str,
+        headers: dict[str, str],
+    ) -> None:
+        """Create the namespace.
+
+        Args:
+            transport: The HTTP transport.
+            base_url: The base URL for the API.
+            headers: Headers to send with every request.
+        """
+        super().__init__(
+            transport=transport,
+            base_url=base_url,
+            headers=headers,
+        )
+        self.memberships: AsyncTeamMembershipsNamespace = (
+            AsyncTeamMembershipsNamespace(
+                transport=transport,
+                base_url=base_url,
+                headers=headers,
+            )
+        )
+
+    async def list(
+        self,
+        *,
+        limit: int | None = None,
+        offset: int | None = None,
+    ) -> Page[Team]:
+        """List teams.
+
+        Args:
+            limit: Number of records to fetch.
+            offset: Offset of records.
+
+        Returns:
+            A page of teams.
+        """
+        response = await self._request(
+            method="GET",
+            url=f"{_API_V3}/teams",
+            params=_list_params(limit=limit, offset=offset),
+        )
+        payload = response.json()
+        raw_items = list(payload.get("data", []))
+        items: list[Team] = [Team.from_dict(data=item) for item in raw_items]
+        return _make_page(items, payload)
+
+    async def create(
+        self,
+        *,
+        name: str,
+        recruiter_cap: int | None = None,
+        developer_cap: int | None = None,
+        invite_as: str | None = None,
+        locations: Sequence[str] | None = None,
+        departments: Sequence[str] | None = None,
+    ) -> Team:
+        """Create a team.
+
+        Args:
+            name: Team name.
+            recruiter_cap: Recruiter seat cap.
+            developer_cap: Developer seat cap.
+            invite_as: Default role for invites.
+            locations: Allowed locations.
+            departments: Allowed departments.
+
+        Returns:
+            The created team.
+        """
+        body = _drop_none(
+            {
+                "name": name,
+                "recruiter_cap": recruiter_cap,
+                "developer_cap": developer_cap,
+                "invite_as": invite_as,
+                "locations": (
+                    list(locations) if locations is not None else None
+                ),
+                "departments": (
+                    list(departments) if departments is not None else None
+                ),
+            },
+        )
+        response = await self._request(
+            method="POST",
+            url=f"{_API_V3}/teams",
+            json=body,
+        )
+        return Team.from_dict(data=response.json())
+
+    async def get(self, *, team_id: str) -> Team:
+        """Retrieve a team.
+
+        Args:
+            team_id: The id of the team.
+
+        Returns:
+            The team.
+        """
+        response = await self._request(
+            method="GET",
+            url=f"{_API_V3}/teams/{team_id}",
+        )
+        return Team.from_dict(data=response.json())
+
+    async def update(
+        self,
+        *,
+        team_id: str,
+        name: str | None = None,
+        recruiter_cap: int | None = None,
+        developer_cap: int | None = None,
+        invite_as: str | None = None,
+        locations: Sequence[str] | None = None,
+        departments: Sequence[str] | None = None,
+    ) -> None:
+        """Update a team.
+
+        Args:
+            team_id: The id of the team.
+            name: New team name.
+            recruiter_cap: New recruiter seat cap.
+            developer_cap: New developer seat cap.
+            invite_as: New default invite role.
+            locations: New allowed locations.
+            departments: New allowed departments.
+        """
+        body = _drop_none(
+            {
+                "name": name,
+                "recruiter_cap": recruiter_cap,
+                "developer_cap": developer_cap,
+                "invite_as": invite_as,
+                "locations": (
+                    list(locations) if locations is not None else None
+                ),
+                "departments": (
+                    list(departments) if departments is not None else None
+                ),
+            },
+        )
+        await self._request(
+            method="PUT",
+            url=f"{_API_V3}/teams/{team_id}",
+            json=body,
+        )
+
+    async def delete(self, *, team_id: str) -> None:
+        """Delete a team.
+
+        Args:
+            team_id: The id of the team.
+        """
+        await self._request(
+            method="DELETE",
+            url=f"{_API_V3}/teams/{team_id}",
+        )
 
 
 @beartype
@@ -1113,22 +2104,42 @@ class AsyncAuditLogsNamespace(_AsyncNamespace):
 
 
 @beartype
-class AsyncATSNamespace(_AsyncNamespace):
-    """Async namespace for ATS operations."""
+class AsyncATSCodePairNamespace(_AsyncNamespace):
+    """Async namespace for ATS Codepair operations."""
 
-    async def codepair_invite(
+    async def invite(
         self,
         *,
-        body: Mapping[str, JSONValue],
+        title: str | None = None,
+        requisition_id: str | None = None,
+        candidate_id: str | None = None,
+        candidate: Mapping[str, JSONValue] | None = None,
+        send_email: bool | None = None,
+        interview_metadata: Mapping[str, JSONValue] | None = None,
     ) -> ATSCodePair:
         """Invite a candidate to an ATS Codepair interview.
 
         Args:
-            body: The Codepair invite payload.
+            title: The interview title.
+            requisition_id: The ATS requisition id.
+            candidate_id: The ATS candidate id.
+            candidate: Candidate information.
+            send_email: Whether to send an email.
+            interview_metadata: Arbitrary metadata.
 
         Returns:
             The ATS Codepair result.
         """
+        body = _drop_none(
+            {
+                "title": title,
+                "requisition_id": requisition_id,
+                "candidate_id": candidate_id,
+                "candidate": candidate,
+                "send_email": send_email,
+                "interview_metadata": interview_metadata,
+            },
+        )
         response = await self._request(
             method="POST",
             url=f"{_API_V3}/ats/codepair",
@@ -1136,19 +2147,59 @@ class AsyncATSNamespace(_AsyncNamespace):
         )
         return ATSCodePair.from_dict(data=response.json())
 
-    async def codescreen_invite(
+
+@beartype
+class AsyncATSCodeScreenNamespace(_AsyncNamespace):
+    """Async namespace for ATS CodeScreen operations."""
+
+    async def invite(
         self,
         *,
-        body: Mapping[str, JSONValue],
+        test_id: str,
+        email: str,
+        requisition_id: str | None = None,
+        candidate_id: str | None = None,
+        send_email: bool | None = None,
+        test_result_url: str | None = None,
+        webhook_authentication: Mapping[str, JSONValue] | None = None,
+        accept_result_updates: bool | None = None,
+        force: bool | None = None,
+        force_reattempt_after: int | None = None,
+        accommodations: Mapping[str, JSONValue] | None = None,
     ) -> ATSCodeScreen:
         """Invite a candidate to a CodeScreen test.
 
         Args:
-            body: The CodeScreen invite payload.
+            test_id: The test id.
+            email: Candidate email.
+            requisition_id: ATS requisition id.
+            candidate_id: ATS candidate id.
+            send_email: Whether to send an email.
+            test_result_url: URL for posting results.
+            webhook_authentication: Webhook auth config.
+            accept_result_updates: Accept-updates flag.
+            force: Force inviting flag.
+            force_reattempt_after: Seconds before re-attempt.
+            accommodations: Accommodation settings.
 
         Returns:
             The ATS CodeScreen result.
         """
+        body = _drop_none(
+            {
+                "test_id": test_id,
+                "email": email,
+                "requisition_id": requisition_id,
+                "candidate_id": candidate_id,
+                "send_email": send_email,
+                "test_result_url": test_result_url,
+                "webhook_authentication": webhook_authentication,
+                "accept_result_updates": accept_result_updates,
+                "force": force,
+                "force_reattempt_after": force_reattempt_after,
+                "accommodations": accommodations,
+            },
+        )
         response = await self._request(
             method="POST",
             url=f"{_API_V3}/ats/codescreen",
@@ -1158,10 +2209,47 @@ class AsyncATSNamespace(_AsyncNamespace):
 
 
 @beartype
-class AsyncSCIMNamespace(_AsyncNamespace):
-    """Async namespace for SCIM v2 operations."""
+class AsyncATSNamespace(_AsyncNamespace):
+    """Async namespace for ATS operations."""
 
-    async def list_users(
+    def __init__(
+        self,
+        *,
+        transport: AsyncTransport,
+        base_url: str,
+        headers: dict[str, str],
+    ) -> None:
+        """Create the ATS namespace.
+
+        Args:
+            transport: The HTTP transport.
+            base_url: The base URL for the API.
+            headers: Headers to send with every request.
+        """
+        super().__init__(
+            transport=transport,
+            base_url=base_url,
+            headers=headers,
+        )
+        self.codepair: AsyncATSCodePairNamespace = AsyncATSCodePairNamespace(
+            transport=transport,
+            base_url=base_url,
+            headers=headers,
+        )
+        self.codescreen: AsyncATSCodeScreenNamespace = (
+            AsyncATSCodeScreenNamespace(
+                transport=transport,
+                base_url=base_url,
+                headers=headers,
+            )
+        )
+
+
+@beartype
+class AsyncSCIMUsersNamespace(_AsyncNamespace):
+    """Async namespace for SCIM v2 user operations."""
+
+    async def list(
         self,
         *,
         limit: int | None = None,
@@ -1186,13 +2274,111 @@ class AsyncSCIMNamespace(_AsyncNamespace):
         items: list[SCIMUser] = [SCIMUser.from_dict(data=item) for item in raw]
         return _make_scim_page(items, payload)
 
-    async def list_groups(
+    async def create(
+        self,
+        *,
+        body: Mapping[str, JSONValue],
+    ) -> SCIMUser:
+        """Create a SCIM user.
+
+        Args:
+            body: The SCIM user payload.
+
+        Returns:
+            The created SCIM user.
+        """
+        response = await self._request(
+            method="POST",
+            url="/Users",
+            json=body,
+        )
+        return SCIMUser.from_dict(data=response.json())
+
+    async def get(self, *, scim_user_id: str) -> SCIMUser:
+        """Retrieve a SCIM user.
+
+        Args:
+            scim_user_id: The id of the SCIM user.
+
+        Returns:
+            The SCIM user.
+        """
+        response = await self._request(
+            method="GET",
+            url=f"/Users/{scim_user_id}",
+        )
+        return SCIMUser.from_dict(data=response.json())
+
+    async def replace(
+        self,
+        *,
+        scim_user_id: str,
+        body: Mapping[str, JSONValue],
+    ) -> SCIMUser:
+        """Replace a SCIM user (PUT).
+
+        Args:
+            scim_user_id: The id of the SCIM user.
+            body: The full SCIM user payload.
+
+        Returns:
+            The updated SCIM user.
+        """
+        response = await self._request(
+            method="PUT",
+            url=f"/Users/{scim_user_id}",
+            json=body,
+        )
+        return SCIMUser.from_dict(data=response.json())
+
+    async def patch(
+        self,
+        *,
+        scim_user_id: str,
+        operations: Sequence[Mapping[str, JSONValue]],
+    ) -> SCIMUser:
+        """Patch a SCIM user.
+
+        Args:
+            scim_user_id: The id of the SCIM user.
+            operations: The SCIM patch operations.
+
+        Returns:
+            The updated SCIM user.
+        """
+        body: dict[str, JSONValue] = {
+            "operations": [dict(op) for op in operations],
+        }
+        response = await self._request(
+            method="PATCH",
+            url=f"/Users/{scim_user_id}",
+            json=body,
+        )
+        return SCIMUser.from_dict(data=response.json())
+
+    async def delete(self, *, scim_user_id: str) -> None:
+        """Lock a SCIM user.
+
+        Args:
+            scim_user_id: The id of the SCIM user.
+        """
+        await self._request(
+            method="DELETE",
+            url=f"/Users/{scim_user_id}",
+        )
+
+
+@beartype
+class AsyncSCIMGroupsNamespace(_AsyncNamespace):
+    """Async namespace for SCIM v2 group (team) operations."""
+
+    async def list(
         self,
         *,
         limit: int | None = None,
         offset: int | None = None,
     ) -> SCIMPage[SCIMTeam]:
-        """List SCIM groups (teams).
+        """List SCIM groups.
 
         Args:
             limit: Number of records to fetch.
@@ -1210,6 +2396,108 @@ class AsyncSCIMNamespace(_AsyncNamespace):
         raw = list(payload.get("Resources", []))
         items: list[SCIMTeam] = [SCIMTeam.from_dict(data=item) for item in raw]
         return _make_scim_page(items, payload)
+
+    async def create(self, *, body: Mapping[str, JSONValue]) -> SCIMTeam:
+        """Create a SCIM group.
+
+        Args:
+            body: The SCIM group payload.
+
+        Returns:
+            The created SCIM team.
+        """
+        response = await self._request(
+            method="POST",
+            url="/Groups",
+            json=body,
+        )
+        return SCIMTeam.from_dict(data=response.json())
+
+    async def get(self, *, scim_group_id: str) -> SCIMTeam:
+        """Retrieve a SCIM group.
+
+        Args:
+            scim_group_id: The id of the SCIM group.
+
+        Returns:
+            The SCIM team.
+        """
+        response = await self._request(
+            method="GET",
+            url=f"/Groups/{scim_group_id}",
+        )
+        return SCIMTeam.from_dict(data=response.json())
+
+    async def patch(
+        self,
+        *,
+        scim_group_id: str,
+        operations: Sequence[Mapping[str, JSONValue]],
+    ) -> SCIMTeam:
+        """Patch a SCIM group.
+
+        Args:
+            scim_group_id: The id of the SCIM group.
+            operations: The SCIM patch operations.
+
+        Returns:
+            The updated SCIM team.
+        """
+        body: dict[str, JSONValue] = {
+            "operations": [dict(op) for op in operations],
+        }
+        response = await self._request(
+            method="PATCH",
+            url=f"/Groups/{scim_group_id}",
+            json=body,
+        )
+        return SCIMTeam.from_dict(data=response.json())
+
+    async def delete(self, *, scim_group_id: str) -> None:
+        """Deprovision a SCIM group.
+
+        Args:
+            scim_group_id: The id of the SCIM group.
+        """
+        await self._request(
+            method="DELETE",
+            url=f"/Groups/{scim_group_id}",
+        )
+
+
+@beartype
+class AsyncSCIMNamespace(_AsyncNamespace):
+    """Async namespace for SCIM v2 operations."""
+
+    def __init__(
+        self,
+        *,
+        transport: AsyncTransport,
+        base_url: str,
+        headers: dict[str, str],
+    ) -> None:
+        """Create the SCIM namespace.
+
+        Args:
+            transport: The HTTP transport.
+            base_url: The base URL for the API.
+            headers: Headers to send with every request.
+        """
+        super().__init__(
+            transport=transport,
+            base_url=base_url,
+            headers=headers,
+        )
+        self.users: AsyncSCIMUsersNamespace = AsyncSCIMUsersNamespace(
+            transport=transport,
+            base_url=base_url,
+            headers=headers,
+        )
+        self.groups: AsyncSCIMGroupsNamespace = AsyncSCIMGroupsNamespace(
+            transport=transport,
+            base_url=base_url,
+            headers=headers,
+        )
 
 
 @beartype

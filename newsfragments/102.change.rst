@@ -1,0 +1,1 @@
+Bring the async ``AsyncHackerRank`` client to full parity with the synchronous ``HackerRank`` client, adding all missing operations and aligning method shapes (``ats.codepair``/``ats.codescreen``, ``teams.memberships`` and ``scim.users``/``scim.groups`` sub-namespaces).
