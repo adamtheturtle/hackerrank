@@ -299,7 +299,7 @@ class TestSCIMPagingEdgeCases:
             )
             client = AsyncHackerRank(api_key="test-key")
             try:
-                result = await client.scim.list_groups()
+                result = await client.scim.groups.list()
             finally:
                 await client.aclose()
         assert result.schemas == []
