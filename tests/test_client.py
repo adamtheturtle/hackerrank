@@ -46,6 +46,25 @@ class TestHackerRank:
         assert client.base_url == "https://custom.example.com"
 
     @staticmethod
+    def test_default_scim_base_url() -> None:
+        """SCIM uses its own host, distinct from the v3 base URL."""
+        client = HackerRank(api_key="test-key")
+        assert (
+            client.scim_base_url == "https://services.hackerrank.com/scim/v2"
+        )
+        assert client.scim.users.base_url == client.scim_base_url
+
+    @staticmethod
+    def test_custom_scim_base_url() -> None:
+        """A custom SCIM base URL can be provided."""
+        client = HackerRank(
+            api_key="test-key",
+            scim_base_url="https://scim.example.com/v2",
+        )
+        assert client.scim_base_url == "https://scim.example.com/v2"
+        assert client.scim.groups.base_url == "https://scim.example.com/v2"
+
+    @staticmethod
     def test_close() -> None:
         """The client can be closed."""
         client = HackerRank(api_key="test-key")

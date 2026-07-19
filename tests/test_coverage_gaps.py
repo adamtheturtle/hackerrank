@@ -256,10 +256,7 @@ class TestSCIMPagingEdgeCases:
 
         Covers the False branch of ``isinstance(schemas_raw, list)``.
         """
-        with respx.mock(
-            base_url=_BASE_URL,
-            assert_all_called=False,
-        ) as router:
+        with respx.mock(assert_all_called=False) as router:
             router.get(url__regex=r".*/Users.*").mock(
                 return_value=httpx.Response(
                     status_code=200,
@@ -282,10 +279,7 @@ class TestSCIMPagingEdgeCases:
     @pytest.mark.asyncio
     async def test_async_scim_groups_with_missing_schemas() -> None:
         """Async SCIM groups list handles a missing ``schemas`` key."""
-        with respx.mock(
-            base_url=_BASE_URL,
-            assert_all_called=False,
-        ) as router:
+        with respx.mock(assert_all_called=False) as router:
             router.get(url__regex=r".*/Groups.*").mock(
                 return_value=httpx.Response(
                     status_code=200,

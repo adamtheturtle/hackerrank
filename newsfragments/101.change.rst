@@ -1,0 +1,1 @@
+SCIM v2 requests are now sent to ``https://services.hackerrank.com/scim/v2`` instead of the v3 API host, so ``client.scim`` works out of the box. A new ``scim_base_url`` argument on ``HackerRank`` and ``AsyncHackerRank`` allows overriding it.

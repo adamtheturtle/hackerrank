@@ -38,6 +38,7 @@ from hackerrank.types import (
 )
 
 _API_V3 = "/x/api/v3"
+_SCIM_BASE_URL = "https://services.hackerrank.com/scim/v2"
 
 
 def _drop_none(
@@ -2517,17 +2518,22 @@ class HackerRank:
         *,
         api_key: str,
         base_url: str = "https://www.hackerrank.com",
+        scim_base_url: str = _SCIM_BASE_URL,
         transport: Transport | None = None,
     ) -> None:
         """Create a new HackerRank client.
 
         Args:
             api_key: The API key for authentication.
-            base_url: The base URL for the API.
+            base_url: The base URL for the v3 API.
+            scim_base_url: The base URL for the SCIM v2 API. This
+                is a different host from ``base_url``; the two APIs
+                cannot share a base URL.
             transport: The HTTP transport. Defaults to
                 ``HTTPXTransport()``.
         """
         self.base_url = base_url
+        self.scim_base_url = scim_base_url
         resolved_transport = transport or HTTPXTransport()
         headers = {
             "Authorization": f"Bearer {api_key}",
@@ -2587,7 +2593,7 @@ class HackerRank:
         )
         self.scim: SCIMNamespace = SCIMNamespace(
             transport=resolved_transport,
-            base_url=base_url,
+            base_url=scim_base_url,
             headers=headers,
         )
         if isinstance(resolved_transport, HTTPXTransport):
