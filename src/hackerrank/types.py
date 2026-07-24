@@ -30,7 +30,7 @@ from hackerrank._dict_types import (
 )
 
 type JSONValue = (
-    str | int | float | bool | None | Sequence[Any] | Mapping[str, Any]
+    str | int | float | bool | Sequence[Any] | Mapping[str, Any] | None
 )
 """A JSON-compatible value.
 
