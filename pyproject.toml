@@ -129,7 +129,6 @@ lint.ignore = [
     # Ignore 'too-many-*' errors as they seem to get in the way more than
     # helping.
     "PLR0913",
-    "RUF036",
 ]
 lint.per-file-ignores."doccmd_*.py" = [
     # Allow asserts in docs.
