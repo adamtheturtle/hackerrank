@@ -8,10 +8,14 @@ populated. Responses are stubbed via the ``stub_router`` fixture in
 
 from __future__ import annotations
 
-import pytest
+import json
 
-from hackerrank.async_client import AsyncHackerRank  # noqa: TC001
-from hackerrank.client import HackerRank  # noqa: TC001
+import httpx
+import pytest
+import respx
+
+from hackerrank.async_client import AsyncHackerRank
+from hackerrank.client import HackerRank
 
 
 class TestSyncEndpoints:
@@ -68,22 +72,84 @@ class TestSyncEndpoints:
         sync_client.interview_templates.create(name="t")
         sync_client.interview_templates.create(
             name="t",
-            roles=["dev"],
+            role_id="dev",
             team_share=1,
-            questions=["q1"],
-            scorecard=2,
+            question_ids=[2687118],
         )
-        sync_client.interview_templates.get(template_id=1)
-        sync_client.interview_templates.update(template_id=1)
+        sync_client.interview_templates.get(template_id="template-1")
+        sync_client.interview_templates.update(template_id="template-1")
         sync_client.interview_templates.update(
-            template_id=1,
+            template_id="template-1",
             name="t",
-            roles=["dev"],
+            role_id="dev",
             team_share=1,
-            questions=["q1"],
-            scorecard=2,
+            scorecard_id=2,
         )
-        sync_client.interview_templates.delete(template_id=1)
+        sync_client.interview_templates.delete(template_id="template-1")
+
+    @staticmethod
+    def test_interview_template_contract() -> None:
+        """Use the current request and response fields for templates."""
+        requests: list[httpx.Request] = []
+
+        def template_response(request: httpx.Request) -> httpx.Response:
+            """Record a request and return a live-shaped response."""
+            requests.append(request)
+            return httpx.Response(
+                status_code=201 if request.method == "POST" else 200,
+                json={
+                    "id": "template-1",
+                    "name": "Backend interview",
+                    "questions": [2687118],
+                },
+            )
+
+        with respx.mock(assert_all_called=True) as router:
+            router.post(
+                url=(
+                    "https://www.hackerrank.com/x/api/v3/interview_templates"
+                ),
+            ).mock(side_effect=template_response)
+            router.put(
+                url=(
+                    "https://www.hackerrank.com/x/api/v3/"
+                    "interview_templates/template-1"
+                ),
+            ).mock(side_effect=template_response)
+            with HackerRank(api_key="test-key") as client:
+                created = client.interview_templates.create(
+                    name="Backend interview",
+                    role_id="backend",
+                    team_share=2,
+                    question_ids=[2687118, 2687119],
+                )
+                updated = client.interview_templates.update(
+                    template_id=created.id,
+                    name="Senior backend interview",
+                    role_id="senior-backend",
+                    team_share=3,
+                    scorecard_id=98765,
+                )
+
+        create_request = requests[0]
+        assert json.loads(s=create_request.content) == {
+            "name": "Backend interview",
+            "role_id": "backend",
+            "team_share": 2,
+            "question_ids": [2687118, 2687119],
+        }
+        assert created.id == "template-1"
+        assert created.questions == [2687118]
+
+        update_request = requests[1]
+        assert json.loads(s=update_request.content) == {
+            "name": "Senior backend interview",
+            "role_id": "senior-backend",
+            "team_share": 3,
+            "scorecard_id": 98765,
+        }
+        assert updated.id == "template-1"
+        assert updated.questions == [2687118]
 
     @staticmethod
     def test_questions(sync_client: HackerRank) -> None:
@@ -526,22 +592,91 @@ class TestAsyncEndpoints:
         await async_client.interview_templates.create(name="t")
         await async_client.interview_templates.create(
             name="t",
-            roles=["dev"],
+            role_id="dev",
             team_share=1,
-            questions=["q1"],
-            scorecard=2,
+            question_ids=[2687118],
         )
-        await async_client.interview_templates.get(template_id=1)
-        await async_client.interview_templates.update(template_id=1)
+        await async_client.interview_templates.get(
+            template_id="template-1",
+        )
         await async_client.interview_templates.update(
-            template_id=1,
-            name="t",
-            roles=["dev"],
-            team_share=1,
-            questions=["q1"],
-            scorecard=2,
+            template_id="template-1",
         )
-        await async_client.interview_templates.delete(template_id=1)
+        await async_client.interview_templates.update(
+            template_id="template-1",
+            name="t",
+            role_id="dev",
+            team_share=1,
+            scorecard_id=2,
+        )
+        await async_client.interview_templates.delete(
+            template_id="template-1",
+        )
+
+    @staticmethod
+    @pytest.mark.asyncio
+    async def test_interview_template_contract() -> None:
+        """Use current template fields in the async client."""
+        requests: list[httpx.Request] = []
+
+        def template_response(request: httpx.Request) -> httpx.Response:
+            """Record a request and return a live-shaped response."""
+            requests.append(request)
+            return httpx.Response(
+                status_code=201 if request.method == "POST" else 200,
+                json={
+                    "id": "template-1",
+                    "name": "Backend interview",
+                    "questions": [2687118],
+                },
+            )
+
+        with respx.mock(assert_all_called=True) as router:
+            router.post(
+                url=(
+                    "https://www.hackerrank.com/x/api/v3/interview_templates"
+                ),
+            ).mock(side_effect=template_response)
+            router.put(
+                url=(
+                    "https://www.hackerrank.com/x/api/v3/"
+                    "interview_templates/template-1"
+                ),
+            ).mock(side_effect=template_response)
+            async with AsyncHackerRank(api_key="test-key") as client:
+                created = await client.interview_templates.create(
+                    name="Backend interview",
+                    role_id="backend",
+                    team_share=2,
+                    question_ids=[2687118, 2687119],
+                )
+                updated = await client.interview_templates.update(
+                    template_id=created.id,
+                    name="Senior backend interview",
+                    role_id="senior-backend",
+                    team_share=3,
+                    scorecard_id=98765,
+                )
+
+        create_request = requests[0]
+        assert json.loads(s=create_request.content) == {
+            "name": "Backend interview",
+            "role_id": "backend",
+            "team_share": 2,
+            "question_ids": [2687118, 2687119],
+        }
+        assert created.id == "template-1"
+        assert created.questions == [2687118]
+
+        update_request = requests[1]
+        assert json.loads(s=update_request.content) == {
+            "name": "Senior backend interview",
+            "role_id": "senior-backend",
+            "team_share": 3,
+            "scorecard_id": 98765,
+        }
+        assert updated.id == "template-1"
+        assert updated.questions == [2687118]
 
     @staticmethod
     @pytest.mark.asyncio

@@ -497,19 +497,17 @@ class InterviewTemplatesNamespace(_Namespace):
         self,
         *,
         name: str,
-        roles: Sequence[str] | None = None,
+        role_id: str | None = None,
         team_share: int | None = None,
-        questions: Sequence[str] | None = None,
-        scorecard: int | None = None,
+        question_ids: Sequence[int] | None = None,
     ) -> InterviewTemplate:
         """Create an interview template.
 
         Args:
             name: The template name.
-            roles: Roles for the template.
+            role_id: Role unique id for the template.
             team_share: Team-share flag.
-            questions: Associated question ids.
-            scorecard: Scorecard id.
+            question_ids: Question ids to add to the template.
 
         Returns:
             The created interview template.
@@ -517,12 +515,11 @@ class InterviewTemplatesNamespace(_Namespace):
         body = _drop_none(
             {
                 "name": name,
-                "roles": list(roles) if roles is not None else None,
+                "role_id": role_id,
                 "team_share": team_share,
-                "questions": (
-                    list(questions) if questions is not None else None
+                "question_ids": (
+                    list(question_ids) if question_ids is not None else None
                 ),
-                "scorecard": scorecard,
             },
         )
         response = self._request(
@@ -552,37 +549,36 @@ class InterviewTemplatesNamespace(_Namespace):
         *,
         template_id: int | str,
         name: str | None = None,
-        roles: Sequence[str] | None = None,
+        role_id: str | None = None,
         team_share: int | None = None,
-        questions: Sequence[str] | None = None,
-        scorecard: int | None = None,
-    ) -> None:
+        scorecard_id: int | None = None,
+    ) -> InterviewTemplate:
         """Update an interview template.
 
         Args:
             template_id: The id of the template.
             name: New name.
-            roles: New roles.
+            role_id: New role unique id.
             team_share: New team-share flag.
-            questions: New question ids.
-            scorecard: New scorecard id.
+            scorecard_id: New scorecard id.
+
+        Returns:
+            The updated interview template.
         """
         body = _drop_none(
             {
                 "name": name,
-                "roles": list(roles) if roles is not None else None,
+                "role_id": role_id,
                 "team_share": team_share,
-                "questions": (
-                    list(questions) if questions is not None else None
-                ),
-                "scorecard": scorecard,
+                "scorecard_id": scorecard_id,
             },
         )
-        self._request(
+        response = self._request(
             method="PUT",
             url=(f"{_API_V3}/interview_templates/{template_id}"),
             json=body,
         )
+        return InterviewTemplate.from_dict(data=response.json())
 
     def delete(self, *, template_id: int | str) -> None:
         """Delete an interview template.

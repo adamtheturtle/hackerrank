@@ -278,14 +278,14 @@ class InterviewTranscript:
 class InterviewTemplate:
     """A HackerRank interview template."""
 
-    id: int
+    id: str
     name: str
     created_at: str | None = None
     status: int | None = None
     user: int | None = None
     roles: list[str] | None = None
     team_share: int | None = None
-    questions: list[str] | None = None
+    questions: list[int] | None = None
     scorecard: int | None = None
     import_template: bool | None = None
     editor_access: bool | None = None
@@ -301,14 +301,18 @@ class InterviewTemplate:
             A new instance.
         """
         return cls(
-            id=data["id"],
+            id=str(object=data["id"]),
             name=data["name"],
             created_at=data.get("created_at"),
             status=data.get("status"),
             user=data.get("user"),
             roles=data.get("roles"),
             team_share=data.get("team_share"),
-            questions=data.get("questions"),
+            questions=(
+                [int(question_id) for question_id in data["questions"]]
+                if "questions" in data
+                else None
+            ),
             scorecard=data.get("scorecard"),
             import_template=data.get("import_template"),
             editor_access=data.get("editor_access"),

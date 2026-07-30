@@ -47,14 +47,14 @@ class InterviewTranscriptDict(TypedDict):
 class InterviewTemplateDict(TypedDict):
     """A HackerRank interview template."""
 
-    id: int
+    id: int | str
     name: str
     created_at: NotRequired[str]
     status: NotRequired[int]
     user: NotRequired[int]
     roles: NotRequired[list[str]]
     team_share: NotRequired[int]
-    questions: NotRequired[list[str]]
+    questions: NotRequired[list[int | str]]
     scorecard: NotRequired[int]
     import_template: NotRequired[bool]
     editor_access: NotRequired[bool]
