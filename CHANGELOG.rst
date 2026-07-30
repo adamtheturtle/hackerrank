@@ -3,6 +3,13 @@ Changelog
 
 .. towncrier release notes start
 
+2026.07.30
+----------
+
+- Align interview-template create and update requests with the current API,
+  return updated templates, and parse live string template IDs and integer
+  question IDs.
+
 2026.07.19
 ----------
 

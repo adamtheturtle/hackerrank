@@ -1,3 +1,0 @@
-Align interview-template create and update requests with the current API,
-return updated templates, and parse live string template IDs and integer
-question IDs.
