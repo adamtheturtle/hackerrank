@@ -42,7 +42,11 @@ _INTERVIEW_OBJ = {
     "status": "scheduled",
     "url": "https://example.com/iv1",
 }
-_INTERVIEW_TEMPLATE_OBJ = {"id": 1, "name": "T"}
+_INTERVIEW_TEMPLATE_OBJ = {
+    "id": "template-1",
+    "name": "T",
+    "questions": [2687118],
+}
 _ENVIRONMENT_OBJ = {
     "id": 92,
     "name": "PERN",
@@ -248,6 +252,14 @@ def _response_for(  # noqa: C901, PLR0911, PLR0912  # pylint: disable=too-comple
                 json=_SCIM_TEAM_OBJ,
             )
     if method == "PUT":
+        if re.fullmatch(
+            pattern=r"/x/api/v3/interview_templates/[^/]+",
+            string=path,
+        ):
+            return httpx.Response(
+                status_code=200,
+                json=_INTERVIEW_TEMPLATE_OBJ,
+            )
         if re.fullmatch(
             pattern=r"/x/api/v3/questions/[^/]+/(custom_codestubs|generate)",
             string=path,

@@ -203,9 +203,14 @@ class TestFromDict:
     def test_interview_template_from_dict() -> None:
         """``InterviewTemplate.from_dict`` populates the dataclass."""
         template = InterviewTemplate.from_dict(
-            data={"id": 1, "name": "Standard"},
+            data={
+                "id": "template-1",
+                "name": "Standard",
+                "questions": [2687118, "2687119"],
+            },
         )
-        assert template.id == 1
+        assert template.id == "template-1"
+        assert template.questions == [2687118, 2687119]
 
     @staticmethod
     def test_interview_transcript_from_dict() -> None:
