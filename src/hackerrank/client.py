@@ -83,9 +83,9 @@ class _Namespace:
         *,
         method: str,
         url: str,
-        params: dict[str, str | int] | None = None,
-        json: Mapping[str, JSONValue] | None = None,
-        files: Mapping[str, Any] | None = None,
+        params: dict[str, str | int] | None = None,  # noqa: NOD001
+        json: Mapping[str, JSONValue] | None = None,  # noqa: NOD001
+        files: Mapping[str, Any] | None = None,  # noqa: NOD001
     ) -> TransportResponse:
         """Make an HTTP request.
 
@@ -183,7 +183,7 @@ def _list_params(
     *,
     limit: int | None,
     offset: int | None,
-    extra: dict[str, str | int] | None = None,
+    extra: dict[str, str | int] | None = None,  # noqa: NOD001
 ) -> dict[str, str | int]:
     """Build query parameters for a list call.
 
@@ -207,24 +207,24 @@ def _list_params(
 
 def _question_body(
     *,
-    name: str | None = None,
-    type: str | None = None,  # noqa: A002  # pylint: disable=redefined-builtin
-    internal_notes: str | None = None,
-    languages: Sequence[str] | None = None,
-    problem_statement: str | None = None,
-    recommended_duration: int | None = None,
-    tags: Sequence[str] | None = None,
-    options: Sequence[str] | None = None,
-    answer: int | Sequence[int] | None = None,
-    score: float | None = None,
-    environment_id: int | None = None,
-    role_type: str | None = None,
-    scoring_command: str | None = None,
-    scoring_files: Sequence[str] | None = None,
-    readonly_paths: Sequence[str] | None = None,
-    default_files: Sequence[str] | None = None,
-    configuration: Mapping[str, JSONValue] | None = None,
-    testcases: Sequence[Mapping[str, JSONValue]] | None = None,
+    name: str | None = None,  # noqa: NOD001
+    type: str | None = None,  # noqa: A002, NOD001  # pylint: disable=redefined-builtin
+    internal_notes: str | None = None,  # noqa: NOD001
+    languages: Sequence[str] | None = None,  # noqa: NOD001
+    problem_statement: str | None = None,  # noqa: NOD001
+    recommended_duration: int | None = None,  # noqa: NOD001
+    tags: Sequence[str] | None = None,  # noqa: NOD001
+    options: Sequence[str] | None = None,  # noqa: NOD001
+    answer: int | Sequence[int] | None = None,  # noqa: NOD001
+    score: float | None = None,  # noqa: NOD001
+    environment_id: int | None = None,  # noqa: NOD001
+    role_type: str | None = None,  # noqa: NOD001
+    scoring_command: str | None = None,  # noqa: NOD001
+    scoring_files: Sequence[str] | None = None,  # noqa: NOD001
+    readonly_paths: Sequence[str] | None = None,  # noqa: NOD001
+    default_files: Sequence[str] | None = None,  # noqa: NOD001
+    configuration: Mapping[str, JSONValue] | None = None,  # noqa: NOD001
+    testcases: Sequence[Mapping[str, JSONValue]] | None = None,  # noqa: NOD001
 ) -> dict[str, JSONValue]:
     """Build a JSON body for question create/update calls."""
     return _drop_none(

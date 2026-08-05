@@ -89,9 +89,9 @@ class TestHackerRank:
                 method: str,
                 url: str,
                 headers: dict[str, str],
-                params: dict[str, str | int] | None = None,
-                json: object | None = None,
-                files: object | None = None,
+                params: dict[str, str | int] | None = None,  # noqa: NOD001
+                json: object | None = None,  # noqa: NOD001
+                files: object | None = None,  # noqa: NOD001
             ) -> TransportResponse:  # pragma: no cover
                 """Make a request."""
                 del method, url, headers, params, json, files
