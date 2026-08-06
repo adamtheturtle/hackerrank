@@ -153,7 +153,7 @@ def _list_params(
     *,
     limit: int | None,
     offset: int | None,
-    extra: dict[str, str | int] | None = None,
+    extra: dict[str, str | int] | None,
 ) -> dict[str, str | int]:
     """Build query parameters for a list call.
 
@@ -177,24 +177,24 @@ def _list_params(
 
 def _question_body(
     *,
-    name: str | None = None,
-    type: str | None = None,  # noqa: A002  # pylint: disable=redefined-builtin
-    internal_notes: str | None = None,
-    languages: Sequence[str] | None = None,
-    problem_statement: str | None = None,
-    recommended_duration: int | None = None,
-    tags: Sequence[str] | None = None,
-    options: Sequence[str] | None = None,
-    answer: int | Sequence[int] | None = None,
-    score: float | None = None,
-    environment_id: int | None = None,
-    role_type: str | None = None,
-    scoring_command: str | None = None,
-    scoring_files: Sequence[str] | None = None,
-    readonly_paths: Sequence[str] | None = None,
-    default_files: Sequence[str] | None = None,
-    configuration: Mapping[str, JSONValue] | None = None,
-    testcases: Sequence[Mapping[str, JSONValue]] | None = None,
+    name: str | None,
+    type: str | None,  # noqa: A002  # pylint: disable=redefined-builtin
+    internal_notes: str | None,
+    languages: Sequence[str] | None,
+    problem_statement: str | None,
+    recommended_duration: int | None,
+    tags: Sequence[str] | None,
+    options: Sequence[str] | None,
+    answer: int | Sequence[int] | None,
+    score: float | None,
+    environment_id: int | None,
+    role_type: str | None,
+    scoring_command: str | None,
+    scoring_files: Sequence[str] | None,
+    readonly_paths: Sequence[str] | None,
+    default_files: Sequence[str] | None,
+    configuration: Mapping[str, JSONValue] | None,
+    testcases: Sequence[Mapping[str, JSONValue]] | None,
 ) -> dict[str, JSONValue]:
     """Build a JSON body for question create/update calls."""
     return _drop_none(
@@ -258,9 +258,9 @@ class _AsyncNamespace:
         *,
         method: str,
         url: str,
-        params: dict[str, str | int] | None = None,
-        json: Mapping[str, JSONValue] | None = None,
-        files: Mapping[str, Any] | None = None,
+        params: dict[str, str | int] | None,
+        json: Mapping[str, JSONValue] | None,
+        files: Mapping[str, Any] | None,
     ) -> TransportResponse:
         """Make an async HTTP request.
 
@@ -313,7 +313,9 @@ class AsyncInterviewsNamespace(_AsyncNamespace):
         response = await self._request(
             method="GET",
             url=f"{_API_V3}/interviews",
-            params=_list_params(limit=limit, offset=offset),
+            params=_list_params(limit=limit, offset=offset, extra=None),
+            json=None,
+            files=None,
         )
         payload = response.json()
         raw_items = list(payload.get("data", []))
@@ -376,6 +378,8 @@ class AsyncInterviewsNamespace(_AsyncNamespace):
             method="POST",
             url=f"{_API_V3}/interviews",
             json=body,
+            params=None,
+            files=None,
         )
         return Interview.from_dict(data=response.json())
 
@@ -391,6 +395,9 @@ class AsyncInterviewsNamespace(_AsyncNamespace):
         response = await self._request(
             method="GET",
             url=f"{_API_V3}/interviews/{interview_id}",
+            params=None,
+            json=None,
+            files=None,
         )
         return Interview.from_dict(data=response.json())
 
@@ -442,6 +449,8 @@ class AsyncInterviewsNamespace(_AsyncNamespace):
             method="PUT",
             url=f"{_API_V3}/interviews/{interview_id}",
             json=body,
+            params=None,
+            files=None,
         )
 
     async def delete(self, *, interview_id: str) -> None:
@@ -453,6 +462,9 @@ class AsyncInterviewsNamespace(_AsyncNamespace):
         await self._request(
             method="DELETE",
             url=f"{_API_V3}/interviews/{interview_id}",
+            params=None,
+            json=None,
+            files=None,
         )
 
     async def get_transcript(
@@ -471,6 +483,9 @@ class AsyncInterviewsNamespace(_AsyncNamespace):
         response = await self._request(
             method="GET",
             url=(f"{_API_V3}/interviews/{interview_id}/transcript"),
+            params=None,
+            json=None,
+            files=None,
         )
         return InterviewTranscript.from_dict(data=response.json())
 
@@ -497,7 +512,9 @@ class AsyncInterviewTemplatesNamespace(_AsyncNamespace):
         response = await self._request(
             method="GET",
             url=f"{_API_V3}/interview_templates",
-            params=_list_params(limit=limit, offset=offset),
+            params=_list_params(limit=limit, offset=offset, extra=None),
+            json=None,
+            files=None,
         )
         payload = response.json()
         raw_items = list(payload.get("data", []))
@@ -539,6 +556,8 @@ class AsyncInterviewTemplatesNamespace(_AsyncNamespace):
             method="POST",
             url=f"{_API_V3}/interview_templates",
             json=body,
+            params=None,
+            files=None,
         )
         return InterviewTemplate.from_dict(data=response.json())
 
@@ -558,6 +577,9 @@ class AsyncInterviewTemplatesNamespace(_AsyncNamespace):
         response = await self._request(
             method="GET",
             url=(f"{_API_V3}/interview_templates/{template_id}"),
+            params=None,
+            json=None,
+            files=None,
         )
         return InterviewTemplate.from_dict(data=response.json())
 
@@ -594,6 +616,8 @@ class AsyncInterviewTemplatesNamespace(_AsyncNamespace):
             method="PUT",
             url=(f"{_API_V3}/interview_templates/{template_id}"),
             json=body,
+            params=None,
+            files=None,
         )
         return InterviewTemplate.from_dict(data=response.json())
 
@@ -606,6 +630,9 @@ class AsyncInterviewTemplatesNamespace(_AsyncNamespace):
         await self._request(
             method="DELETE",
             url=(f"{_API_V3}/interview_templates/{template_id}"),
+            params=None,
+            json=None,
+            files=None,
         )
 
 
@@ -622,6 +649,9 @@ class AsyncEnvironmentsNamespace(_AsyncNamespace):
         response = await self._request(
             method="GET",
             url=f"{_API_V3}/environments",
+            params=None,
+            json=None,
+            files=None,
         )
         raw_items = list(response.json().get("environments", []))
         return [Environment.from_dict(data=item) for item in raw_items]
@@ -638,6 +668,9 @@ class AsyncEnvironmentsNamespace(_AsyncNamespace):
         response = await self._request(
             method="GET",
             url=f"{_API_V3}/environments/{environment_id}",
+            params=None,
+            json=None,
+            files=None,
         )
         return Environment.from_dict(data=response.json()["environment"])
 
@@ -664,7 +697,9 @@ class AsyncQuestionsNamespace(_AsyncNamespace):
         response = await self._request(
             method="GET",
             url=f"{_API_V3}/questions",
-            params=_list_params(limit=limit, offset=offset),
+            params=_list_params(limit=limit, offset=offset, extra=None),
+            json=None,
+            files=None,
         )
         payload = response.json()
         raw_items = list(payload.get("data", []))
@@ -685,6 +720,9 @@ class AsyncQuestionsNamespace(_AsyncNamespace):
         response = await self._request(
             method="GET",
             url=f"{_API_V3}/questions/{question_id}",
+            params=None,
+            json=None,
+            files=None,
         )
         return Question.from_dict(data=response.json())
 
@@ -758,6 +796,8 @@ class AsyncQuestionsNamespace(_AsyncNamespace):
                 configuration=configuration,
                 testcases=testcases,
             ),
+            params=None,
+            files=None,
         )
         return Question.from_dict(data=response.json())
 
@@ -835,6 +875,8 @@ class AsyncQuestionsNamespace(_AsyncNamespace):
                 configuration=configuration,
                 testcases=testcases,
             ),
+            params=None,
+            files=None,
         )
         if response.content:
             return Question.from_dict(data=response.json())
@@ -864,6 +906,8 @@ class AsyncQuestionsNamespace(_AsyncNamespace):
             method="POST",
             url=f"{_API_V3}/questions/{question_id}/upload_project_zip",
             files={"file": (filename, file, content_type)},
+            params=None,
+            json=None,
         )
         result: dict[str, JSONValue] = dict(response.json())
         return result
@@ -884,6 +928,8 @@ class AsyncQuestionsNamespace(_AsyncNamespace):
             method="PUT",
             url=(f"{_API_V3}/questions/{question_id}/custom_codestubs"),
             json=codestubs,
+            params=None,
+            files=None,
         )
 
     async def generate_codestubs(
@@ -905,6 +951,8 @@ class AsyncQuestionsNamespace(_AsyncNamespace):
             method="PUT",
             url=(f"{_API_V3}/questions/{question_id}/generate"),
             json=body if body is not None else {},
+            params=None,
+            files=None,
         )
         result: dict[str, JSONValue] = dict(response.json())
         return result
@@ -928,6 +976,8 @@ class AsyncQuestionsNamespace(_AsyncNamespace):
             method="POST",
             url=(f"{_API_V3}/questions/{question_id}/testcases"),
             json=body,
+            params=None,
+            files=None,
         )
         result: dict[str, JSONValue] = dict(response.json())
         return result
@@ -950,6 +1000,8 @@ class AsyncQuestionsNamespace(_AsyncNamespace):
             method="PUT",
             url=(f"{_API_V3}/questions/{question_id}/testcases/{testcase_id}"),
             json=body,
+            params=None,
+            files=None,
         )
 
     async def delete_testcase(
@@ -967,6 +1019,9 @@ class AsyncQuestionsNamespace(_AsyncNamespace):
         await self._request(
             method="DELETE",
             url=(f"{_API_V3}/questions/{question_id}/testcases/{testcase_id}"),
+            params=None,
+            json=None,
+            files=None,
         )
 
     async def delete_all_testcases(self, *, question_id: str) -> None:
@@ -978,6 +1033,9 @@ class AsyncQuestionsNamespace(_AsyncNamespace):
         await self._request(
             method="DELETE",
             url=(f"{_API_V3}/questions/{question_id}/testcases/delete_all"),
+            params=None,
+            json=None,
+            files=None,
         )
 
 
@@ -1005,7 +1063,9 @@ class AsyncTestCandidatesNamespace(_AsyncNamespace):
         response = await self._request(
             method="GET",
             url=f"{_API_V3}/tests/{test_id}/candidates",
-            params=_list_params(limit=limit, offset=offset),
+            params=_list_params(limit=limit, offset=offset, extra=None),
+            json=None,
+            files=None,
         )
         payload = response.json()
         raw_items = list(payload.get("data", []))
@@ -1042,6 +1102,8 @@ class AsyncTestCandidatesNamespace(_AsyncNamespace):
             method="GET",
             url=f"{_API_V3}/tests/{test_id}/candidates/search",
             params=params,
+            json=None,
+            files=None,
         )
         payload = response.json()
         raw_items = list(payload.get("data", []))
@@ -1125,6 +1187,8 @@ class AsyncTestCandidatesNamespace(_AsyncNamespace):
             method="POST",
             url=f"{_API_V3}/tests/{test_id}/candidates",
             json=body,
+            params=None,
+            files=None,
         )
         return TestCandidate.from_dict(data=response.json())
 
@@ -1152,6 +1216,8 @@ class AsyncTestCandidatesNamespace(_AsyncNamespace):
             method="GET",
             url=(f"{_API_V3}/tests/{test_id}/candidates/{candidate_id}"),
             params=params or None,
+            json=None,
+            files=None,
         )
         return TestCandidate.from_dict(data=response.json())
 
@@ -1211,6 +1277,8 @@ class AsyncTestCandidatesNamespace(_AsyncNamespace):
             method="PUT",
             url=(f"{_API_V3}/tests/{test_id}/candidates/{candidate_id}"),
             json=body,
+            params=None,
+            files=None,
         )
 
     async def cancel_invite(
@@ -1230,6 +1298,9 @@ class AsyncTestCandidatesNamespace(_AsyncNamespace):
             url=(
                 f"{_API_V3}/tests/{test_id}/candidates/{candidate_id}/invite"
             ),
+            params=None,
+            json=None,
+            files=None,
         )
 
     async def delete_report(
@@ -1249,6 +1320,9 @@ class AsyncTestCandidatesNamespace(_AsyncNamespace):
             url=(
                 f"{_API_V3}/tests/{test_id}/candidates/{candidate_id}/report"
             ),
+            params=None,
+            json=None,
+            files=None,
         )
 
     async def get_report_pdf(
@@ -1274,6 +1348,8 @@ class AsyncTestCandidatesNamespace(_AsyncNamespace):
             method="GET",
             url=(f"{_API_V3}/tests/{test_id}/candidates/{candidate_id}/pdf"),
             params={"format": format_},
+            json=None,
+            files=None,
         )
         result: dict[str, JSONValue] = dict(response.json())
         return result
@@ -1328,7 +1404,9 @@ class AsyncTestsNamespace(_AsyncNamespace):
         response = await self._request(
             method="GET",
             url=f"{_API_V3}/tests",
-            params=_list_params(limit=limit, offset=offset),
+            params=_list_params(limit=limit, offset=offset, extra=None),
+            json=None,
+            files=None,
         )
         payload = response.json()
         raw_items = list(payload.get("data", []))
@@ -1457,6 +1535,8 @@ class AsyncTestsNamespace(_AsyncNamespace):
             method="POST",
             url=f"{_API_V3}/tests",
             json=body,
+            params=None,
+            files=None,
         )
         return Test.from_dict(data=response.json())
 
@@ -1482,6 +1562,8 @@ class AsyncTestsNamespace(_AsyncNamespace):
             method="GET",
             url=f"{_API_V3}/tests/{test_id}",
             params=params or None,
+            json=None,
+            files=None,
         )
         return Test.from_dict(data=response.json())
 
@@ -1503,6 +1585,8 @@ class AsyncTestsNamespace(_AsyncNamespace):
             method="PUT",
             url=f"{_API_V3}/tests/{test_id}",
             json=body,
+            params=None,
+            files=None,
         )
 
     async def delete(self, *, test_id: str) -> None:
@@ -1514,6 +1598,9 @@ class AsyncTestsNamespace(_AsyncNamespace):
         await self._request(
             method="DELETE",
             url=f"{_API_V3}/tests/{test_id}",
+            params=None,
+            json=None,
+            files=None,
         )
 
     async def archive(self, *, test_id: str) -> None:
@@ -1525,6 +1612,9 @@ class AsyncTestsNamespace(_AsyncNamespace):
         await self._request(
             method="POST",
             url=f"{_API_V3}/tests/{test_id}/archive",
+            params=None,
+            json=None,
+            files=None,
         )
 
     async def list_inviters(
@@ -1547,7 +1637,9 @@ class AsyncTestsNamespace(_AsyncNamespace):
         response = await self._request(
             method="GET",
             url=f"{_API_V3}/tests/{test_id}/inviters",
-            params=_list_params(limit=limit, offset=offset),
+            params=_list_params(limit=limit, offset=offset, extra=None),
+            json=None,
+            files=None,
         )
         payload = response.json()
         raw_items = list(payload.get("data", []))
@@ -1579,7 +1671,9 @@ class AsyncTemplatesNamespace(_AsyncNamespace):
         response = await self._request(
             method="GET",
             url=f"{_API_V3}/templates",
-            params=_list_params(limit=limit, offset=offset),
+            params=_list_params(limit=limit, offset=offset, extra=None),
+            json=None,
+            files=None,
         )
         payload = response.json()
         raw_items = list(payload.get("data", []))
@@ -1600,6 +1694,9 @@ class AsyncTemplatesNamespace(_AsyncNamespace):
         response = await self._request(
             method="GET",
             url=f"{_API_V3}/templates/{template_id}",
+            params=None,
+            json=None,
+            files=None,
         )
         return Template.from_dict(data=response.json())
 
@@ -1626,7 +1723,9 @@ class AsyncUsersNamespace(_AsyncNamespace):
         response = await self._request(
             method="GET",
             url=f"{_API_V3}/users",
-            params=_list_params(limit=limit, offset=offset),
+            params=_list_params(limit=limit, offset=offset, extra=None),
+            json=None,
+            files=None,
         )
         payload = response.json()
         raw_items = list(payload.get("data", []))
@@ -1659,6 +1758,8 @@ class AsyncUsersNamespace(_AsyncNamespace):
             method="GET",
             url=f"{_API_V3}/users/search",
             params=params,
+            json=None,
+            files=None,
         )
         payload = response.json()
         raw_items = list(payload.get("data", []))
@@ -1740,6 +1841,8 @@ class AsyncUsersNamespace(_AsyncNamespace):
             method="POST",
             url=f"{_API_V3}/users",
             json=body,
+            params=None,
+            files=None,
         )
         return User.from_dict(data=response.json())
 
@@ -1755,6 +1858,9 @@ class AsyncUsersNamespace(_AsyncNamespace):
         response = await self._request(
             method="GET",
             url=f"{_API_V3}/users/{user_id}",
+            params=None,
+            json=None,
+            files=None,
         )
         return User.from_dict(data=response.json())
 
@@ -1776,6 +1882,8 @@ class AsyncUsersNamespace(_AsyncNamespace):
             method="PUT",
             url=f"{_API_V3}/users/{user_id}",
             json=body,
+            params=None,
+            files=None,
         )
 
     async def delete(self, *, user_id: str) -> None:
@@ -1787,6 +1895,9 @@ class AsyncUsersNamespace(_AsyncNamespace):
         await self._request(
             method="DELETE",
             url=f"{_API_V3}/users/{user_id}",
+            params=None,
+            json=None,
+            files=None,
         )
 
 
@@ -1814,7 +1925,9 @@ class AsyncTeamMembershipsNamespace(_AsyncNamespace):
         response = await self._request(
             method="GET",
             url=f"{_API_V3}/teams/{team_id}/users",
-            params=_list_params(limit=limit, offset=offset),
+            params=_list_params(limit=limit, offset=offset, extra=None),
+            json=None,
+            files=None,
         )
         payload = response.json()
         raw_items = list(payload.get("data", []))
@@ -1841,6 +1954,9 @@ class AsyncTeamMembershipsNamespace(_AsyncNamespace):
         response = await self._request(
             method="GET",
             url=f"{_API_V3}/teams/{team_id}/users/{user_id}",
+            params=None,
+            json=None,
+            files=None,
         )
         return UserTeamMembership.from_dict(data=response.json())
 
@@ -1868,6 +1984,8 @@ class AsyncTeamMembershipsNamespace(_AsyncNamespace):
             method="POST",
             url=f"{_API_V3}/teams/{team_id}/users/{user_id}",
             params=params or None,
+            json=None,
+            files=None,
         )
         return UserTeamMembership.from_dict(data=response.json())
 
@@ -1886,6 +2004,9 @@ class AsyncTeamMembershipsNamespace(_AsyncNamespace):
         await self._request(
             method="DELETE",
             url=f"{_API_V3}/teams/{team_id}/users/{user_id}",
+            params=None,
+            json=None,
+            files=None,
         )
 
 
@@ -1938,7 +2059,9 @@ class AsyncTeamsNamespace(_AsyncNamespace):
         response = await self._request(
             method="GET",
             url=f"{_API_V3}/teams",
-            params=_list_params(limit=limit, offset=offset),
+            params=_list_params(limit=limit, offset=offset, extra=None),
+            json=None,
+            files=None,
         )
         payload = response.json()
         raw_items = list(payload.get("data", []))
@@ -1986,6 +2109,8 @@ class AsyncTeamsNamespace(_AsyncNamespace):
             method="POST",
             url=f"{_API_V3}/teams",
             json=body,
+            params=None,
+            files=None,
         )
         return Team.from_dict(data=response.json())
 
@@ -2001,6 +2126,9 @@ class AsyncTeamsNamespace(_AsyncNamespace):
         response = await self._request(
             method="GET",
             url=f"{_API_V3}/teams/{team_id}",
+            params=None,
+            json=None,
+            files=None,
         )
         return Team.from_dict(data=response.json())
 
@@ -2044,6 +2172,8 @@ class AsyncTeamsNamespace(_AsyncNamespace):
             method="PUT",
             url=f"{_API_V3}/teams/{team_id}",
             json=body,
+            params=None,
+            files=None,
         )
 
     async def delete(self, *, team_id: str) -> None:
@@ -2055,6 +2185,9 @@ class AsyncTeamsNamespace(_AsyncNamespace):
         await self._request(
             method="DELETE",
             url=f"{_API_V3}/teams/{team_id}",
+            params=None,
+            json=None,
+            files=None,
         )
 
 
@@ -2090,6 +2223,8 @@ class AsyncAuditLogsNamespace(_AsyncNamespace):
                 offset=offset,
                 extra=extra,
             ),
+            json=None,
+            files=None,
         )
         payload = response.json()
         raw_items = list(payload.get("data", []))
@@ -2140,6 +2275,8 @@ class AsyncATSCodePairNamespace(_AsyncNamespace):
             method="POST",
             url=f"{_API_V3}/ats/codepair",
             json=body,
+            params=None,
+            files=None,
         )
         return ATSCodePair.from_dict(data=response.json())
 
@@ -2200,6 +2337,8 @@ class AsyncATSCodeScreenNamespace(_AsyncNamespace):
             method="POST",
             url=f"{_API_V3}/ats/codescreen",
             json=body,
+            params=None,
+            files=None,
         )
         return ATSCodeScreen.from_dict(data=response.json())
 
@@ -2263,7 +2402,9 @@ class AsyncSCIMUsersNamespace(_AsyncNamespace):
         response = await self._request(
             method="GET",
             url="/Users",
-            params=_list_params(limit=limit, offset=offset),
+            params=_list_params(limit=limit, offset=offset, extra=None),
+            json=None,
+            files=None,
         )
         payload = response.json()
         raw = list(payload.get("Resources", []))
@@ -2287,6 +2428,8 @@ class AsyncSCIMUsersNamespace(_AsyncNamespace):
             method="POST",
             url="/Users",
             json=body,
+            params=None,
+            files=None,
         )
         return SCIMUser.from_dict(data=response.json())
 
@@ -2302,6 +2445,9 @@ class AsyncSCIMUsersNamespace(_AsyncNamespace):
         response = await self._request(
             method="GET",
             url=f"/Users/{scim_user_id}",
+            params=None,
+            json=None,
+            files=None,
         )
         return SCIMUser.from_dict(data=response.json())
 
@@ -2324,6 +2470,8 @@ class AsyncSCIMUsersNamespace(_AsyncNamespace):
             method="PUT",
             url=f"/Users/{scim_user_id}",
             json=body,
+            params=None,
+            files=None,
         )
         return SCIMUser.from_dict(data=response.json())
 
@@ -2349,6 +2497,8 @@ class AsyncSCIMUsersNamespace(_AsyncNamespace):
             method="PATCH",
             url=f"/Users/{scim_user_id}",
             json=body,
+            params=None,
+            files=None,
         )
         return SCIMUser.from_dict(data=response.json())
 
@@ -2361,6 +2511,9 @@ class AsyncSCIMUsersNamespace(_AsyncNamespace):
         await self._request(
             method="DELETE",
             url=f"/Users/{scim_user_id}",
+            params=None,
+            json=None,
+            files=None,
         )
 
 
@@ -2386,7 +2539,9 @@ class AsyncSCIMGroupsNamespace(_AsyncNamespace):
         response = await self._request(
             method="GET",
             url="/Groups",
-            params=_list_params(limit=limit, offset=offset),
+            params=_list_params(limit=limit, offset=offset, extra=None),
+            json=None,
+            files=None,
         )
         payload = response.json()
         raw = list(payload.get("Resources", []))
@@ -2406,6 +2561,8 @@ class AsyncSCIMGroupsNamespace(_AsyncNamespace):
             method="POST",
             url="/Groups",
             json=body,
+            params=None,
+            files=None,
         )
         return SCIMTeam.from_dict(data=response.json())
 
@@ -2421,6 +2578,9 @@ class AsyncSCIMGroupsNamespace(_AsyncNamespace):
         response = await self._request(
             method="GET",
             url=f"/Groups/{scim_group_id}",
+            params=None,
+            json=None,
+            files=None,
         )
         return SCIMTeam.from_dict(data=response.json())
 
@@ -2446,6 +2606,8 @@ class AsyncSCIMGroupsNamespace(_AsyncNamespace):
             method="PATCH",
             url=f"/Groups/{scim_group_id}",
             json=body,
+            params=None,
+            files=None,
         )
         return SCIMTeam.from_dict(data=response.json())
 
@@ -2458,6 +2620,9 @@ class AsyncSCIMGroupsNamespace(_AsyncNamespace):
         await self._request(
             method="DELETE",
             url=f"/Groups/{scim_group_id}",
+            params=None,
+            json=None,
+            files=None,
         )
 
 

@@ -83,9 +83,9 @@ class _Namespace:
         *,
         method: str,
         url: str,
-        params: dict[str, str | int] | None = None,
-        json: Mapping[str, JSONValue] | None = None,
-        files: Mapping[str, Any] | None = None,
+        params: dict[str, str | int] | None,
+        json: Mapping[str, JSONValue] | None,
+        files: Mapping[str, Any] | None,
     ) -> TransportResponse:
         """Make an HTTP request.
 
@@ -183,7 +183,7 @@ def _list_params(
     *,
     limit: int | None,
     offset: int | None,
-    extra: dict[str, str | int] | None = None,
+    extra: dict[str, str | int] | None,
 ) -> dict[str, str | int]:
     """Build query parameters for a list call.
 
@@ -207,24 +207,24 @@ def _list_params(
 
 def _question_body(
     *,
-    name: str | None = None,
-    type: str | None = None,  # noqa: A002  # pylint: disable=redefined-builtin
-    internal_notes: str | None = None,
-    languages: Sequence[str] | None = None,
-    problem_statement: str | None = None,
-    recommended_duration: int | None = None,
-    tags: Sequence[str] | None = None,
-    options: Sequence[str] | None = None,
-    answer: int | Sequence[int] | None = None,
-    score: float | None = None,
-    environment_id: int | None = None,
-    role_type: str | None = None,
-    scoring_command: str | None = None,
-    scoring_files: Sequence[str] | None = None,
-    readonly_paths: Sequence[str] | None = None,
-    default_files: Sequence[str] | None = None,
-    configuration: Mapping[str, JSONValue] | None = None,
-    testcases: Sequence[Mapping[str, JSONValue]] | None = None,
+    name: str | None,
+    type: str | None,  # noqa: A002  # pylint: disable=redefined-builtin
+    internal_notes: str | None,
+    languages: Sequence[str] | None,
+    problem_statement: str | None,
+    recommended_duration: int | None,
+    tags: Sequence[str] | None,
+    options: Sequence[str] | None,
+    answer: int | Sequence[int] | None,
+    score: float | None,
+    environment_id: int | None,
+    role_type: str | None,
+    scoring_command: str | None,
+    scoring_files: Sequence[str] | None,
+    readonly_paths: Sequence[str] | None,
+    default_files: Sequence[str] | None,
+    configuration: Mapping[str, JSONValue] | None,
+    testcases: Sequence[Mapping[str, JSONValue]] | None,
 ) -> dict[str, JSONValue]:
     """Build a JSON body for question create/update calls."""
     return _drop_none(
@@ -301,6 +301,8 @@ class InterviewsNamespace(_Namespace):
                 offset=offset,
                 extra=extra,
             ),
+            json=None,
+            files=None,
         )
         payload = response.json()
         raw_items = list(payload.get("data", []))
@@ -363,6 +365,8 @@ class InterviewsNamespace(_Namespace):
             method="POST",
             url=f"{_API_V3}/interviews",
             json=body,
+            params=None,
+            files=None,
         )
         return Interview.from_dict(data=response.json())
 
@@ -378,6 +382,9 @@ class InterviewsNamespace(_Namespace):
         response = self._request(
             method="GET",
             url=f"{_API_V3}/interviews/{interview_id}",
+            params=None,
+            json=None,
+            files=None,
         )
         return Interview.from_dict(data=response.json())
 
@@ -429,6 +436,8 @@ class InterviewsNamespace(_Namespace):
             method="PUT",
             url=f"{_API_V3}/interviews/{interview_id}",
             json=body,
+            params=None,
+            files=None,
         )
 
     def delete(self, *, interview_id: str) -> None:
@@ -440,6 +449,9 @@ class InterviewsNamespace(_Namespace):
         self._request(
             method="DELETE",
             url=f"{_API_V3}/interviews/{interview_id}",
+            params=None,
+            json=None,
+            files=None,
         )
 
     def get_transcript(
@@ -458,6 +470,9 @@ class InterviewsNamespace(_Namespace):
         response = self._request(
             method="GET",
             url=(f"{_API_V3}/interviews/{interview_id}/transcript"),
+            params=None,
+            json=None,
+            files=None,
         )
         return InterviewTranscript.from_dict(data=response.json())
 
@@ -484,7 +499,9 @@ class InterviewTemplatesNamespace(_Namespace):
         response = self._request(
             method="GET",
             url=f"{_API_V3}/interview_templates",
-            params=_list_params(limit=limit, offset=offset),
+            params=_list_params(limit=limit, offset=offset, extra=None),
+            json=None,
+            files=None,
         )
         payload = response.json()
         raw_items = list(payload.get("data", []))
@@ -526,6 +543,8 @@ class InterviewTemplatesNamespace(_Namespace):
             method="POST",
             url=f"{_API_V3}/interview_templates",
             json=body,
+            params=None,
+            files=None,
         )
         return InterviewTemplate.from_dict(data=response.json())
 
@@ -541,6 +560,9 @@ class InterviewTemplatesNamespace(_Namespace):
         response = self._request(
             method="GET",
             url=(f"{_API_V3}/interview_templates/{template_id}"),
+            params=None,
+            json=None,
+            files=None,
         )
         return InterviewTemplate.from_dict(data=response.json())
 
@@ -577,6 +599,8 @@ class InterviewTemplatesNamespace(_Namespace):
             method="PUT",
             url=(f"{_API_V3}/interview_templates/{template_id}"),
             json=body,
+            params=None,
+            files=None,
         )
         return InterviewTemplate.from_dict(data=response.json())
 
@@ -589,6 +613,9 @@ class InterviewTemplatesNamespace(_Namespace):
         self._request(
             method="DELETE",
             url=(f"{_API_V3}/interview_templates/{template_id}"),
+            params=None,
+            json=None,
+            files=None,
         )
 
 
@@ -605,6 +632,9 @@ class EnvironmentsNamespace(_Namespace):
         response = self._request(
             method="GET",
             url=f"{_API_V3}/environments",
+            params=None,
+            json=None,
+            files=None,
         )
         raw_items = list(response.json().get("environments", []))
         return [Environment.from_dict(data=item) for item in raw_items]
@@ -621,6 +651,9 @@ class EnvironmentsNamespace(_Namespace):
         response = self._request(
             method="GET",
             url=f"{_API_V3}/environments/{environment_id}",
+            params=None,
+            json=None,
+            files=None,
         )
         return Environment.from_dict(data=response.json()["environment"])
 
@@ -647,7 +680,9 @@ class QuestionsNamespace(_Namespace):
         response = self._request(
             method="GET",
             url=f"{_API_V3}/questions",
-            params=_list_params(limit=limit, offset=offset),
+            params=_list_params(limit=limit, offset=offset, extra=None),
+            json=None,
+            files=None,
         )
         payload = response.json()
         raw_items = list(payload.get("data", []))
@@ -727,6 +762,8 @@ class QuestionsNamespace(_Namespace):
             method="POST",
             url=f"{_API_V3}/questions",
             json=body,
+            params=None,
+            files=None,
         )
         return Question.from_dict(data=response.json())
 
@@ -742,6 +779,9 @@ class QuestionsNamespace(_Namespace):
         response = self._request(
             method="GET",
             url=f"{_API_V3}/questions/{question_id}",
+            params=None,
+            json=None,
+            files=None,
         )
         return Question.from_dict(data=response.json())
 
@@ -820,6 +860,8 @@ class QuestionsNamespace(_Namespace):
             method="PUT",
             url=f"{_API_V3}/questions/{question_id}",
             json=body,
+            params=None,
+            files=None,
         )
         if response.content:
             return Question.from_dict(data=response.json())
@@ -849,6 +891,8 @@ class QuestionsNamespace(_Namespace):
             method="POST",
             url=f"{_API_V3}/questions/{question_id}/upload_project_zip",
             files={"file": (filename, file, content_type)},
+            params=None,
+            json=None,
         )
         result: dict[str, JSONValue] = dict(response.json())
         return result
@@ -869,6 +913,8 @@ class QuestionsNamespace(_Namespace):
             method="PUT",
             url=(f"{_API_V3}/questions/{question_id}/custom_codestubs"),
             json=codestubs,
+            params=None,
+            files=None,
         )
 
     def generate_codestubs(
@@ -890,6 +936,8 @@ class QuestionsNamespace(_Namespace):
             method="PUT",
             url=(f"{_API_V3}/questions/{question_id}/generate"),
             json=body if body is not None else {},
+            params=None,
+            files=None,
         )
         result: dict[str, JSONValue] = dict(response.json())
         return result
@@ -913,6 +961,8 @@ class QuestionsNamespace(_Namespace):
             method="POST",
             url=(f"{_API_V3}/questions/{question_id}/testcases"),
             json=body,
+            params=None,
+            files=None,
         )
         result: dict[str, JSONValue] = dict(response.json())
         return result
@@ -935,6 +985,8 @@ class QuestionsNamespace(_Namespace):
             method="PUT",
             url=(f"{_API_V3}/questions/{question_id}/testcases/{testcase_id}"),
             json=body,
+            params=None,
+            files=None,
         )
 
     def delete_testcase(
@@ -952,6 +1004,9 @@ class QuestionsNamespace(_Namespace):
         self._request(
             method="DELETE",
             url=(f"{_API_V3}/questions/{question_id}/testcases/{testcase_id}"),
+            params=None,
+            json=None,
+            files=None,
         )
 
     def delete_all_testcases(self, *, question_id: str) -> None:
@@ -963,6 +1018,9 @@ class QuestionsNamespace(_Namespace):
         self._request(
             method="DELETE",
             url=(f"{_API_V3}/questions/{question_id}/testcases/delete_all"),
+            params=None,
+            json=None,
+            files=None,
         )
 
 
@@ -990,7 +1048,9 @@ class TestCandidatesNamespace(_Namespace):
         response = self._request(
             method="GET",
             url=f"{_API_V3}/tests/{test_id}/candidates",
-            params=_list_params(limit=limit, offset=offset),
+            params=_list_params(limit=limit, offset=offset, extra=None),
+            json=None,
+            files=None,
         )
         payload = response.json()
         raw_items = list(payload.get("data", []))
@@ -1027,6 +1087,8 @@ class TestCandidatesNamespace(_Namespace):
             method="GET",
             url=f"{_API_V3}/tests/{test_id}/candidates/search",
             params=params,
+            json=None,
+            files=None,
         )
         payload = response.json()
         raw_items = list(payload.get("data", []))
@@ -1110,6 +1172,8 @@ class TestCandidatesNamespace(_Namespace):
             method="POST",
             url=f"{_API_V3}/tests/{test_id}/candidates",
             json=body,
+            params=None,
+            files=None,
         )
         return TestCandidate.from_dict(data=response.json())
 
@@ -1137,6 +1201,8 @@ class TestCandidatesNamespace(_Namespace):
             method="GET",
             url=(f"{_API_V3}/tests/{test_id}/candidates/{candidate_id}"),
             params=params or None,
+            json=None,
+            files=None,
         )
         return TestCandidate.from_dict(data=response.json())
 
@@ -1196,6 +1262,8 @@ class TestCandidatesNamespace(_Namespace):
             method="PUT",
             url=(f"{_API_V3}/tests/{test_id}/candidates/{candidate_id}"),
             json=body,
+            params=None,
+            files=None,
         )
 
     def cancel_invite(
@@ -1215,6 +1283,9 @@ class TestCandidatesNamespace(_Namespace):
             url=(
                 f"{_API_V3}/tests/{test_id}/candidates/{candidate_id}/invite"
             ),
+            params=None,
+            json=None,
+            files=None,
         )
 
     def delete_report(
@@ -1234,6 +1305,9 @@ class TestCandidatesNamespace(_Namespace):
             url=(
                 f"{_API_V3}/tests/{test_id}/candidates/{candidate_id}/report"
             ),
+            params=None,
+            json=None,
+            files=None,
         )
 
     def get_report_pdf(
@@ -1259,6 +1333,8 @@ class TestCandidatesNamespace(_Namespace):
             method="GET",
             url=(f"{_API_V3}/tests/{test_id}/candidates/{candidate_id}/pdf"),
             params={"format": format_},
+            json=None,
+            files=None,
         )
         result: dict[str, JSONValue] = dict(response.json())
         return result
@@ -1311,7 +1387,9 @@ class TestsNamespace(_Namespace):
         response = self._request(
             method="GET",
             url=f"{_API_V3}/tests",
-            params=_list_params(limit=limit, offset=offset),
+            params=_list_params(limit=limit, offset=offset, extra=None),
+            json=None,
+            files=None,
         )
         payload = response.json()
         raw_items = list(payload.get("data", []))
@@ -1440,6 +1518,8 @@ class TestsNamespace(_Namespace):
             method="POST",
             url=f"{_API_V3}/tests",
             json=body,
+            params=None,
+            files=None,
         )
         return Test.from_dict(data=response.json())
 
@@ -1465,6 +1545,8 @@ class TestsNamespace(_Namespace):
             method="GET",
             url=f"{_API_V3}/tests/{test_id}",
             params=params or None,
+            json=None,
+            files=None,
         )
         return Test.from_dict(data=response.json())
 
@@ -1486,6 +1568,8 @@ class TestsNamespace(_Namespace):
             method="PUT",
             url=f"{_API_V3}/tests/{test_id}",
             json=body,
+            params=None,
+            files=None,
         )
 
     def delete(self, *, test_id: str) -> None:
@@ -1497,6 +1581,9 @@ class TestsNamespace(_Namespace):
         self._request(
             method="DELETE",
             url=f"{_API_V3}/tests/{test_id}",
+            params=None,
+            json=None,
+            files=None,
         )
 
     def archive(self, *, test_id: str) -> None:
@@ -1508,6 +1595,9 @@ class TestsNamespace(_Namespace):
         self._request(
             method="POST",
             url=f"{_API_V3}/tests/{test_id}/archive",
+            params=None,
+            json=None,
+            files=None,
         )
 
     def list_inviters(
@@ -1530,7 +1620,9 @@ class TestsNamespace(_Namespace):
         response = self._request(
             method="GET",
             url=f"{_API_V3}/tests/{test_id}/inviters",
-            params=_list_params(limit=limit, offset=offset),
+            params=_list_params(limit=limit, offset=offset, extra=None),
+            json=None,
+            files=None,
         )
         payload = response.json()
         raw_items = list(payload.get("data", []))
@@ -1562,7 +1654,9 @@ class TemplatesNamespace(_Namespace):
         response = self._request(
             method="GET",
             url=f"{_API_V3}/templates",
-            params=_list_params(limit=limit, offset=offset),
+            params=_list_params(limit=limit, offset=offset, extra=None),
+            json=None,
+            files=None,
         )
         payload = response.json()
         raw_items = list(payload.get("data", []))
@@ -1583,6 +1677,9 @@ class TemplatesNamespace(_Namespace):
         response = self._request(
             method="GET",
             url=f"{_API_V3}/templates/{template_id}",
+            params=None,
+            json=None,
+            files=None,
         )
         return Template.from_dict(data=response.json())
 
@@ -1609,7 +1706,9 @@ class UsersNamespace(_Namespace):
         response = self._request(
             method="GET",
             url=f"{_API_V3}/users",
-            params=_list_params(limit=limit, offset=offset),
+            params=_list_params(limit=limit, offset=offset, extra=None),
+            json=None,
+            files=None,
         )
         payload = response.json()
         raw_items = list(payload.get("data", []))
@@ -1642,6 +1741,8 @@ class UsersNamespace(_Namespace):
             method="GET",
             url=f"{_API_V3}/users/search",
             params=params,
+            json=None,
+            files=None,
         )
         payload = response.json()
         raw_items = list(payload.get("data", []))
@@ -1723,6 +1824,8 @@ class UsersNamespace(_Namespace):
             method="POST",
             url=f"{_API_V3}/users",
             json=body,
+            params=None,
+            files=None,
         )
         return User.from_dict(data=response.json())
 
@@ -1738,6 +1841,9 @@ class UsersNamespace(_Namespace):
         response = self._request(
             method="GET",
             url=f"{_API_V3}/users/{user_id}",
+            params=None,
+            json=None,
+            files=None,
         )
         return User.from_dict(data=response.json())
 
@@ -1759,6 +1865,8 @@ class UsersNamespace(_Namespace):
             method="PUT",
             url=f"{_API_V3}/users/{user_id}",
             json=body,
+            params=None,
+            files=None,
         )
 
     def delete(self, *, user_id: str) -> None:
@@ -1770,6 +1878,9 @@ class UsersNamespace(_Namespace):
         self._request(
             method="DELETE",
             url=f"{_API_V3}/users/{user_id}",
+            params=None,
+            json=None,
+            files=None,
         )
 
 
@@ -1797,7 +1908,9 @@ class TeamMembershipsNamespace(_Namespace):
         response = self._request(
             method="GET",
             url=f"{_API_V3}/teams/{team_id}/users",
-            params=_list_params(limit=limit, offset=offset),
+            params=_list_params(limit=limit, offset=offset, extra=None),
+            json=None,
+            files=None,
         )
         payload = response.json()
         raw_items = list(payload.get("data", []))
@@ -1824,6 +1937,9 @@ class TeamMembershipsNamespace(_Namespace):
         response = self._request(
             method="GET",
             url=f"{_API_V3}/teams/{team_id}/users/{user_id}",
+            params=None,
+            json=None,
+            files=None,
         )
         return UserTeamMembership.from_dict(data=response.json())
 
@@ -1851,6 +1967,8 @@ class TeamMembershipsNamespace(_Namespace):
             method="POST",
             url=f"{_API_V3}/teams/{team_id}/users/{user_id}",
             params=params or None,
+            json=None,
+            files=None,
         )
         return UserTeamMembership.from_dict(data=response.json())
 
@@ -1869,6 +1987,9 @@ class TeamMembershipsNamespace(_Namespace):
         self._request(
             method="DELETE",
             url=f"{_API_V3}/teams/{team_id}/users/{user_id}",
+            params=None,
+            json=None,
+            files=None,
         )
 
 
@@ -1919,7 +2040,9 @@ class TeamsNamespace(_Namespace):
         response = self._request(
             method="GET",
             url=f"{_API_V3}/teams",
-            params=_list_params(limit=limit, offset=offset),
+            params=_list_params(limit=limit, offset=offset, extra=None),
+            json=None,
+            files=None,
         )
         payload = response.json()
         raw_items = list(payload.get("data", []))
@@ -1967,6 +2090,8 @@ class TeamsNamespace(_Namespace):
             method="POST",
             url=f"{_API_V3}/teams",
             json=body,
+            params=None,
+            files=None,
         )
         return Team.from_dict(data=response.json())
 
@@ -1982,6 +2107,9 @@ class TeamsNamespace(_Namespace):
         response = self._request(
             method="GET",
             url=f"{_API_V3}/teams/{team_id}",
+            params=None,
+            json=None,
+            files=None,
         )
         return Team.from_dict(data=response.json())
 
@@ -2025,6 +2153,8 @@ class TeamsNamespace(_Namespace):
             method="PUT",
             url=f"{_API_V3}/teams/{team_id}",
             json=body,
+            params=None,
+            files=None,
         )
 
     def delete(self, *, team_id: str) -> None:
@@ -2036,6 +2166,9 @@ class TeamsNamespace(_Namespace):
         self._request(
             method="DELETE",
             url=f"{_API_V3}/teams/{team_id}",
+            params=None,
+            json=None,
+            files=None,
         )
 
 
@@ -2071,6 +2204,8 @@ class AuditLogsNamespace(_Namespace):
                 offset=offset,
                 extra=extra,
             ),
+            json=None,
+            files=None,
         )
         payload = response.json()
         raw_items = list(payload.get("data", []))
@@ -2121,6 +2256,8 @@ class ATSCodePairNamespace(_Namespace):
             method="POST",
             url=f"{_API_V3}/ats/codepair",
             json=body,
+            params=None,
+            files=None,
         )
         return ATSCodePair.from_dict(data=response.json())
 
@@ -2181,6 +2318,8 @@ class ATSCodeScreenNamespace(_Namespace):
             method="POST",
             url=f"{_API_V3}/ats/codescreen",
             json=body,
+            params=None,
+            files=None,
         )
         return ATSCodeScreen.from_dict(data=response.json())
 
@@ -2272,7 +2411,9 @@ class SCIMUsersNamespace(_Namespace):
         response = self._request(
             method="GET",
             url="/Users",
-            params=_list_params(limit=limit, offset=offset),
+            params=_list_params(limit=limit, offset=offset, extra=None),
+            json=None,
+            files=None,
         )
         payload = response.json()
         raw = list(payload.get("Resources", []))
@@ -2296,6 +2437,8 @@ class SCIMUsersNamespace(_Namespace):
             method="POST",
             url="/Users",
             json=body,
+            params=None,
+            files=None,
         )
         return SCIMUser.from_dict(data=response.json())
 
@@ -2311,6 +2454,9 @@ class SCIMUsersNamespace(_Namespace):
         response = self._request(
             method="GET",
             url=f"/Users/{scim_user_id}",
+            params=None,
+            json=None,
+            files=None,
         )
         return SCIMUser.from_dict(data=response.json())
 
@@ -2333,6 +2479,8 @@ class SCIMUsersNamespace(_Namespace):
             method="PUT",
             url=f"/Users/{scim_user_id}",
             json=body,
+            params=None,
+            files=None,
         )
         return SCIMUser.from_dict(data=response.json())
 
@@ -2358,6 +2506,8 @@ class SCIMUsersNamespace(_Namespace):
             method="PATCH",
             url=f"/Users/{scim_user_id}",
             json=body,
+            params=None,
+            files=None,
         )
         return SCIMUser.from_dict(data=response.json())
 
@@ -2370,6 +2520,9 @@ class SCIMUsersNamespace(_Namespace):
         self._request(
             method="DELETE",
             url=f"/Users/{scim_user_id}",
+            params=None,
+            json=None,
+            files=None,
         )
 
 
@@ -2395,7 +2548,9 @@ class SCIMGroupsNamespace(_Namespace):
         response = self._request(
             method="GET",
             url="/Groups",
-            params=_list_params(limit=limit, offset=offset),
+            params=_list_params(limit=limit, offset=offset, extra=None),
+            json=None,
+            files=None,
         )
         payload = response.json()
         raw = list(payload.get("Resources", []))
@@ -2415,6 +2570,8 @@ class SCIMGroupsNamespace(_Namespace):
             method="POST",
             url="/Groups",
             json=body,
+            params=None,
+            files=None,
         )
         return SCIMTeam.from_dict(data=response.json())
 
@@ -2430,6 +2587,9 @@ class SCIMGroupsNamespace(_Namespace):
         response = self._request(
             method="GET",
             url=f"/Groups/{scim_group_id}",
+            params=None,
+            json=None,
+            files=None,
         )
         return SCIMTeam.from_dict(data=response.json())
 
@@ -2455,6 +2615,8 @@ class SCIMGroupsNamespace(_Namespace):
             method="PATCH",
             url=f"/Groups/{scim_group_id}",
             json=body,
+            params=None,
+            files=None,
         )
         return SCIMTeam.from_dict(data=response.json())
 
@@ -2467,6 +2629,9 @@ class SCIMGroupsNamespace(_Namespace):
         self._request(
             method="DELETE",
             url=f"/Groups/{scim_group_id}",
+            params=None,
+            json=None,
+            files=None,
         )
 
 
