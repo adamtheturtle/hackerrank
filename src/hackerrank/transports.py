@@ -78,9 +78,9 @@ class Transport(Protocol):
         method: str,
         url: str,
         headers: dict[str, str],
-        params: dict[str, str | int] | None = None,
-        json: Mapping[str, JSONValue] | None = None,
-        files: Mapping[str, Any] | None = None,
+        params: dict[str, str | int] | None,
+        json: Mapping[str, JSONValue] | None,
+        files: Mapping[str, Any] | None,
     ) -> TransportResponse:
         """Make an HTTP request.
 
@@ -140,9 +140,9 @@ class HTTPXTransport:
         method: str,
         url: str,
         headers: dict[str, str],
-        params: dict[str, str | int] | None = None,
-        json: Mapping[str, JSONValue] | None = None,
-        files: Mapping[str, Any] | None = None,
+        params: dict[str, str | int] | None,
+        json: Mapping[str, JSONValue] | None,
+        files: Mapping[str, Any] | None,
     ) -> TransportResponse:
         """Make an HTTP request using ``httpx``.
 
@@ -183,9 +183,9 @@ class AsyncTransport(Protocol):
         method: str,
         url: str,
         headers: dict[str, str],
-        params: dict[str, str | int] | None = None,
-        json: Mapping[str, JSONValue] | None = None,
-        files: Mapping[str, Any] | None = None,
+        params: dict[str, str | int] | None,
+        json: Mapping[str, JSONValue] | None,
+        files: Mapping[str, Any] | None,
     ) -> TransportResponse:
         """Make an async HTTP request.
 
@@ -240,9 +240,9 @@ class AsyncHTTPXTransport:
         method: str,
         url: str,
         headers: dict[str, str],
-        params: dict[str, str | int] | None = None,
-        json: Mapping[str, JSONValue] | None = None,
-        files: Mapping[str, Any] | None = None,
+        params: dict[str, str | int] | None,
+        json: Mapping[str, JSONValue] | None,
+        files: Mapping[str, Any] | None,
     ) -> TransportResponse:
         """Make an async HTTP request using ``httpx``.
 
