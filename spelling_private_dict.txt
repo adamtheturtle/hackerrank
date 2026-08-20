@@ -1,7 +1,13 @@
+Args
+Codepair
+Deprovision
+MCQ
+Ubuntu
+Unprocessable
+Webhook
 acknowledgement
 aclose
 api
-Args
 async
 asyncio
 auth
@@ -9,12 +15,10 @@ beartype
 bool
 callables
 changelog
-Codepair
 codestubs
 config
 dataclass
 dataclasses
-Deprovision
 dev
 dict
 docstring
@@ -38,7 +42,6 @@ lastname
 linters
 linting
 macOS
-MCQ
 metadata
 namespace
 namespaces
@@ -65,10 +68,7 @@ testcases
 todo
 txt
 typecheck
-Ubuntu
 unmapped
-Unprocessable
 url
 webhook
-Webhook
 yml
