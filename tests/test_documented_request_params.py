@@ -480,8 +480,9 @@ class TestRouteHelpers:
 
     @staticmethod
     def test_as_str_keyed_dict_rejects_non_str_keys() -> None:
-        """Dicts with non-string keys yield ``None``."""
-        assert _as_str_keyed_dict(value={1: "x"}) is None
+        """Mappings with non-string keys yield ``None``."""
+        bad_keys: dict[object, str] = {1: "x"}
+        assert _as_str_keyed_dict(value=bad_keys) is None
 
     @staticmethod
     def test_route_json_rejects_non_object_body() -> None:
