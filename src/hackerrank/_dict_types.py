@@ -3,6 +3,13 @@
 from typing import Any, NotRequired, TypedDict
 
 
+class InterviewerDict(TypedDict):
+    """An interviewer identified by email and optional name."""
+
+    email: str
+    name: NotRequired[str]
+
+
 class InterviewDict(TypedDict):
     """A HackerRank interview."""
 
@@ -14,7 +21,7 @@ class InterviewDict(TypedDict):
     thumbs_up: NotRequired[int]
     notes: NotRequired[str]
     resume_url: NotRequired[str]
-    interviewers: NotRequired[list[str]]
+    interviewers: NotRequired[list[str | InterviewerDict]]
     result_url: NotRequired[str]
     candidate: NotRequired[dict[str, Any]]
     metadata: NotRequired[dict[str, Any]]
@@ -25,6 +32,9 @@ class InterviewDict(TypedDict):
     updated_at: NotRequired[str]
     user: NotRequired[int]
     send_email: NotRequired[bool]
+    to: NotRequired[str]
+    started_at: NotRequired[str]
+    ai_assistant_available: NotRequired[bool]
 
 
 class InterviewTranscriptMessageDict(TypedDict):
@@ -105,6 +115,16 @@ class QuestionDict(TypedDict):
     fullstack_project_details: NotRequired[dict[str, Any]]
 
 
+class TestCandidateDetailFieldDict(TypedDict, total=False):
+    """A candidate-detail field descriptor on a test."""
+
+    predefined_label: str
+    required: bool
+    title: str
+    type: str
+    options: list[str]
+
+
 class TestDict(TypedDict):
     """A HackerRank test."""
 
@@ -122,7 +142,9 @@ class TestDict(TypedDict):
     locked: NotRequired[bool]
     draft: NotRequired[bool]
     languages: NotRequired[list[str]]
-    candidate_details: NotRequired[list[str]]
+    candidate_details: NotRequired[
+        list[str | TestCandidateDetailFieldDict]
+    ]
     custom_acknowledge_text: NotRequired[str]
     cutoff_score: NotRequired[int]
     master_password: NotRequired[str]
@@ -131,7 +153,7 @@ class TestDict(TypedDict):
     role_ids: NotRequired[list[str]]
     experience: NotRequired[list[str]]
     questions: NotRequired[list[str]]
-    sections: NotRequired[list[dict[str, Any]]]
+    sections: NotRequired[dict[str, Any]]
     mcq_incorrect_score: NotRequired[int]
     mcq_correct_score: NotRequired[int]
     locked_by: NotRequired[str]
@@ -190,7 +212,7 @@ class TestCandidateDict(TypedDict):
     pdf_url: NotRequired[str]
     scores_tags_split: NotRequired[dict[str, Any]]
     scores_skills_split: NotRequired[dict[str, Any]]
-    added_time: NotRequired[int]
+    added_time: NotRequired[str | int]
     unclaimed_added_time: NotRequired[int]
     comments: NotRequired[dict[str, Any]]
     performance_summary: NotRequired[str]
@@ -304,8 +326,16 @@ class AuditLogDict(TypedDict):
     created_at: NotRequired[str]
 
 
+class CandidateInviteDict(TypedDict):
+    """Success payload for inviting a candidate to a test."""
+
+    test_link: str
+    email: str
+    id: int | str
+
+
 class ATSCodePairDict(TypedDict):
-    """Result of an ATS Codepair invite."""
+    """Request-shaped payload for an ATS Codepair invite."""
 
     title: NotRequired[str]
     requisition_id: NotRequired[str]
@@ -316,7 +346,7 @@ class ATSCodePairDict(TypedDict):
 
 
 class ATSCodeScreenDict(TypedDict):
-    """Result of an ATS CodeScreen invite."""
+    """Request-shaped payload for an ATS CodeScreen invite."""
 
     test_id: NotRequired[str]
     requisition_id: NotRequired[str]

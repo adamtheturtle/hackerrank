@@ -37,6 +37,11 @@ _SCIM_PAGE: dict[str, object] = {
 }
 _TEST_OBJ = {"id": "t1", "name": "T"}
 _CANDIDATE_OBJ = {"id": "c1", "email": "x@y.com"}
+_CANDIDATE_INVITE_OBJ = {
+    "test_link": "https://example.com/invite",
+    "email": "x@y.com",
+    "id": 10000,
+}
 _INTERVIEW_OBJ = {
     "id": "iv1",
     "status": "scheduled",
@@ -227,19 +232,19 @@ def _response_for(  # noqa: C901, PLR0911, PLR0912  # pylint: disable=too-comple
         ):
             return httpx.Response(
                 status_code=200,
-                json=_CANDIDATE_OBJ,
+                json=_CANDIDATE_INVITE_OBJ,
             )
         if path.endswith("/archive"):
             return httpx.Response(status_code=204)
         if path == "/x/api/v3/ats/codepair":
             return httpx.Response(
                 status_code=200,
-                json={"title": "X"},
+                json=_INTERVIEW_OBJ,
             )
         if path == "/x/api/v3/ats/codescreen":
             return httpx.Response(
                 status_code=200,
-                json={"email": "x@y.com"},
+                json=_CANDIDATE_INVITE_OBJ,
             )
         if path == "/scim/v2/Users":
             return httpx.Response(
@@ -259,6 +264,22 @@ def _response_for(  # noqa: C901, PLR0911, PLR0912  # pylint: disable=too-comple
             return httpx.Response(
                 status_code=200,
                 json=_INTERVIEW_TEMPLATE_OBJ,
+            )
+        if re.fullmatch(
+            pattern=r"/x/api/v3/interviews/[^/]+",
+            string=path,
+        ):
+            return httpx.Response(
+                status_code=200,
+                json=_INTERVIEW_OBJ,
+            )
+        if re.fullmatch(
+            pattern=r"/x/api/v3/tests/[^/]+/candidates/[^/]+",
+            string=path,
+        ):
+            return httpx.Response(
+                status_code=200,
+                json=_CANDIDATE_OBJ,
             )
         if re.fullmatch(
             pattern=r"/x/api/v3/questions/[^/]+/(custom_codestubs|generate)",

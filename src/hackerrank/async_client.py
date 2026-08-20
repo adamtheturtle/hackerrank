@@ -15,9 +15,8 @@ from hackerrank.transports import (
     TransportResponse,
 )
 from hackerrank.types import (
-    ATSCodePair,
-    ATSCodeScreen,
     AuditLog,
+    CandidateInvite,
     Environment,
     Interview,
     InterviewTemplate,
@@ -332,7 +331,7 @@ class AsyncInterviewsNamespace(_AsyncNamespace):
         to: str | None = None,
         notes: str | None = None,
         resume_url: str | None = None,
-        interviewers: Sequence[str] | None = None,
+        interviewers: builtins.list[str | Mapping[str, str]] | None = None,
         result_url: str | None = None,
         candidate: Mapping[str, JSONValue] | None = None,
         send_email: bool | None = None,
@@ -347,7 +346,7 @@ class AsyncInterviewsNamespace(_AsyncNamespace):
             to: Scheduled end time.
             notes: Private notes.
             resume_url: URL to the candidate resume.
-            interviewers: Emails of interviewers.
+            interviewers: Interviewer emails or email/name objects.
             result_url: URL invoked when the interview ends.
             candidate: Candidate details.
             send_email: Whether to send an email invite.
@@ -415,7 +414,7 @@ class AsyncInterviewsNamespace(_AsyncNamespace):
         send_email: bool | None = None,
         metadata: Mapping[str, JSONValue] | None = None,
         interview_template_id: int | None = None,
-    ) -> None:
+    ) -> Interview:
         """Update an interview.
 
         Args:
@@ -430,6 +429,9 @@ class AsyncInterviewsNamespace(_AsyncNamespace):
             send_email: Whether to send an email.
             metadata: New metadata.
             interview_template_id: New template id.
+
+        Returns:
+            The updated interview.
         """
         body = _drop_none(
             {
@@ -445,13 +447,14 @@ class AsyncInterviewsNamespace(_AsyncNamespace):
                 "interview_template_id": interview_template_id,
             },
         )
-        await self._request(
+        response = await self._request(
             method="PUT",
             url=f"{_API_V3}/interviews/{interview_id}",
             json=body,
             params=None,
             files=None,
         )
+        return Interview.from_dict(data=response.json())
 
     async def delete(self, *, interview_id: str) -> None:
         """Delete an interview.
@@ -1134,7 +1137,7 @@ class AsyncTestCandidatesNamespace(_AsyncNamespace):
         subject: str | None = None,
         message: str | None = None,
         template: str | None = None,
-    ) -> TestCandidate:
+    ) -> CandidateInvite:
         """Invite a candidate to a test.
 
         Args:
@@ -1159,7 +1162,7 @@ class AsyncTestCandidatesNamespace(_AsyncNamespace):
             template: Email template id.
 
         Returns:
-            The created candidate.
+            The invitation result, including ``test_link``.
         """
         body = _drop_none(
             {
@@ -1190,7 +1193,7 @@ class AsyncTestCandidatesNamespace(_AsyncNamespace):
             params=None,
             files=None,
         )
-        return TestCandidate.from_dict(data=response.json())
+        return CandidateInvite.from_dict(data=response.json())
 
     async def get(
         self,
@@ -1238,7 +1241,7 @@ class AsyncTestCandidatesNamespace(_AsyncNamespace):
         accept_result_updates: bool | None = None,
         tags: Sequence[str] | None = None,
         accommodations: Mapping[str, JSONValue] | None = None,
-    ) -> None:
+    ) -> TestCandidate:
         """Update a candidate.
 
         Args:
@@ -1256,6 +1259,9 @@ class AsyncTestCandidatesNamespace(_AsyncNamespace):
             accept_result_updates: New flag value.
             tags: New tags.
             accommodations: New accommodations.
+
+        Returns:
+            The updated candidate.
         """
         body = _drop_none(
             {
@@ -1273,13 +1279,14 @@ class AsyncTestCandidatesNamespace(_AsyncNamespace):
                 "accommodations": accommodations,
             },
         )
-        await self._request(
+        response = await self._request(
             method="PUT",
             url=(f"{_API_V3}/tests/{test_id}/candidates/{candidate_id}"),
             json=body,
             params=None,
             files=None,
         )
+        return TestCandidate.from_dict(data=response.json())
 
     async def cancel_invite(
         self,
@@ -1424,7 +1431,9 @@ class AsyncTestsNamespace(_AsyncNamespace):
         locked: bool | None = None,
         draft: bool | None = None,
         languages: Sequence[str] | None = None,
-        candidate_details: Sequence[str] | None = None,
+        candidate_details: (
+            builtins.list[str | Mapping[str, JSONValue]] | None
+        ) = None,
         custom_acknowledge_text: str | None = None,
         cutoff_score: int | None = None,
         master_password: str | None = None,
@@ -1457,7 +1466,7 @@ class AsyncTestsNamespace(_AsyncNamespace):
             locked: Whether the test is locked.
             draft: Whether the test is a draft.
             languages: Allowed programming languages.
-            candidate_details: Candidate detail fields.
+            candidate_details: Candidate detail field descriptors.
             custom_acknowledge_text: Custom acknowledge text.
             cutoff_score: The cut-off score.
             master_password: Master password for the test.
@@ -2247,7 +2256,7 @@ class AsyncATSCodePairNamespace(_AsyncNamespace):
         candidate: Mapping[str, JSONValue] | None = None,
         send_email: bool | None = None,
         interview_metadata: Mapping[str, JSONValue] | None = None,
-    ) -> ATSCodePair:
+    ) -> Interview:
         """Invite a candidate to an ATS Codepair interview.
 
         Args:
@@ -2259,7 +2268,7 @@ class AsyncATSCodePairNamespace(_AsyncNamespace):
             interview_metadata: Arbitrary metadata.
 
         Returns:
-            The ATS Codepair result.
+            The created interview.
         """
         body = _drop_none(
             {
@@ -2278,7 +2287,7 @@ class AsyncATSCodePairNamespace(_AsyncNamespace):
             params=None,
             files=None,
         )
-        return ATSCodePair.from_dict(data=response.json())
+        return Interview.from_dict(data=response.json())
 
 
 @beartype
@@ -2299,7 +2308,7 @@ class AsyncATSCodeScreenNamespace(_AsyncNamespace):
         force: bool | None = None,
         force_reattempt_after: int | None = None,
         accommodations: Mapping[str, JSONValue] | None = None,
-    ) -> ATSCodeScreen:
+    ) -> CandidateInvite:
         """Invite a candidate to a CodeScreen test.
 
         Args:
@@ -2316,7 +2325,7 @@ class AsyncATSCodeScreenNamespace(_AsyncNamespace):
             accommodations: Accommodation settings.
 
         Returns:
-            The ATS CodeScreen result.
+            The invitation result, including ``test_link``.
         """
         body = _drop_none(
             {
@@ -2340,7 +2349,7 @@ class AsyncATSCodeScreenNamespace(_AsyncNamespace):
             params=None,
             files=None,
         )
-        return ATSCodeScreen.from_dict(data=response.json())
+        return CandidateInvite.from_dict(data=response.json())
 
 
 @beartype

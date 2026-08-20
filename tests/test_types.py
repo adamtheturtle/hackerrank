@@ -4,8 +4,10 @@ from hackerrank.types import (
     ATSCodePair,
     ATSCodeScreen,
     AuditLog,
+    CandidateInvite,
     Environment,
     Interview,
+    Interviewer,
     InterviewTemplate,
     InterviewTranscript,
     Inviter,
@@ -18,6 +20,7 @@ from hackerrank.types import (
     Template,
     Test,
     TestCandidate,
+    TestCandidateDetailField,
     User,
     UserTeamMembership,
 )
@@ -95,6 +98,46 @@ class TestFromDict:
         assert interview.title is None
 
     @staticmethod
+    def test_interview_from_object_interviewers() -> None:
+        """``Interview.from_dict`` accepts object-form interviewers."""
+        interview = Interview.from_dict(
+            data={
+                "id": "289187",
+                "status": "active",
+                "url": "www.hackerrank.com/paper/demo",
+                "interviewers": [
+                    {"email": "hina@techcorp.com", "name": "Hina"},
+                    "other@techcorp.com",
+                ],
+            },
+        )
+        assert interview.interviewers is not None
+        first = interview.interviewers[0]
+        assert isinstance(first, Interviewer)
+        assert first.email == "hina@techcorp.com"
+        assert first.name == "Hina"
+        assert interview.interviewers[1] == "other@techcorp.com"
+
+    @staticmethod
+    def test_interview_preserves_schedule_and_live_fields() -> None:
+        """``Interview.from_dict`` keeps scheduled and live fields."""
+        interview = Interview.from_dict(
+            data={
+                "id": "i",
+                "status": "ended",
+                "url": "https://example.test/i",
+                "from": "2026-08-19T01:09:27+0000",
+                "to": "2026-08-19T02:09:27+0000",
+                "started_at": "2026-08-18T01:09:27+0000",
+                "ai_assistant_available": True,
+            },
+        )
+        assert interview.from_ == "2026-08-19T01:09:27+0000"
+        assert interview.to == "2026-08-19T02:09:27+0000"
+        assert interview.started_at == "2026-08-18T01:09:27+0000"
+        assert interview.ai_assistant_available is True
+
+    @staticmethod
     def test_test_from_dict() -> None:
         """``Test.from_dict`` populates the dataclass."""
         duration_minutes = 60
@@ -108,6 +151,28 @@ class TestFromDict:
         assert test.id == "t1"
         assert test.name == "My Test"
         assert test.duration == duration_minutes
+
+    @staticmethod
+    def test_test_from_object_candidate_details_and_sections() -> None:
+        """``Test.from_dict`` accepts object candidate details and sections."""
+        test = Test.from_dict(
+            data={
+                "id": "1PxfG1348",
+                "name": "Java Challenge",
+                "candidate_details": [
+                    {"predefined_label": "full_name", "required": True},
+                    "legacy-field",
+                ],
+                "sections": {"section-1": {"name": "Core"}},
+            },
+        )
+        assert test.candidate_details is not None
+        first = test.candidate_details[0]
+        assert isinstance(first, TestCandidateDetailField)
+        assert first.predefined_label == "full_name"
+        assert first.required is True
+        assert test.candidate_details[1] == "legacy-field"
+        assert test.sections == {"section-1": {"name": "Core"}}
 
     @staticmethod
     def test_question_from_dict() -> None:
@@ -263,6 +328,49 @@ class TestFromDict:
         assert candidate.tags == ["foo"]
         assert candidate.candidate_details is not None
         assert candidate.candidate_details[0].field_name == "f"
+
+    @staticmethod
+    def test_test_candidate_added_time_string_and_int() -> None:
+        """``TestCandidate.from_dict`` accepts string or int added_time."""
+        as_string = TestCandidate.from_dict(
+            data={
+                "id": "98Sjnbj12",
+                "email": "alice.wonders@email.com",
+                "added_time": "30",
+            },
+        )
+        assert as_string.added_time == "30"
+
+        as_int = TestCandidate.from_dict(
+            data={
+                "id": "98Sjnbj12",
+                "email": "alice.wonders@email.com",
+                "added_time": 0,
+            },
+        )
+        assert as_int.added_time == 0
+
+        absent = TestCandidate.from_dict(
+            data={
+                "id": "98Sjnbj12",
+                "email": "alice.wonders@email.com",
+            },
+        )
+        assert absent.added_time is None
+
+    @staticmethod
+    def test_candidate_invite_from_dict() -> None:
+        """``CandidateInvite.from_dict`` keeps test_link and id."""
+        invite = CandidateInvite.from_dict(
+            data={
+                "test_link": "https://example.test/invite",
+                "email": "a@example.com",
+                "id": 10000,
+            },
+        )
+        assert invite.test_link == "https://example.test/invite"
+        assert invite.email == "a@example.com"
+        assert invite.id == 10000
 
     @staticmethod
     def test_inviter_from_dict() -> None:
