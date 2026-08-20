@@ -217,9 +217,7 @@ class TestTemplateListParams:
             async with AsyncHackerRank(api_key="test-key") as client:
                 await client.interview_templates.list(filter="owned")
                 await client.templates.list(access="shared")
-        assert (
-            _query(interview_route.calls.last.request)["filter"] == "owned"
-        )
+        assert _query(interview_route.calls.last.request)["filter"] == "owned"
         assert _query(invite_route.calls.last.request)["access"] == "shared"
 
 
@@ -239,7 +237,7 @@ class TestInterviewBodyFields:
                     title="AI interview",
                     ai_assistant_available=True,
                 )
-        body = json.loads(route.calls.last.request.content)
+        body = json.loads(s=route.calls.last.request.content)
         assert body["ai_assistant_available"] is True
         assert created.ai_assistant_available is True
 
@@ -266,8 +264,8 @@ class TestInterviewBodyFields:
                     replace_interviewers=False,
                     ai_assistant_available=True,
                 )
-        first = json.loads(route.calls[0].request.content)
-        second = json.loads(route.calls[1].request.content)
+        first = json.loads(s=route.calls[0].request.content)
+        second = json.loads(s=route.calls[1].request.content)
         assert first["interviewers"] == ["a@b.com"]
         assert first["replace_interviewers"] is True
         assert first["ai_assistant_available"] is False
@@ -299,8 +297,8 @@ class TestInterviewBodyFields:
                     replace_interviewers=True,
                     ai_assistant_available=False,
                 )
-        create_body = json.loads(create_route.calls.last.request.content)
-        update_body = json.loads(update_route.calls.last.request.content)
+        create_body = json.loads(s=create_route.calls.last.request.content)
+        update_body = json.loads(s=update_route.calls.last.request.content)
         assert create_body["ai_assistant_available"] is True
         assert created.ai_assistant_available is True
         assert update_body["interviewers"] == ["a@b.com"]
@@ -329,8 +327,8 @@ class TestCandidateInviteAtsState:
                     email="c@x.com",
                     ats_state=22,
                 )
-        assert json.loads(route.calls[0].request.content)["ats_state"] == 0
-        assert json.loads(route.calls[1].request.content)["ats_state"] == 22
+        assert json.loads(s=route.calls[0].request.content)["ats_state"] == 0
+        assert json.loads(s=route.calls[1].request.content)["ats_state"] == 22
 
     @staticmethod
     @pytest.mark.asyncio
@@ -346,4 +344,4 @@ class TestCandidateInviteAtsState:
                     email="c@x.com",
                     ats_state=5,
                 )
-        assert json.loads(route.calls.last.request.content)["ats_state"] == 5
+        assert json.loads(s=route.calls.last.request.content)["ats_state"] == 5

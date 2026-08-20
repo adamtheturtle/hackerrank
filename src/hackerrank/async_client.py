@@ -459,9 +459,7 @@ class AsyncInterviewsNamespace(_AsyncNamespace):
         notes: str | None = None,
         resume_url: str | None = None,
         interviewers: (
-            builtins.list[str]
-            | builtins.list[Mapping[str, JSONValue]]
-            | None
+            builtins.list[str] | builtins.list[Mapping[str, JSONValue]] | None
         ) = None,
         result_url: str | None = None,
         candidate: Mapping[str, JSONValue] | None = None,
