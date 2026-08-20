@@ -440,3 +440,55 @@ class TestCandidateInviteAtsState:
                     ats_state=async_ats_state,
                 )
         assert _route_json(route=route)["ats_state"] == async_ats_state
+
+class TestRouteHelpers:
+    """Coverage for request-capture helper edge cases."""
+
+    @staticmethod
+    def test_route_request_rejects_non_callable_getitem() -> None:
+        """Indexed capture fails when ``calls`` has no ``__getitem__``."""
+        route = respx.Route(method="GET", url=f"{_BASE}/x").respond(
+            status_code=200,
+            json={},
+        )
+        route.calls = object()  # type: ignore[assignment]
+        with pytest.raises(expected_exception=TypeError, match="call list"):
+            _route_request(route=route, index=0)
+
+    @staticmethod
+    def test_route_request_rejects_missing_request_attr() -> None:
+        """Capture fails when the call object has no ``request``."""
+        route = respx.Route(method="GET", url=f"{_BASE}/x").respond(
+            status_code=200,
+            json={},
+        )
+
+        class _Call:
+            request = "not-a-request"
+
+        route.calls = [_Call()]  # type: ignore[assignment]
+        with pytest.raises(expected_exception=TypeError, match="httpx.Request"):
+            _route_request(route=route, index=0)
+
+    @staticmethod
+    def test_as_str_keyed_dict_rejects_non_dict() -> None:
+        """Non-dict values yield ``None``."""
+        assert _as_str_keyed_dict(value=["x"]) is None
+
+    @staticmethod
+    def test_as_str_keyed_dict_rejects_non_str_keys() -> None:
+        """Dicts with non-string keys yield ``None``."""
+        assert _as_str_keyed_dict(value={1: "x"}) is None
+
+    @staticmethod
+    def test_route_json_rejects_non_object_body() -> None:
+        """JSON bodies that are not objects raise ``TypeError``."""
+        with respx.mock(assert_all_called=True) as router:
+            route = router.post(url=f"{_BASE}/x").respond(
+                status_code=200,
+                json={},
+            )
+            with httpx.Client() as client:
+                client.post(url=f"{_BASE}/x", content=b"[1, 2, 3]")
+        with pytest.raises(expected_exception=TypeError, match="JSON object"):
+            _route_json(route=route)
