@@ -11,7 +11,7 @@ import httpx
 import pytest
 import respx
 
-from tests.openapi_helpers import normalize_openapi
+from .openapi_helpers import normalize_openapi
 
 _ROOT = Path(__file__).resolve().parents[1]
 _OPENAPI_PATH = _ROOT / "openapi.json"
