@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Mapping
+from typing import Any, cast
 
 import httpx
 import pytest
@@ -36,7 +38,7 @@ _CANDIDATE = {
 }
 
 
-def _query(request: httpx.Request) -> dict[str, str]:
+def _query(*, request: httpx.Request) -> dict[str, str]:
     """Return decoded query parameters for ``request``."""
     return dict(request.url.params)
 
@@ -49,7 +51,7 @@ class TestInterviewListParams:
         """Sync list forwards documented interview filters."""
         with respx.mock(assert_all_called=True) as router:
             route = router.get(url=f"{_BASE}/interviews").respond(
-                200,
+                status_code=200,
                 json=_PAGE,
             )
             with HackerRank(api_key="test-key") as client:
@@ -64,7 +66,7 @@ class TestInterviewListParams:
                     updated_at="2024-01-01..2024-01-02",
                     ended_at="2024-01-01..2024-01-02",
                 )
-        params = _query(route.calls.last.request)
+        params = _query(request=route.calls.last.request)
         assert params["user"] == "42"
         assert params["interviewers"] == "7"
         assert params["access"] == "owned"
@@ -81,7 +83,7 @@ class TestInterviewListParams:
         """Async list forwards documented interview filters."""
         with respx.mock(assert_all_called=True) as router:
             route = router.get(url=f"{_BASE}/interviews").respond(
-                200,
+                status_code=200,
                 json=_PAGE,
             )
             async with AsyncHackerRank(api_key="test-key") as client:
@@ -96,7 +98,7 @@ class TestInterviewListParams:
                     updated_at="2024-01-01..2024-01-02",
                     ended_at="2024-01-01..2024-01-02",
                 )
-        params = _query(route.calls.last.request)
+        params = _query(request=route.calls.last.request)
         assert params["user"] == "42"
         assert params["interviewers"] == "7"
         assert params["access"] == "shared"
@@ -116,7 +118,7 @@ class TestQuestionListParams:
         """Sync question list joins list filters as CSV."""
         with respx.mock(assert_all_called=True) as router:
             route = router.get(url=f"{_BASE}/questions").respond(
-                200,
+                status_code=200,
                 json=_PAGE,
             )
             with HackerRank(api_key="test-key") as client:
@@ -130,7 +132,7 @@ class TestQuestionListParams:
                     skills=["python"],
                     languages=["python3", "java"],
                 )
-        params = _query(route.calls.last.request)
+        params = _query(request=route.calls.last.request)
         assert params["status"] == "active"
         assert params["access"] == "owned,shared"
         assert params["difficulty"] == "easy,hard"
@@ -146,7 +148,7 @@ class TestQuestionListParams:
         """Async question list joins list filters as CSV."""
         with respx.mock(assert_all_called=True) as router:
             route = router.get(url=f"{_BASE}/questions").respond(
-                200,
+                status_code=200,
                 json=_PAGE,
             )
             async with AsyncHackerRank(api_key="test-key") as client:
@@ -160,7 +162,7 @@ class TestQuestionListParams:
                     skills=["java"],
                     languages=["javascript"],
                 )
-        params = _query(route.calls.last.request)
+        params = _query(request=route.calls.last.request)
         assert params["status"] == "archived"
         assert params["access"] == "library"
         assert params["difficulty"] == "medium"
@@ -180,28 +182,28 @@ class TestTemplateListParams:
         with respx.mock(assert_all_called=True) as router:
             route = router.get(
                 url=f"{_BASE}/interview_templates",
-            ).respond(200, json=_PAGE)
+            ).respond(status_code=200, json=_PAGE)
             with HackerRank(api_key="test-key") as client:
                 client.interview_templates.list(filter="owned")
                 client.interview_templates.list(filter="shared")
-        assert _query(route.calls[0].request)["filter"] == "owned"
-        assert _query(route.calls[1].request)["filter"] == "shared"
+        assert _query(request=route.calls[0].request)["filter"] == "owned"
+        assert _query(request=route.calls[1].request)["filter"] == "shared"
 
     @staticmethod
     def test_sync_invite_template_access() -> None:
         """Sync invite-template list sends ``access``."""
         with respx.mock(assert_all_called=True) as router:
             route = router.get(url=f"{_BASE}/templates").respond(
-                200,
+                status_code=200,
                 json=_PAGE,
             )
             with HackerRank(api_key="test-key") as client:
                 client.templates.list(access="owned")
                 client.templates.list(access="shared")
                 client.templates.list()
-        assert _query(route.calls[0].request)["access"] == "owned"
-        assert _query(route.calls[1].request)["access"] == "shared"
-        assert "access" not in _query(route.calls[2].request)
+        assert _query(request=route.calls[0].request)["access"] == "owned"
+        assert _query(request=route.calls[1].request)["access"] == "shared"
+        assert "access" not in _query(request=route.calls[2].request)
 
     @staticmethod
     @pytest.mark.asyncio
@@ -210,15 +212,17 @@ class TestTemplateListParams:
         with respx.mock(assert_all_called=True) as router:
             interview_route = router.get(
                 url=f"{_BASE}/interview_templates",
-            ).respond(200, json=_PAGE)
+            ).respond(status_code=200, json=_PAGE)
             invite_route = router.get(
                 url=f"{_BASE}/templates",
-            ).respond(200, json=_PAGE)
+            ).respond(status_code=200, json=_PAGE)
             async with AsyncHackerRank(api_key="test-key") as client:
                 await client.interview_templates.list(filter="owned")
                 await client.templates.list(access="shared")
-        assert _query(interview_route.calls.last.request)["filter"] == "owned"
-        assert _query(invite_route.calls.last.request)["access"] == "shared"
+        interview_params = _query(request=interview_route.calls.last.request)
+        assert interview_params["filter"] == "owned"
+        invite_params = _query(request=invite_route.calls.last.request)
+        assert invite_params["access"] == "shared"
 
 
 class TestInterviewBodyFields:
@@ -229,7 +233,7 @@ class TestInterviewBodyFields:
         """Sync create sends ``ai_assistant_available``."""
         with respx.mock(assert_all_called=True) as router:
             route = router.post(url=f"{_BASE}/interviews").respond(
-                200,
+                status_code=200,
                 json=_INTERVIEW,
             )
             with HackerRank(api_key="test-key") as client:
@@ -246,7 +250,7 @@ class TestInterviewBodyFields:
         """Sync update sends interviewers, replace flag, and AI."""
         with respx.mock(assert_all_called=True) as router:
             route = router.put(url=f"{_BASE}/interviews/iv1").respond(
-                200,
+                status_code=200,
                 json={},
             )
             with HackerRank(api_key="test-key") as client:
@@ -256,11 +260,13 @@ class TestInterviewBodyFields:
                     replace_interviewers=True,
                     ai_assistant_available=False,
                 )
+                                object_interviewers = cast(
+                    "list[Mapping[str, Any]]",
+                    [{"email": "a@b.com", "name": "Ada"}],
+                )
                 client.interviews.update(
                     interview_id="iv1",
-                    interviewers=[
-                        {"email": "a@b.com", "name": "Ada"},
-                    ],
+                    interviewers=object_interviewers,
                     replace_interviewers=False,
                     ai_assistant_available=True,
                 )
@@ -282,10 +288,10 @@ class TestInterviewBodyFields:
         with respx.mock(assert_all_called=True) as router:
             create_route = router.post(
                 url=f"{_BASE}/interviews",
-            ).respond(200, json=_INTERVIEW)
+            ).respond(status_code=200, json=_INTERVIEW)
             update_route = router.put(
                 url=f"{_BASE}/interviews/iv1",
-            ).respond(200, json={})
+            ).respond(status_code=200, json={})
             async with AsyncHackerRank(api_key="test-key") as client:
                 created = await client.interviews.create(
                     title="AI interview",
@@ -315,20 +321,28 @@ class TestCandidateInviteAtsState:
         with respx.mock(assert_all_called=True) as router:
             route = router.post(
                 url=f"{_BASE}/tests/t1/candidates",
-            ).respond(200, json=_CANDIDATE)
+            ).respond(status_code=200, json=_CANDIDATE)
+            first_ats_state = 0
+            second_ats_state = 22
             with HackerRank(api_key="test-key") as client:
                 client.tests.candidates.invite(
                     test_id="t1",
                     email="c@x.com",
-                    ats_state=0,
+                    ats_state=first_ats_state,
                 )
                 client.tests.candidates.invite(
                     test_id="t1",
                     email="c@x.com",
-                    ats_state=22,
+                    ats_state=second_ats_state,
                 )
-        assert json.loads(s=route.calls[0].request.content)["ats_state"] == 0
-        assert json.loads(s=route.calls[1].request.content)["ats_state"] == 22
+        assert (
+            json.loads(s=route.calls[0].request.content)["ats_state"]
+            == first_ats_state
+        )
+        assert (
+            json.loads(s=route.calls[1].request.content)["ats_state"]
+            == second_ats_state
+        )
 
     @staticmethod
     @pytest.mark.asyncio
@@ -337,11 +351,15 @@ class TestCandidateInviteAtsState:
         with respx.mock(assert_all_called=True) as router:
             route = router.post(
                 url=f"{_BASE}/tests/t1/candidates",
-            ).respond(200, json=_CANDIDATE)
+            ).respond(status_code=200, json=_CANDIDATE)
+            async_ats_state = 5
             async with AsyncHackerRank(api_key="test-key") as client:
                 await client.tests.candidates.invite(
                     test_id="t1",
                     email="c@x.com",
-                    ats_state=5,
+                    ats_state=async_ats_state,
                 )
-        assert json.loads(s=route.calls.last.request.content)["ats_state"] == 5
+        assert (
+            json.loads(s=route.calls.last.request.content)["ats_state"]
+            == async_ats_state
+        )
