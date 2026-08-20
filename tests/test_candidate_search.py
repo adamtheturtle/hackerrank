@@ -126,7 +126,9 @@ class TestCandidateSearchAsync:
     @staticmethod
     @pytest.mark.asyncio
     async def test_search_pagination_and_multi_attempt_payload() -> None:
-        """Async search returns pagination metadata and nested attempts."""
+        """Async search returns pagination metadata and nested
+        attempts.
+        """
         with respx.mock(assert_all_called=True) as router:
             route = router.get(url=_SEARCH_URL).mock(
                 return_value=httpx.Response(

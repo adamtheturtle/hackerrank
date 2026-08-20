@@ -82,7 +82,9 @@ class TestNormalizeOpenAPI:
                                             "type": "string",
                                             "format": "date-time",
                                             "default": "2026-08-20T12:00:00Z",
-                                            "examples": ["2026-08-20T12:00:00Z"],
+                                            "examples": [
+                                                "2026-08-20T12:00:00Z"
+                                            ],
                                         },
                                     },
                                 },

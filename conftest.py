@@ -81,7 +81,7 @@ def pytest_collection_modifyitems(
     skip_network = pytest.mark.skip(reason="need --run-network option to run")
     for item in items:
         if "network" in item.keywords:
-            item.add_marker(skip_network)
+            item.add_marker(marker=skip_network)
 
 
 def _fix_schema_required(*, schema: dict[str, Any]) -> dict[str, Any]:
