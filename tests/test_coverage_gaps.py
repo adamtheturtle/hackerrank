@@ -399,7 +399,7 @@ class TestGenerateCodestubsBody:
         """Omitting ``body`` is rejected locally."""
         client = HackerRank(api_key="test-key")
         with pytest.raises(expected_exception=TypeError):
-            client.questions.generate_codestubs(  # type: ignore[call-arg]
+            client.questions.generate_codestubs(  # type: ignore[call-arg]  # pylint: disable=missing-kwoa
                 question_id="q1",
             )
 
@@ -409,7 +409,7 @@ class TestGenerateCodestubsBody:
         """Omitting ``body`` is rejected locally in the async client."""
         client = AsyncHackerRank(api_key="test-key")
         with pytest.raises(expected_exception=TypeError):
-            await client.questions.generate_codestubs(  # type: ignore[call-arg]
+            await client.questions.generate_codestubs(  # type: ignore[call-arg]  # pylint: disable=missing-kwoa
                 question_id="q1",
             )
 
