@@ -54,7 +54,7 @@ class TestAsyncHackerRank:
         class _FalsyTransport:
             """A transport whose ``__bool__`` returns ``False``."""
 
-            def __bool__(self) -> bool:
+            def __bool__(self) -> bool:  # pragma: no cover
                 """Report as falsy."""
                 return False
 
