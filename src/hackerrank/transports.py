@@ -55,9 +55,9 @@ class TransportResponse:
         """Raise an error if the response has an error status.
 
         Raises:
-            HTTPStatusError: If the status code is 400 or above.
+            HTTPStatusError: If the status code is 300 or above.
         """
-        if self.status_code >= HTTPStatus.BAD_REQUEST:
+        if self.status_code >= HTTPStatus.MULTIPLE_CHOICES:
             raise HTTPStatusError(
                 status_code=self.status_code,
                 content=self.content,
