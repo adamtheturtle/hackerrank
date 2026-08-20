@@ -24,8 +24,10 @@ from hackerrank.types import (
     Test,
     TestCandidate,
     TestCandidateDetailField,
+    TestsUpdate,
     User,
     UserTeamMembership,
+    UserUpdate,
 )
 
 
@@ -498,6 +500,67 @@ class TestFromDict:  # pylint: disable=too-many-public-methods
             },
         )
         assert scim_team.display_name == "Engineering"
+
+    @staticmethod
+    def test_user_update_to_dict() -> None:
+        """``UserUpdate.to_dict`` serializes required fields."""
+        body = UserUpdate(
+            firstname="Alice",
+            lastname="A",
+            country="US",
+            role="recruiter",
+            phone="555",
+            questions_permission=1,
+            tests_permission=1,
+            interviews_permission=1,
+            candidates_permission=1,
+            shared_questions_permission=1,
+            shared_tests_permission=1,
+            shared_interviews_permission=1,
+            shared_candidates_permission=1,
+            company_admin=False,
+            team_admin=True,
+        )
+        assert body.to_dict()["team_admin"] is True
+
+    @staticmethod
+    def test_tests_update_to_dict() -> None:
+        """``TestsUpdate.to_dict`` serializes required fields."""
+        expected_duration = 60
+        expected_questions = ["q1"]
+        body = TestsUpdate(
+            name="T",
+            starttime="2024",
+            endtime="2024",
+            duration=expected_duration,
+            instructions="i",
+            locked=False,
+            draft=False,
+            languages=["python"],
+            candidate_details=["name"],
+            custom_acknowledge_text="ack",
+            cutoff_score=10,
+            master_password="pw",  # noqa: S106
+            hide_compile_test=False,
+            tags=["t"],
+            role_ids=["r"],
+            experience=["junior"],
+            questions=expected_questions,
+            mcq_incorrect_score=-1,
+            mcq_correct_score=1,
+            shuffle_questions=True,
+            test_admins=["u1"],
+            hide_template=False,
+            enable_acknowledgement=True,
+            enable_proctoring=False,
+            enable_advanced_proctoring=False,
+            enable_secure_assessment_mode=False,
+            enable_ml_plagiarism_analysis=False,
+            enable_photo_identification=False,
+            ide_config="{}",
+        )
+        assert body.to_dict()["duration"] == expected_duration
+        assert body.to_dict()["questions"] == expected_questions
 
     @staticmethod
     def test_scim_message_from_dict() -> None:

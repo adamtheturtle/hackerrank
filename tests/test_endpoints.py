@@ -16,6 +16,7 @@ import respx
 
 from hackerrank.async_client import AsyncHackerRank
 from hackerrank.client import HackerRank
+from hackerrank.types import TestsUpdate, UserUpdate
 
 
 class TestSyncEndpoints:
@@ -38,7 +39,7 @@ class TestSyncEndpoints:
             order_by="created_at",
             order_dir="asc",
         )
-        sync_client.interviews.create()
+        sync_client.interviews.create(title="t")
         sync_client.interviews.create(
             title="t",
             from_="2024",
@@ -54,7 +55,6 @@ class TestSyncEndpoints:
             ai_assistant_available=True,
         )
         sync_client.interviews.get(interview_id="iv1")
-        sync_client.interviews.update(interview_id="iv1")
         sync_client.interviews.update(
             interview_id="iv1",
             title="t",
@@ -181,7 +181,12 @@ class TestSyncEndpoints:
             skills=["python"],
             languages=["python3"],
         )
-        sync_client.questions.create(name="Q", type="code")
+        sync_client.questions.create(
+            name="Q",
+            type="code",
+            problem_statement="ps",
+            recommended_duration=10,
+        )
         sync_client.questions.create(
             name="Q",
             type="mcq",
@@ -213,10 +218,11 @@ class TestSyncEndpoints:
         sync_client.questions.create(
             name="Q",
             type="mcq",
+            problem_statement="ps",
+            recommended_duration=10,
             answer=1,
         )
         sync_client.questions.get(question_id="q1")
-        sync_client.questions.update(question_id="q1")
         sync_client.questions.update(
             question_id="q1",
             name="Q",
@@ -231,6 +237,15 @@ class TestSyncEndpoints:
         )
         sync_client.questions.update(
             question_id="q1",
+            name="Q",
+            type="code",
+            internal_notes="n",
+            languages=["python"],
+            problem_statement="ps",
+            recommended_duration=10,
+            tags=["t"],
+            options=["a"],
+            answer=1,
             score=100.0,
             environment_id=92,
             role_type="fullstack",
@@ -243,10 +258,27 @@ class TestSyncEndpoints:
         )
         sync_client.questions.update(
             question_id="q1",
+            name="Q",
+            type="mcq",
+            internal_notes="n",
+            languages=["python"],
+            problem_statement="ps",
+            recommended_duration=10,
+            tags=["t"],
+            options=["a", "b"],
             answer=[1, 2],
         )
         sync_client.questions.update(
             question_id="q-with-body",
+            name="Q",
+            type="code",
+            internal_notes="n",
+            languages=["python"],
+            problem_statement="ps",
+            recommended_duration=10,
+            tags=["t"],
+            options=["a"],
+            answer=1,
             scoring_command="npm run grade",
         )
         sync_client.questions.upload_project_zip(
@@ -293,7 +325,12 @@ class TestSyncEndpoints:
         """Exercise the ``tests`` namespace."""
         sync_client.tests.list()
         sync_client.tests.list(limit=1, offset=0)
-        sync_client.tests.create(name="T")
+        sync_client.tests.create(
+            name="T",
+            duration=60,
+            role_ids=["r"],
+            experience=["junior"],
+        )
         sync_client.tests.create(
             name="T",
             starttime="2024",
@@ -330,7 +367,40 @@ class TestSyncEndpoints:
             test_id="t1",
             additional_fields="questions",
         )
-        sync_client.tests.update(test_id="t1", body={"name": "new"})
+        sync_client.tests.update(
+            test_id="t1",
+            body=TestsUpdate(
+                name="new",
+                starttime="2024",
+                endtime="2024",
+                duration=60,
+                instructions="i",
+                locked=False,
+                draft=False,
+                languages=["python"],
+                candidate_details=["name"],
+                custom_acknowledge_text="ack",
+                cutoff_score=10,
+                master_password="pw",  # noqa: S106
+                hide_compile_test=False,
+                tags=["t"],
+                role_ids=["r"],
+                experience=["junior"],
+                questions=["q1"],
+                mcq_incorrect_score=-1,
+                mcq_correct_score=1,
+                shuffle_questions=True,
+                test_admins=["u1"],
+                hide_template=False,
+                enable_acknowledgement=True,
+                enable_proctoring=False,
+                enable_advanced_proctoring=False,
+                enable_secure_assessment_mode=False,
+                enable_ml_plagiarism_analysis=False,
+                enable_photo_identification=False,
+                ide_config="{}",
+            ),
+        )
         sync_client.tests.delete(test_id="t1")
         sync_client.tests.archive(test_id="t1")
         sync_client.tests.list_inviters(test_id="t1")
@@ -382,7 +452,6 @@ class TestSyncEndpoints:
             candidate_id="c1",
             additional_fields="questions",
         )
-        ns.update(test_id="t1", candidate_id="c1")
         ns.update(
             test_id="t1",
             candidate_id="c1",
@@ -436,7 +505,12 @@ class TestSyncEndpoints:
             limit=1,
             offset=0,
         )
-        sync_client.users.create(email="u@x.com")
+        sync_client.users.create(
+            email="u@x.com",
+            firstname="Alice",
+            role="recruiter",
+            teams=["tm1"],
+        )
         sync_client.users.create(
             email="u@x.com",
             firstname="Alice",
@@ -460,7 +534,23 @@ class TestSyncEndpoints:
         sync_client.users.get(user_id="u1")
         sync_client.users.update(
             user_id="u1",
-            body={"firstname": "Alice"},
+            body=UserUpdate(
+                firstname="Alice",
+                lastname="A",
+                country="US",
+                role="recruiter",
+                phone="555",
+                questions_permission=1,
+                tests_permission=1,
+                interviews_permission=1,
+                candidates_permission=1,
+                shared_questions_permission=1,
+                shared_tests_permission=1,
+                shared_interviews_permission=1,
+                shared_candidates_permission=1,
+                company_admin=False,
+                team_admin=False,
+            ),
         )
         sync_client.users.delete(user_id="u1")
 
@@ -479,7 +569,6 @@ class TestSyncEndpoints:
             departments=["Eng"],
         )
         sync_client.teams.get(team_id="tm1")
-        sync_client.teams.update(team_id="tm1")
         sync_client.teams.update(
             team_id="tm1",
             name="t",
@@ -515,7 +604,11 @@ class TestSyncEndpoints:
     @staticmethod
     def test_ats(sync_client: HackerRank) -> None:
         """Exercise the ``ats`` namespace."""
-        sync_client.ats.codepair.invite()
+        sync_client.ats.codepair.invite(
+            title="t",
+            requisition_id="r",
+            candidate_id="c",
+        )
         sync_client.ats.codepair.invite(
             title="t",
             requisition_id="r",
@@ -527,6 +620,8 @@ class TestSyncEndpoints:
         sync_client.ats.codescreen.invite(
             test_id="t1",
             email="c@x.com",
+            requisition_id="r",
+            candidate_id="c",
         )
         sync_client.ats.codescreen.invite(
             test_id="t1",
@@ -595,7 +690,7 @@ class TestAsyncEndpoints:
             order_by="created_at",
             order_dir="asc",
         )
-        await async_client.interviews.create()
+        await async_client.interviews.create(title="t")
         await async_client.interviews.create(
             title="t",
             from_="2024",
@@ -611,7 +706,6 @@ class TestAsyncEndpoints:
             ai_assistant_available=True,
         )
         await async_client.interviews.get(interview_id="iv1")
-        await async_client.interviews.update(interview_id="iv1")
         await async_client.interviews.update(
             interview_id="iv1",
             title="t",
@@ -753,7 +847,12 @@ class TestAsyncEndpoints:
             skills=["python"],
             languages=["python3"],
         )
-        await async_client.questions.create(name="Q", type="code")
+        await async_client.questions.create(
+            name="Q",
+            type="code",
+            problem_statement="ps",
+            recommended_duration=10,
+        )
         await async_client.questions.create(
             name="Q",
             type="mcq",
@@ -785,10 +884,11 @@ class TestAsyncEndpoints:
         await async_client.questions.create(
             name="Q",
             type="mcq",
+            problem_statement="ps",
+            recommended_duration=10,
             answer=1,
         )
         await async_client.questions.get(question_id="q1")
-        await async_client.questions.update(question_id="q1")
         await async_client.questions.update(
             question_id="q1",
             name="Q",
@@ -803,6 +903,15 @@ class TestAsyncEndpoints:
         )
         await async_client.questions.update(
             question_id="q1",
+            name="Q",
+            type="code",
+            internal_notes="n",
+            languages=["python"],
+            problem_statement="ps",
+            recommended_duration=10,
+            tags=["t"],
+            options=["a"],
+            answer=1,
             score=100.0,
             environment_id=92,
             role_type="fullstack",
@@ -815,10 +924,27 @@ class TestAsyncEndpoints:
         )
         await async_client.questions.update(
             question_id="q1",
+            name="Q",
+            type="mcq",
+            internal_notes="n",
+            languages=["python"],
+            problem_statement="ps",
+            recommended_duration=10,
+            tags=["t"],
+            options=["a", "b"],
             answer=[1, 2],
         )
         await async_client.questions.update(
             question_id="q-with-body",
+            name="Q",
+            type="code",
+            internal_notes="n",
+            languages=["python"],
+            problem_statement="ps",
+            recommended_duration=10,
+            tags=["t"],
+            options=["a"],
+            answer=1,
             scoring_command="npm run grade",
         )
         await async_client.questions.upload_project_zip(
@@ -871,7 +997,12 @@ class TestAsyncEndpoints:
         """Exercise the async ``tests`` namespace."""
         await async_client.tests.list()
         await async_client.tests.list(limit=1, offset=0)
-        await async_client.tests.create(name="T")
+        await async_client.tests.create(
+            name="T",
+            duration=60,
+            role_ids=["r"],
+            experience=["junior"],
+        )
         await async_client.tests.create(
             name="T",
             starttime="2024",
@@ -908,7 +1039,40 @@ class TestAsyncEndpoints:
             test_id="t1",
             additional_fields="questions",
         )
-        await async_client.tests.update(test_id="t1", body={"name": "new"})
+        await async_client.tests.update(
+            test_id="t1",
+            body=TestsUpdate(
+                name="new",
+                starttime="2024",
+                endtime="2024",
+                duration=60,
+                instructions="i",
+                locked=False,
+                draft=False,
+                languages=["python"],
+                candidate_details=["name"],
+                custom_acknowledge_text="ack",
+                cutoff_score=10,
+                master_password="pw",  # noqa: S106
+                hide_compile_test=False,
+                tags=["t"],
+                role_ids=["r"],
+                experience=["junior"],
+                questions=["q1"],
+                mcq_incorrect_score=-1,
+                mcq_correct_score=1,
+                shuffle_questions=True,
+                test_admins=["u1"],
+                hide_template=False,
+                enable_acknowledgement=True,
+                enable_proctoring=False,
+                enable_advanced_proctoring=False,
+                enable_secure_assessment_mode=False,
+                enable_ml_plagiarism_analysis=False,
+                enable_photo_identification=False,
+                ide_config="{}",
+            ),
+        )
         await async_client.tests.delete(test_id="t1")
         await async_client.tests.archive(test_id="t1")
         await async_client.tests.list_inviters(test_id="t1")
@@ -963,7 +1127,6 @@ class TestAsyncEndpoints:
             candidate_id="c1",
             additional_fields="questions",
         )
-        await ns.update(test_id="t1", candidate_id="c1")
         await ns.update(
             test_id="t1",
             candidate_id="c1",
@@ -1030,7 +1193,12 @@ class TestAsyncEndpoints:
             limit=1,
             offset=0,
         )
-        await async_client.users.create(email="u@x.com")
+        await async_client.users.create(
+            email="u@x.com",
+            firstname="Alice",
+            role="recruiter",
+            teams=["tm1"],
+        )
         await async_client.users.create(
             email="u@x.com",
             firstname="Alice",
@@ -1054,7 +1222,23 @@ class TestAsyncEndpoints:
         await async_client.users.get(user_id="u1")
         await async_client.users.update(
             user_id="u1",
-            body={"firstname": "Alice"},
+            body=UserUpdate(
+                firstname="Alice",
+                lastname="A",
+                country="US",
+                role="recruiter",
+                phone="555",
+                questions_permission=1,
+                tests_permission=1,
+                interviews_permission=1,
+                candidates_permission=1,
+                shared_questions_permission=1,
+                shared_tests_permission=1,
+                shared_interviews_permission=1,
+                shared_candidates_permission=1,
+                company_admin=False,
+                team_admin=False,
+            ),
         )
         await async_client.users.delete(user_id="u1")
 
@@ -1076,7 +1260,6 @@ class TestAsyncEndpoints:
             departments=["Eng"],
         )
         await async_client.teams.get(team_id="tm1")
-        await async_client.teams.update(team_id="tm1")
         await async_client.teams.update(
             team_id="tm1",
             name="t",
@@ -1121,7 +1304,11 @@ class TestAsyncEndpoints:
         async_client: AsyncHackerRank,
     ) -> None:
         """Exercise the async ``ats`` namespace."""
-        await async_client.ats.codepair.invite()
+        await async_client.ats.codepair.invite(
+            title="t",
+            requisition_id="r",
+            candidate_id="c",
+        )
         await async_client.ats.codepair.invite(
             title="t",
             requisition_id="r",
@@ -1133,6 +1320,8 @@ class TestAsyncEndpoints:
         await async_client.ats.codescreen.invite(
             test_id="t1",
             email="c@x.com",
+            requisition_id="r",
+            candidate_id="c",
         )
         await async_client.ats.codescreen.invite(
             test_id="t1",

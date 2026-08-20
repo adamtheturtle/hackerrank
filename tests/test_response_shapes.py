@@ -98,6 +98,15 @@ class TestSyncResponseShapes:
                 updated = client.interviews.update(
                     interview_id="i",
                     title="Updated",
+                    from_="2024-01-01T00:00:00Z",
+                    to="2024-01-01T01:00:00Z",
+                    notes="n",
+                    resume_url="https://example.test/resume",
+                    result_url="https://example.test/result",
+                    candidate={"email": "c@example.com"},
+                    send_email=True,
+                    metadata={},
+                    interview_template_id=1,
                 )
 
         assert isinstance(updated, Interview)
@@ -179,6 +188,17 @@ class TestSyncResponseShapes:
                     test_id="t",
                     candidate_id="c",
                     full_name="Updated",
+                    ats_state=0,
+                    invite_valid_from="2024-01-01T00:00:00Z",
+                    invite_valid_to="2024-01-02T00:00:00Z",
+                    invite_metadata={},
+                    evaluator_email="e@example.com",
+                    test_finish_url="https://example.test/finish",
+                    test_result_url="https://example.test/result",
+                    webhook_authentication={},
+                    accept_result_updates=False,
+                    tags=["t"],
+                    accommodations={},
                 )
 
         assert updated.full_name == "Updated"
@@ -205,10 +225,16 @@ class TestSyncResponseShapes:
                 ),
             )
             with HackerRank(api_key="test-key") as client:
-                codepair = client.ats.codepair.invite(title="Interview")
+                codepair = client.ats.codepair.invite(
+                    title="Interview",
+                    requisition_id="req-1",
+                    candidate_id="cand-1",
+                )
                 codescreen = client.ats.codescreen.invite(
                     test_id="t",
                     email="a@example.com",
+                    requisition_id="req-1",
+                    candidate_id="cand-1",
                 )
 
         assert isinstance(codepair, Interview)
@@ -294,6 +320,15 @@ class TestAsyncResponseShapes:
                 updated = await client.interviews.update(
                     interview_id="i",
                     title="Updated",
+                    from_="2024-01-01T00:00:00Z",
+                    to="2024-01-01T01:00:00Z",
+                    notes="n",
+                    resume_url="https://example.test/resume",
+                    result_url="https://example.test/result",
+                    candidate={"email": "c@example.com"},
+                    send_email=True,
+                    metadata={},
+                    interview_template_id=1,
                 )
                 invite = await client.tests.candidates.invite(
                     test_id="t",
@@ -303,19 +338,37 @@ class TestAsyncResponseShapes:
                     test_id="t",
                     candidate_id="c",
                     full_name="Updated",
+                    ats_state=0,
+                    invite_valid_from="2024-01-01T00:00:00Z",
+                    invite_valid_to="2024-01-02T00:00:00Z",
+                    invite_metadata={},
+                    evaluator_email="e@example.com",
+                    test_finish_url="https://example.test/finish",
+                    test_result_url="https://example.test/result",
+                    webhook_authentication={},
+                    accept_result_updates=False,
+                    tags=["t"],
+                    accommodations={},
                 )
                 test = await client.tests.create(
                     name="Example",
+                    duration=60,
+                    role_ids=["role"],
+                    experience=["0-2 years"],
                     candidate_details=[
                         {"predefined_label": "full_name", "required": True},
                     ],
                 )
                 codepair = await client.ats.codepair.invite(
                     title="Interview",
+                    requisition_id="req-1",
+                    candidate_id="cand-1",
                 )
                 codescreen = await client.ats.codescreen.invite(
                     test_id="t",
                     email="a@example.com",
+                    requisition_id="req-1",
+                    candidate_id="cand-1",
                 )
 
         assert created.interviewers is not None
