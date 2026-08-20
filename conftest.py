@@ -61,8 +61,11 @@ def pytest_configure(config: pytest.Config) -> None:
         config: The pytest config object.
     """
     config.addinivalue_line(
-        "markers",
-        "network: tests that fetch live resources (skipped without --run-network)",
+        name="markers",
+        line=(
+            "network: tests that fetch live resources "
+            "(skipped without --run-network)"
+        ),
     )
 
 
@@ -76,7 +79,7 @@ def pytest_collection_modifyitems(
         config: The pytest config object.
         items: Collected test items.
     """
-    if config.getoption("--run-network"):
+    if config.getoption(name="--run-network"):
         return
     skip_network = pytest.mark.skip(reason="need --run-network option to run")
     for item in items:

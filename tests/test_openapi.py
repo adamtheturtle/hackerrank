@@ -3,17 +3,20 @@
 from __future__ import annotations
 
 import json
+from http import HTTPStatus
 from pathlib import Path
 from typing import Any
 
 import httpx
 import pytest
+import respx
 
 from tests.openapi_helpers import normalize_openapi
 
 _ROOT = Path(__file__).resolve().parents[1]
 _OPENAPI_PATH = _ROOT / "openapi.json"
 _LIVE_OPENAPI_URL = "https://www.hackerrank.com/apidoc"
+_MOCK_OPENAPI_URL = "https://example.com/apidoc"
 
 
 def _load_checked_in_spec() -> dict[str, Any]:
@@ -22,7 +25,22 @@ def _load_checked_in_spec() -> dict[str, Any]:
     Returns:
         The parsed OpenAPI document.
     """
-    return json.loads(s=_OPENAPI_PATH.read_text(encoding="utf-8"))
+    loaded: Any = json.loads(s=_OPENAPI_PATH.read_text(encoding="utf-8"))
+    typed: dict[str, Any] = loaded
+    return typed
+
+
+def _assert_remote_openapi_matches_checked_in(*, url: str) -> None:
+    """Fetch ``url`` and assert semantic equality with the checked-in schema.
+
+    Args:
+        url: URL of an OpenAPI document to compare.
+    """
+    checked = normalize_openapi(spec=_load_checked_in_spec())
+    response = httpx.get(url=url, timeout=30.0)
+    response.raise_for_status()
+    live = normalize_openapi(spec=response.json())
+    assert checked == live
 
 
 class TestNormalizeOpenAPI:
@@ -31,7 +49,7 @@ class TestNormalizeOpenAPI:
     @staticmethod
     def test_strips_examples_and_normalizes_datetime_defaults() -> None:
         """Example and datetime default differences do not affect equality."""
-        left: dict[str, Any] = {
+        left: dict[str, object] = {
             "paths": {
                 "/x/api/v3/candidates/search": {
                     "get": {
@@ -62,7 +80,7 @@ class TestNormalizeOpenAPI:
             },
             "x-examples": {"ignored": True},
         }
-        right: dict[str, Any] = {
+        right: dict[str, object] = {
             "paths": {
                 "/x/api/v3/candidates/search": {
                     "get": {
@@ -100,9 +118,17 @@ class TestNormalizeOpenAPI:
     @staticmethod
     def test_structural_differences_remain() -> None:
         """Genuine path/definition drift still fails equality."""
-        left = {"paths": {"/a": {"get": {}}}}
-        right = {"paths": {"/b": {"get": {}}}}
+        left: dict[str, object] = {"paths": {"/a": {"get": {}}}}
+        right: dict[str, object] = {"paths": {"/b": {"get": {}}}}
         assert normalize_openapi(spec=left) != normalize_openapi(spec=right)
+
+    @staticmethod
+    def test_preserves_non_container_scalars() -> None:
+        """Non-string scalars pass through unchanged."""
+        number = 42
+        assert normalize_openapi(spec=number) == number
+        assert normalize_openapi(spec=True) is True
+        assert normalize_openapi(spec=None) is None
 
 
 class TestCheckedInOpenAPI:
@@ -141,16 +167,26 @@ class TestCheckedInOpenAPI:
             assert "interviewers" in properties
             assert "replace_interviewers" in properties
 
+    @staticmethod
+    def test_remote_document_matches_after_normalize() -> None:
+        """A mocked remote document matches after normalization."""
+        with respx.mock(assert_all_called=True) as router:
+            router.get(url=_MOCK_OPENAPI_URL).mock(
+                return_value=httpx.Response(
+                    status_code=HTTPStatus.OK,
+                    json=_load_checked_in_spec(),
+                ),
+            )
+            _assert_remote_openapi_matches_checked_in(url=_MOCK_OPENAPI_URL)
+
 
 @pytest.mark.network
-def test_live_openapi_matches_checked_in_semantically() -> None:
+def test_live_openapi_matches_checked_in_semantically() -> (
+    None
+):  # pragma: no cover
     """Compare the checked-in schema to the live first-party document.
 
     Skipped unless ``--run-network`` is passed, because fetching the
     live schema is flaky in CI.
     """
-    checked = normalize_openapi(spec=_load_checked_in_spec())
-    response = httpx.get(url=_LIVE_OPENAPI_URL, timeout=30.0)
-    response.raise_for_status()
-    live = normalize_openapi(spec=response.json())
-    assert checked == live
+    _assert_remote_openapi_matches_checked_in(url=_LIVE_OPENAPI_URL)

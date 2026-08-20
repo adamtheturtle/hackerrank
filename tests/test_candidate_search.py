@@ -110,10 +110,12 @@ class TestCandidateSearchSync:
         assert candidate.email == "jane@example.com"
         assert len(candidate.attempts) == expected_attempts
         first, second = candidate.attempts
+        expected_score = 80.0
+        expected_percentage = 72.5
         assert first.attempt_id == "123456"
         assert first.test_id == "789012"
-        assert first.score == 80.0
-        assert first.percentage_score == 72.5
+        assert first.score == expected_score
+        assert first.percentage_score == expected_percentage
         assert first.attempt_starttime == "2024-02-01T10:00:00Z"
         assert second.attempt_id == "654321"
         assert second.score is None

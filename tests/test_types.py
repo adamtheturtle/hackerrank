@@ -418,20 +418,23 @@ class TestFromDict:  # pylint: disable=too-many-public-methods
             },
         )
         assert result.uuid == "u1"
-        assert len(result.attempts) == 2
-        assert result.attempts[0].score == 10.0
+        expected_attempts = 2
+        expected_score = 10.0
+        expected_percentage = 50.0
+        assert len(result.attempts) == expected_attempts
+        assert result.attempts[0].score == expected_score
         assert result.attempts[1].percentage_score is None
         attempt = CandidateSearchAttemptResult.from_dict(
             data={
                 "attempt_id": "a3",
                 "test_id": "t3",
                 "report_url": "https://example.com/r",
-                "percentage_score": 50.0,
+                "percentage_score": expected_percentage,
                 "attempt_starttime": "2024-02-01T00:00:00Z",
                 "attempt_endtime": "2024-02-01T01:00:00Z",
             },
         )
-        assert attempt.percentage_score == 50.0
+        assert attempt.percentage_score == expected_percentage
         assert attempt.attempt_endtime == "2024-02-01T01:00:00Z"
 
     @staticmethod
