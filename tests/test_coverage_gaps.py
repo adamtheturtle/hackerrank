@@ -9,6 +9,7 @@ context manager hooks on the HTTP transports, and the
 from __future__ import annotations
 
 from http import HTTPStatus
+
 import httpx
 import pytest
 import respx
