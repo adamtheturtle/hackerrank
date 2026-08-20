@@ -156,7 +156,9 @@ class TestUserUpdateBody:
     async def test_async_omission_rejected_by_beartype(
         async_client: AsyncHackerRank,
     ) -> None:
-        """Passing a bare mapping to async ``users.update`` is rejected."""
+        """Passing a bare mapping to async ``users.update`` is
+        rejected.
+        """
         with pytest.raises(expected_exception=BeartypeCallHintParamViolation):
             await async_client.users.update(
                 user_id="u1",
@@ -266,7 +268,9 @@ class TestTestsUpdateBody:
     async def test_async_omission_rejected_by_beartype(
         async_client: AsyncHackerRank,
     ) -> None:
-        """Passing a bare mapping to async ``tests.update`` is rejected."""
+        """Passing a bare mapping to async ``tests.update`` is
+        rejected.
+        """
         with pytest.raises(expected_exception=BeartypeCallHintParamViolation):
             await async_client.tests.update(
                 test_id="t1",
