@@ -1,7 +1,7 @@
 """Types for the HackerRank for Work API."""
 
 from collections.abc import Iterable, Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from typing import Any, ClassVar, Self
 
 from beartype import beartype
@@ -1088,3 +1088,79 @@ class SCIMTeam:
             display_name=data.get("displayName") or data.get("diplayName"),
             schemas=data.get("schemas"),
         )
+
+
+@beartype
+@dataclass(frozen=True, kw_only=True)
+class UserUpdate:
+    """Required body for ``PUT /x/api/v3/users/{id}``."""
+
+    firstname: str
+    lastname: str
+    country: str
+    role: str
+    phone: str
+    questions_permission: int
+    tests_permission: int
+    interviews_permission: int
+    candidates_permission: int
+    shared_questions_permission: int
+    shared_tests_permission: int
+    shared_interviews_permission: int
+    shared_candidates_permission: int
+    company_admin: bool
+    team_admin: bool
+
+    def to_dict(self) -> dict[str, JSONValue]:
+        """Serialize to a JSON-compatible mapping.
+
+        Returns:
+            The update body as a dictionary.
+        """
+        return dict(asdict(obj=self))
+
+
+@beartype
+@dataclass(frozen=True, kw_only=True)
+class TestsUpdate:
+    """Required body for ``PUT /x/api/v3/tests/{id}``."""
+
+    __test__: ClassVar[bool] = False
+
+    name: str
+    starttime: str
+    endtime: str
+    duration: int
+    instructions: str
+    locked: bool
+    draft: bool
+    languages: list[str]
+    candidate_details: list[str]
+    custom_acknowledge_text: str
+    cutoff_score: int
+    master_password: str
+    hide_compile_test: bool
+    tags: list[str]
+    role_ids: list[str]
+    experience: list[str]
+    questions: list[str]
+    mcq_incorrect_score: int
+    mcq_correct_score: int
+    shuffle_questions: bool
+    test_admins: list[str]
+    hide_template: bool
+    enable_acknowledgement: bool
+    enable_proctoring: bool
+    enable_advanced_proctoring: bool
+    enable_secure_assessment_mode: bool
+    enable_ml_plagiarism_analysis: bool
+    enable_photo_identification: bool
+    ide_config: str
+
+    def to_dict(self) -> dict[str, JSONValue]:
+        """Serialize to a JSON-compatible mapping.
+
+        Returns:
+            The update body as a dictionary.
+        """
+        return dict(asdict(obj=self))
