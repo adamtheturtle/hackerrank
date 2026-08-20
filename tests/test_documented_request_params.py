@@ -3,15 +3,20 @@
 from __future__ import annotations
 
 import json
-from collections.abc import Mapping
-from typing import Any, cast
+from typing import TYPE_CHECKING
 
-import httpx
 import pytest
 import respx
 
 from hackerrank.async_client import AsyncHackerRank
 from hackerrank.client import HackerRank
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping
+
+    import httpx
+
+    from hackerrank.types import JSONValue
 
 _BASE = "https://www.hackerrank.com/x/api/v3"
 _PAGE = {
@@ -260,10 +265,9 @@ class TestInterviewBodyFields:
                     replace_interviewers=True,
                     ai_assistant_available=False,
                 )
-                                object_interviewers = cast(
-                    "list[Mapping[str, Any]]",
-                    [{"email": "a@b.com", "name": "Ada"}],
-                )
+                object_interviewers: list[Mapping[str, JSONValue]] = [
+                    {"email": "a@b.com", "name": "Ada"},
+                ]
                 client.interviews.update(
                     interview_id="iv1",
                     interviewers=object_interviewers,
