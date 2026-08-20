@@ -17,7 +17,9 @@ _HTTP_METHODS = frozenset(
 
 
 def _fix_schema_required(*, schema: dict[str, Any]) -> dict[str, Any]:
-    """Normalize Swagger-style ``required`` flags for OpenAPI 3 schemas."""
+    """Normalize Swagger-style ``required`` flags for OpenAPI 3
+    schemas.
+    """
     result = dict(schema)
     props = result.get("properties")
     if isinstance(props, dict):
@@ -29,10 +31,15 @@ def _fix_schema_required(*, schema: dict[str, Any]) -> dict[str, Any]:
             )
         fixed_props: dict[str, Any] = {}
         for prop_name, prop_schema in props.items():
-            if not isinstance(prop_name, str) or not isinstance(prop_schema, dict):
+            if not isinstance(prop_name, str) or not isinstance(
+                prop_schema, dict
+            ):
                 continue
             fixed_prop = _fix_schema_required(schema=prop_schema)
-            if fixed_prop.pop("required", None) is True and prop_name not in required_names:
+            if (
+                fixed_prop.pop("required", None) is True
+                and prop_name not in required_names
+            ):
                 required_names.append(prop_name)
             fixed_props[prop_name] = fixed_prop
         result["properties"] = fixed_props
@@ -47,7 +54,9 @@ def _fix_schema_required(*, schema: dict[str, Any]) -> dict[str, Any]:
 
 
 def _migrate_body_parameter(*, operation: dict[str, Any]) -> dict[str, Any]:
-    """Convert Swagger 2 ``in: body`` parameters to OpenAPI 3 requestBody."""
+    """Convert Swagger 2 ``in: body`` parameters to OpenAPI 3
+    requestBody.
+    """
     result = dict(operation)
     params = result.get("parameters")
     if not isinstance(params, list):
