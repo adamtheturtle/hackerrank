@@ -10,31 +10,34 @@ class InterviewerDict(TypedDict):
     name: NotRequired[str]
 
 
-class InterviewDict(TypedDict):
-    """A HackerRank interview."""
-
-    id: str
-    status: str
-    url: str
-    title: NotRequired[str]
-    feedback: NotRequired[str]
-    thumbs_up: NotRequired[int]
-    notes: NotRequired[str]
-    resume_url: NotRequired[str]
-    interviewers: NotRequired[list[str | InterviewerDict]]
-    result_url: NotRequired[str]
-    candidate: NotRequired[dict[str, Any]]
-    metadata: NotRequired[dict[str, Any]]
-    report_url: NotRequired[str]
-    ended_at: NotRequired[str]
-    interview_template_id: NotRequired[int]
-    created_at: NotRequired[str]
-    updated_at: NotRequired[str]
-    user: NotRequired[int]
-    send_email: NotRequired[bool]
-    to: NotRequired[str]
-    started_at: NotRequired[str]
-    ai_assistant_available: NotRequired[bool]
+InterviewDict = TypedDict(
+    "InterviewDict",
+    {
+        "id": str,
+        "status": str,
+        "url": str,
+        "title": NotRequired[str],
+        "feedback": NotRequired[str],
+        "thumbs_up": NotRequired[int],
+        "notes": NotRequired[str],
+        "resume_url": NotRequired[str],
+        "interviewers": NotRequired[list[str | InterviewerDict]],
+        "result_url": NotRequired[str],
+        "candidate": NotRequired[dict[str, Any]],
+        "metadata": NotRequired[dict[str, Any]],
+        "report_url": NotRequired[str],
+        "ended_at": NotRequired[str],
+        "interview_template_id": NotRequired[int],
+        "created_at": NotRequired[str],
+        "updated_at": NotRequired[str],
+        "user": NotRequired[int],
+        "send_email": NotRequired[bool],
+        "from": NotRequired[str],
+        "to": NotRequired[str],
+        "started_at": NotRequired[str],
+        "ai_assistant_available": NotRequired[bool],
+    },
+)
 
 
 class InterviewTranscriptMessageDict(TypedDict):

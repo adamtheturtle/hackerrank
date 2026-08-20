@@ -374,7 +374,8 @@ class TestFromDict:
         )
         assert invite.test_link == "https://example.test/invite"
         assert invite.email == "a@example.com"
-        assert invite.id == 10000
+        invite_id = 10000
+        assert invite.id == invite_id
 
     @staticmethod
     def test_inviter_from_dict() -> None:

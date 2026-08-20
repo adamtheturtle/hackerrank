@@ -75,6 +75,7 @@ class TestSyncResponseShapes:
         assert json.loads(s=requests[0].content)["interviewers"] == [
             {"email": "a@example.com", "name": "A"},
         ]
+        assert created.interviewers is not None
         assert isinstance(created.interviewers[0], Interviewer)
         assert created.from_ == "2026-08-19T01:09:27+0000"
         assert created.to == "2026-08-19T02:09:27+0000"
@@ -154,7 +155,8 @@ class TestSyncResponseShapes:
 
         assert isinstance(invite, CandidateInvite)
         assert invite.test_link == "https://example.test/invite"
-        assert invite.id == 10000
+        invite_id = 10000
+        assert invite.id == invite_id
 
     @staticmethod
     def test_candidate_update_returns_candidate() -> None:
@@ -316,11 +318,13 @@ class TestAsyncResponseShapes:
                     email="a@example.com",
                 )
 
+        assert created.interviewers is not None
         assert isinstance(created.interviewers[0], Interviewer)
         assert created.ai_assistant_available is True
         assert isinstance(updated, Interview)
         assert invite.test_link == "https://example.test/invite"
-        assert invite.id == 10000
+        invite_id = 10000
+        assert invite.id == invite_id
         assert candidate.added_time == "30"
         assert test.sections == {"section-1": {"name": "Core"}}
         assert isinstance(codepair, Interview)
