@@ -9,6 +9,7 @@ context manager hooks on the HTTP transports, and the
 from __future__ import annotations
 
 from http import HTTPStatus
+from typing import Any
 
 import httpx
 import pytest
@@ -398,20 +399,18 @@ class TestGenerateCodestubsBody:
     def test_sync_requires_body() -> None:
         """Omitting ``body`` is rejected locally."""
         client = HackerRank(api_key="test-key")
+        incomplete: Any = client.questions.generate_codestubs
         with pytest.raises(expected_exception=TypeError):
-            client.questions.generate_codestubs(  # type: ignore[call-arg]  # pyright: ignore[reportCallIssue]  # pylint: disable=missing-kwoa  # ty: ignore[missing-argument]
-                question_id="q1",
-            )
+            incomplete(question_id="q1")
 
     @staticmethod
     @pytest.mark.asyncio
     async def test_async_requires_body() -> None:
         """Omitting ``body`` is rejected locally in the async client."""
         client = AsyncHackerRank(api_key="test-key")
+        incomplete: Any = client.questions.generate_codestubs
         with pytest.raises(expected_exception=TypeError):
-            await client.questions.generate_codestubs(  # type: ignore[call-arg]  # pyright: ignore[reportCallIssue]  # pylint: disable=missing-kwoa  # ty: ignore[missing-argument]
-                question_id="q1",
-            )
+            await incomplete(question_id="q1")
 
 
 class TestSCIMPatchMessage:
