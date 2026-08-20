@@ -1,4 +1,4 @@
-"""Tests for the checked-in OpenAPI document and normalizer."""
+"""Tests for the checked-in OpenAPI document and normalize helper."""
 
 from __future__ import annotations
 
@@ -49,7 +49,7 @@ class TestNormalizeOpenAPI:
 
     @staticmethod
     def test_strips_examples_and_normalizes_datetime_defaults() -> None:
-        """Example and datetime default differences do not affect equality."""
+        """Example and date-time default differences do not affect equality."""
         left: dict[str, object] = {
             "paths": {
                 "/x/api/v3/candidates/search": {

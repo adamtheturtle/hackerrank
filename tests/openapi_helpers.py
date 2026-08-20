@@ -48,11 +48,11 @@ def normalize_openapi(*, spec: object) -> object:
 
     Removes dynamic ``example`` / ``examples`` / ``x-examples`` values,
     normalizes date-time-looking ``default`` strings, and collapses
-    whitespace in strings so live schema refreshes that only change
+    blank runs in strings so live schema refreshes that only change
     sample timestamps or incidental spacing still compare equal.
 
     Args:
-        spec: An OpenAPI / Swagger document or subtree.
+        spec: An OpenAPI / Swagger document or nested fragment.
 
     Returns:
         A structurally comparable copy of ``spec``.

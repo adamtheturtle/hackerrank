@@ -41,7 +41,7 @@ def _as_object_list(*, value: object) -> list[object] | None:
 
 
 def pytest_addoption(parser: pytest.Parser) -> None:
-    """Register CLI options used by this test suite.
+    """Register command-line options used by this test suite.
 
     Args:
         parser: The pytest argument parser.
