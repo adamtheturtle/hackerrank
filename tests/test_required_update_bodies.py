@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from typing import Any, cast
 
 import httpx
 import pytest
@@ -89,7 +90,7 @@ class TestUserUpdateBody:
         with pytest.raises(expected_exception=BeartypeCallHintParamViolation):
             sync_client.users.update(
                 user_id="u1",
-                body={},  # type: ignore[arg-type]  # pyright: ignore[reportArgumentType]
+                body=cast("Any", {}),
             )
 
     @staticmethod
@@ -164,7 +165,7 @@ class TestUserUpdateBody:
         with pytest.raises(expected_exception=BeartypeCallHintParamViolation):
             await async_client.users.update(
                 user_id="u1",
-                body={},  # type: ignore[arg-type]  # pyright: ignore[reportArgumentType]
+                body=cast("Any", {}),
             )
 
 
@@ -187,7 +188,7 @@ class TestTestsUpdateBody:
         with pytest.raises(expected_exception=BeartypeCallHintParamViolation):
             sync_client.tests.update(
                 test_id="t1",
-                body={},  # type: ignore[arg-type]  # pyright: ignore[reportArgumentType]
+                body=cast("Any", {}),
             )
 
     @staticmethod
@@ -278,5 +279,5 @@ class TestTestsUpdateBody:
         with pytest.raises(expected_exception=BeartypeCallHintParamViolation):
             await async_client.tests.update(
                 test_id="t1",
-                body={},  # type: ignore[arg-type]  # pyright: ignore[reportArgumentType]
+                body=cast("Any", {}),
             )
