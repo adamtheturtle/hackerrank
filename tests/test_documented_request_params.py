@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import httpx
 import pytest
@@ -467,9 +467,11 @@ class TestRouteHelpers:
         class _Call:
             request = "not-a-request"
 
-        route.calls = [_Call()]  # type: ignore[assignment]
+        bad_calls: Any = [_Call()]
+        route.calls = bad_calls
         with pytest.raises(
-            expected_exception=TypeError, match="httpx.Request"
+            expected_exception=TypeError,
+            match=r"httpx\.Request",
         ):
             _route_request(route=route, index=0)
 
