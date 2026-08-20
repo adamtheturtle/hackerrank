@@ -18,7 +18,6 @@ from hackerrank.client import HackerRank
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
-    from typing import Any
 
 _BARE: Any = "not-a-list"
 
