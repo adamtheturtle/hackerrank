@@ -83,7 +83,7 @@ def _migrate_body_parameter(*, operation: dict[str, Any]) -> dict[str, Any]:
 
 
 def _prepare_openapi_spec(*, spec: dict[str, object]) -> dict[str, object]:
-    """Make the HackerRank OpenAPI document parseable by openapi-mock."""
+    """Normalize the HackerRank OpenAPI document for openapi-mock parsing."""
     prepared = dict(spec)
     raw_paths_obj = prepared.get("paths", {})
     if not isinstance(raw_paths_obj, dict):
