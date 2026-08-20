@@ -1,0 +1,1 @@
+SCIM group PATCH methods now parse the documented message acknowledgement instead of treating the response as a full group.

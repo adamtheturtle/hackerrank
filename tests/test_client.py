@@ -1,6 +1,8 @@
 """Tests for the synchronous HackerRank client."""
 
+from collections.abc import Mapping
 from http import HTTPStatus
+from typing import Any
 
 import httpx
 import pytest
@@ -16,6 +18,7 @@ from hackerrank.exceptions import (
     HackerRankError,
     NotFoundError,
     RateLimitError,
+    RedirectError,
     ServerError,
     UnprocessableEntityError,
 )
@@ -25,6 +28,7 @@ from hackerrank.transports import (
     Transport,
     TransportResponse,
 )
+from hackerrank.types import JSONValue
 
 
 class TestHackerRank:
@@ -44,6 +48,48 @@ class TestHackerRank:
             base_url="https://custom.example.com",
         )
         assert client.base_url == "https://custom.example.com"
+
+    @staticmethod
+    def test_trailing_slash_base_urls_are_normalized() -> None:
+        """Trailing slashes are stripped from custom base URLs."""
+        client = HackerRank(
+            api_key="test-key",
+            base_url="https://custom.example.com/",
+            scim_base_url="https://scim.example.com/v2/",
+        )
+        assert client.base_url == "https://custom.example.com"
+        assert client.users.base_url == "https://custom.example.com"
+        assert client.scim_base_url == "https://scim.example.com/v2"
+        assert client.scim.users.base_url == "https://scim.example.com/v2"
+
+    @staticmethod
+    def test_falsy_transport_is_preserved() -> None:
+        """A falsy custom transport is not replaced by the default."""
+
+        class _FalsyTransport:
+            """A transport whose ``__bool__`` returns ``False``."""
+
+            def __bool__(self) -> bool:  # pragma: no cover
+                """Report as falsy."""
+                return False
+
+            def __call__(
+                self,
+                *,
+                method: str,
+                url: str,
+                headers: dict[str, str],
+                params: dict[str, str | int] | None,
+                json: Mapping[str, JSONValue] | None,
+                files: Mapping[str, Any] | None,
+            ) -> TransportResponse:  # pragma: no cover
+                """Make a request."""
+                del method, url, headers, params, json, files
+                raise NotImplementedError
+
+        transport: Any = _FalsyTransport()
+        client = HackerRank(api_key="test-key", transport=transport)
+        assert client.users.transport is transport
 
     @staticmethod
     def test_default_scim_base_url() -> None:
@@ -300,6 +346,28 @@ class TestErrorHandling:
             finally:
                 client.close()
 
+    @staticmethod
+    def test_redirect_raises_redirect_error() -> None:
+        """Unexpected 3xx responses raise ``RedirectError``."""
+        with respx.mock(
+            base_url="https://www.hackerrank.com",
+            assert_all_called=False,
+        ) as router:
+            router.get(
+                url__regex=r".*/x/api/v3/users.*",
+            ).mock(
+                return_value=httpx.Response(
+                    status_code=HTTPStatus.FOUND,
+                    headers={"location": "https://example.test/"},
+                ),
+            )
+            client = HackerRank(api_key="test-key")
+            try:
+                with pytest.raises(expected_exception=RedirectError):
+                    client.users.list()
+            finally:
+                client.close()
+
 
 class TestTransportResponse:
     """Tests for ``TransportResponse``."""
@@ -321,6 +389,17 @@ class TestTransportResponse:
             status_code=HTTPStatus.NOT_FOUND,
             headers={},
             content=b"{}",
+        )
+        with pytest.raises(expected_exception=HTTPStatusError):
+            response.raise_for_status()
+
+    @staticmethod
+    def test_raise_for_status_raises_on_redirect() -> None:
+        """3xx responses raise ``HTTPStatusError``."""
+        response = TransportResponse(
+            status_code=HTTPStatus.FOUND,
+            headers={"location": "https://example.test/"},
+            content=b"",
         )
         with pytest.raises(expected_exception=HTTPStatusError):
             response.raise_for_status()

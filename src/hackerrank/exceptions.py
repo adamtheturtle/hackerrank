@@ -58,7 +58,8 @@ class HackerRankError(Exception):
 
         Uses the registry to find a specific exception class
         for the response's status code, falling back to
-        ``HackerRankError``.
+        ``HackerRankError``. Redirect (3xx) responses map to
+        ``RedirectError``.
 
         Args:
             response: The transport response.
@@ -66,11 +67,21 @@ class HackerRankError(Exception):
         Returns:
             The appropriate exception instance.
         """
+        if (
+            HTTPStatus.MULTIPLE_CHOICES
+            <= response.status_code
+            < HTTPStatus.BAD_REQUEST
+        ):
+            return RedirectError(response=response)
         exc_cls = cls._registry.get(
             response.status_code,
             HackerRankError,
         )
         return exc_cls(response=response)
+
+
+class RedirectError(HackerRankError):
+    """Raised for unexpected HTTP 3xx redirect responses."""
 
 
 class BadRequestError(

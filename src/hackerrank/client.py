@@ -26,6 +26,7 @@ from hackerrank.types import (
     JSONValue,
     Page,
     Question,
+    SCIMMessage,
     SCIMPage,
     SCIMTeam,
     SCIMUser,
@@ -101,7 +102,7 @@ class _Namespace:
 
         Raises:
             HackerRankError: If the response has an error
-                status code.
+                or redirect status code.
         """
         response = self.transport(
             method=method,
@@ -111,7 +112,7 @@ class _Namespace:
             json=json,
             files=files,
         )
-        if response.status_code >= HTTPStatus.BAD_REQUEST:
+        if response.status_code >= HTTPStatus.MULTIPLE_CHOICES:
             raise HackerRankError.from_response(response=response)
         return response
 
@@ -210,19 +211,19 @@ def _question_body(
     name: str | None,
     type: str | None,  # noqa: A002  # pylint: disable=redefined-builtin
     internal_notes: str | None,
-    languages: Sequence[str] | None,
+    languages: builtins.list[str] | None,
     problem_statement: str | None,
     recommended_duration: int | None,
-    tags: Sequence[str] | None,
-    options: Sequence[str] | None,
+    tags: builtins.list[str] | None,
+    options: builtins.list[str] | None,
     answer: int | Sequence[int] | None,
     score: float | None,
     environment_id: int | None,
     role_type: str | None,
     scoring_command: str | None,
-    scoring_files: Sequence[str] | None,
-    readonly_paths: Sequence[str] | None,
-    default_files: Sequence[str] | None,
+    scoring_files: builtins.list[str] | None,
+    readonly_paths: builtins.list[str] | None,
+    default_files: builtins.list[str] | None,
     configuration: Mapping[str, JSONValue] | None,
     testcases: Sequence[Mapping[str, JSONValue]] | None,
 ) -> dict[str, JSONValue]:
@@ -346,7 +347,7 @@ class InterviewsNamespace(_Namespace):
         to: str | None = None,
         notes: str | None = None,
         resume_url: str | None = None,
-        interviewers: Sequence[str] | None = None,
+        interviewers: builtins.list[str] | None = None,
         result_url: str | None = None,
         candidate: Mapping[str, JSONValue] | None = None,
         send_email: bool | None = None,
@@ -795,19 +796,19 @@ class QuestionsNamespace(_Namespace):
         name: str,
         type: str,  # noqa: A002  # pylint: disable=redefined-builtin
         internal_notes: str | None = None,
-        languages: Sequence[str] | None = None,
+        languages: builtins.list[str] | None = None,
         problem_statement: str | None = None,
         recommended_duration: int | None = None,
-        tags: Sequence[str] | None = None,
-        options: Sequence[str] | None = None,
+        tags: builtins.list[str] | None = None,
+        options: builtins.list[str] | None = None,
         answer: int | Sequence[int] | None = None,
         score: float | None = None,
         environment_id: int | None = None,
         role_type: str | None = None,
         scoring_command: str | None = None,
-        scoring_files: Sequence[str] | None = None,
-        readonly_paths: Sequence[str] | None = None,
-        default_files: Sequence[str] | None = None,
+        scoring_files: builtins.list[str] | None = None,
+        readonly_paths: builtins.list[str] | None = None,
+        default_files: builtins.list[str] | None = None,
         configuration: Mapping[str, JSONValue] | None = None,
         testcases: Sequence[Mapping[str, JSONValue]] | None = None,
     ) -> Question:
@@ -891,19 +892,19 @@ class QuestionsNamespace(_Namespace):
         # pylint: disable-next=redefined-builtin
         type: str | None = None,  # noqa: A002
         internal_notes: str | None = None,
-        languages: Sequence[str] | None = None,
+        languages: builtins.list[str] | None = None,
         problem_statement: str | None = None,
         recommended_duration: int | None = None,
-        tags: Sequence[str] | None = None,
-        options: Sequence[str] | None = None,
+        tags: builtins.list[str] | None = None,
+        options: builtins.list[str] | None = None,
         answer: int | Sequence[int] | None = None,
         score: float | None = None,
         environment_id: int | None = None,
         role_type: str | None = None,
         scoring_command: str | None = None,
-        scoring_files: Sequence[str] | None = None,
-        readonly_paths: Sequence[str] | None = None,
-        default_files: Sequence[str] | None = None,
+        scoring_files: builtins.list[str] | None = None,
+        readonly_paths: builtins.list[str] | None = None,
+        default_files: builtins.list[str] | None = None,
         configuration: Mapping[str, JSONValue] | None = None,
         testcases: Sequence[Mapping[str, JSONValue]] | None = None,
     ) -> Question | None:
@@ -1019,13 +1020,13 @@ class QuestionsNamespace(_Namespace):
         self,
         *,
         question_id: str,
-        body: Mapping[str, JSONValue] | None = None,
+        body: Mapping[str, JSONValue],
     ) -> dict[str, JSONValue]:
         """Generate code-stubs for a question.
 
         Args:
             question_id: The id of the question.
-            body: An optional request body.
+            body: The generation request body.
 
         Returns:
             The raw API response.
@@ -1033,7 +1034,7 @@ class QuestionsNamespace(_Namespace):
         response = self._request(
             method="PUT",
             url=(f"{_API_V3}/questions/{question_id}/generate"),
-            json=body if body is not None else {},
+            json=body,
             params=None,
             files=None,
         )
@@ -1206,7 +1207,7 @@ class TestCandidatesNamespace(_Namespace):
         evaluator_email: str | None = None,
         test_result_url: str | None = None,
         test_finish_url: str | None = None,
-        tags: Sequence[str] | None = None,
+        tags: builtins.list[str] | None = None,
         invite_valid_from: str | None = None,
         invite_valid_to: str | None = None,
         force: bool | None = None,
@@ -1323,7 +1324,7 @@ class TestCandidatesNamespace(_Namespace):
         test_result_url: str | None = None,
         webhook_authentication: Mapping[str, JSONValue] | None = None,
         accept_result_updates: bool | None = None,
-        tags: Sequence[str] | None = None,
+        tags: builtins.list[str] | None = None,
         accommodations: Mapping[str, JSONValue] | None = None,
     ) -> None:
         """Update a candidate.
@@ -1508,20 +1509,20 @@ class TestsNamespace(_Namespace):
         instructions: str | None = None,
         locked: bool | None = None,
         draft: bool | None = None,
-        languages: Sequence[str] | None = None,
-        candidate_details: Sequence[str] | None = None,
+        languages: builtins.list[str] | None = None,
+        candidate_details: builtins.list[str] | None = None,
         custom_acknowledge_text: str | None = None,
         cutoff_score: int | None = None,
         master_password: str | None = None,
         hide_compile_test: bool | None = None,
-        tags: Sequence[str] | None = None,
-        role_ids: Sequence[str] | None = None,
-        experience: Sequence[str] | None = None,
-        questions: Sequence[str] | None = None,
+        tags: builtins.list[str] | None = None,
+        role_ids: builtins.list[str] | None = None,
+        experience: builtins.list[str] | None = None,
+        questions: builtins.list[str] | None = None,
         mcq_incorrect_score: int | None = None,
         mcq_correct_score: int | None = None,
         shuffle_questions: bool | None = None,
-        test_admins: Sequence[str] | None = None,
+        test_admins: builtins.list[str] | None = None,
         hide_template: bool | None = None,
         enable_acknowledgement: bool | None = None,
         enable_proctoring: bool | None = None,
@@ -1880,7 +1881,7 @@ class UsersNamespace(_Namespace):
         shared_candidates_permission: int | None = None,
         company_admin: bool | None = None,
         team_admin: bool | None = None,
-        teams: Sequence[str] | None = None,
+        teams: builtins.list[str] | None = None,
     ) -> User:
         """Create a user.
 
@@ -2167,8 +2168,8 @@ class TeamsNamespace(_Namespace):
         recruiter_cap: int | None = None,
         developer_cap: int | None = None,
         invite_as: str | None = None,
-        locations: Sequence[str] | None = None,
-        departments: Sequence[str] | None = None,
+        locations: builtins.list[str] | None = None,
+        departments: builtins.list[str] | None = None,
     ) -> Team:
         """Create a team.
 
@@ -2232,8 +2233,8 @@ class TeamsNamespace(_Namespace):
         recruiter_cap: int | None = None,
         developer_cap: int | None = None,
         invite_as: str | None = None,
-        locations: Sequence[str] | None = None,
-        departments: Sequence[str] | None = None,
+        locations: builtins.list[str] | None = None,
+        departments: builtins.list[str] | None = None,
     ) -> None:
         """Update a team.
 
@@ -2490,7 +2491,10 @@ def _make_scim_page[T](
         for item in (schemas_raw if isinstance(schemas_raw, list) else [])
         if isinstance(item, str)
     ]
-    start_index = _coerce_int(payload.get("startIndex")) or 1
+    raw_start_index = payload.get("startIndex", 1)
+    start_index = (
+        1 if raw_start_index is None else _coerce_int(raw_start_index)
+    )
     return SCIMPage(
         items,
         schemas=schemas,
@@ -2600,7 +2604,7 @@ class SCIMUsersNamespace(_Namespace):
         *,
         scim_user_id: str,
         operations: Sequence[Mapping[str, JSONValue]],
-    ) -> SCIMUser:
+    ) -> SCIMMessage:
         """Patch a SCIM user.
 
         Args:
@@ -2608,7 +2612,7 @@ class SCIMUsersNamespace(_Namespace):
             operations: The SCIM patch operations.
 
         Returns:
-            The updated SCIM user.
+            The SCIM patch acknowledgement message.
         """
         body: dict[str, JSONValue] = {
             "operations": [dict(op) for op in operations],
@@ -2620,7 +2624,7 @@ class SCIMUsersNamespace(_Namespace):
             params=None,
             files=None,
         )
-        return SCIMUser.from_dict(data=response.json())
+        return SCIMMessage.from_dict(data=response.json())
 
     def delete(self, *, scim_user_id: str) -> None:
         """Lock a SCIM user.
@@ -2709,7 +2713,7 @@ class SCIMGroupsNamespace(_Namespace):
         *,
         scim_group_id: str,
         operations: Sequence[Mapping[str, JSONValue]],
-    ) -> SCIMTeam:
+    ) -> SCIMMessage:
         """Patch a SCIM group.
 
         Args:
@@ -2717,7 +2721,7 @@ class SCIMGroupsNamespace(_Namespace):
             operations: The SCIM patch operations.
 
         Returns:
-            The updated SCIM team.
+            The SCIM patch acknowledgement message.
         """
         body: dict[str, JSONValue] = {
             "operations": [dict(op) for op in operations],
@@ -2729,7 +2733,7 @@ class SCIMGroupsNamespace(_Namespace):
             params=None,
             files=None,
         )
-        return SCIMTeam.from_dict(data=response.json())
+        return SCIMMessage.from_dict(data=response.json())
 
     def delete(self, *, scim_group_id: str) -> None:
         """Deprovision a SCIM group.
@@ -2785,6 +2789,9 @@ class SCIMNamespace(_Namespace):
 class HackerRank:
     """A client for the HackerRank for Work API."""
 
+    base_url: str
+    scim_base_url: str
+
     def __init__(
         self,
         *,
@@ -2804,68 +2811,70 @@ class HackerRank:
             transport: The HTTP transport. Defaults to
                 ``HTTPXTransport()``.
         """
-        self.base_url = base_url
-        self.scim_base_url = scim_base_url
-        resolved_transport = transport or HTTPXTransport()
+        self.base_url: str = base_url.rstrip("/")
+        self.scim_base_url: str = scim_base_url.rstrip("/")
+        resolved_transport = (
+            HTTPXTransport() if transport is None else transport
+        )
         headers = {
             "Authorization": f"Bearer {api_key}",
             "Accept": "application/json",
         }
         self.interviews: InterviewsNamespace = InterviewsNamespace(
             transport=resolved_transport,
-            base_url=base_url,
+            base_url=self.base_url,
             headers=headers,
         )
         self.interview_templates: InterviewTemplatesNamespace = (
             InterviewTemplatesNamespace(
                 transport=resolved_transport,
-                base_url=base_url,
+                base_url=self.base_url,
                 headers=headers,
             )
         )
         self.environments: EnvironmentsNamespace = EnvironmentsNamespace(
             transport=resolved_transport,
-            base_url=base_url,
+            base_url=self.base_url,
             headers=headers,
         )
         self.questions: QuestionsNamespace = QuestionsNamespace(
             transport=resolved_transport,
-            base_url=base_url,
+            base_url=self.base_url,
             headers=headers,
         )
         self.tests: TestsNamespace = TestsNamespace(
             transport=resolved_transport,
-            base_url=base_url,
+            base_url=self.base_url,
             headers=headers,
         )
         self.templates: TemplatesNamespace = TemplatesNamespace(
             transport=resolved_transport,
-            base_url=base_url,
+            base_url=self.base_url,
             headers=headers,
         )
         self.users: UsersNamespace = UsersNamespace(
             transport=resolved_transport,
-            base_url=base_url,
+            base_url=self.base_url,
             headers=headers,
         )
         self.teams: TeamsNamespace = TeamsNamespace(
             transport=resolved_transport,
-            base_url=base_url,
+            base_url=self.base_url,
             headers=headers,
         )
         self.audit_logs: AuditLogsNamespace = AuditLogsNamespace(
             transport=resolved_transport,
-            base_url=base_url,
+            base_url=self.base_url,
             headers=headers,
         )
         self.ats: ATSNamespace = ATSNamespace(
             transport=resolved_transport,
-            base_url=base_url,
+            base_url=self.base_url,
             headers=headers,
         )
         self.scim: SCIMNamespace = SCIMNamespace(
             transport=resolved_transport,
-            base_url=scim_base_url,
+            base_url=self.scim_base_url,
             headers=headers,
         )
         if isinstance(resolved_transport, HTTPXTransport):

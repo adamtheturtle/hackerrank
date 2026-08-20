@@ -15,6 +15,7 @@ asyncio
 auth
 beartype
 bool
+callables
 changelog
 codestubs
 config
@@ -46,6 +47,7 @@ linters
 linting
 macOS
 metadata
+missing-argument
 namespace
 namespaces
 noqa
@@ -73,6 +75,7 @@ subclasses
 testcases
 todo
 txt
+ty
 typecheck
 unmapped
 untyped

@@ -1,0 +1,1 @@
+Trailing slashes on custom ``base_url`` and ``scim_base_url`` values are stripped so request paths are not double-slashed.
