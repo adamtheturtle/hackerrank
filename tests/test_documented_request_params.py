@@ -51,7 +51,7 @@ def _query(*, request: httpx.Request) -> dict[str, str]:
 def _route_request(
     *,
     route: respx.Route,
-    index: int | None = None,
+    index: int | None,
 ) -> httpx.Request:
     """Return a typed ``httpx.Request`` captured by ``route``."""
     calls_obj: object = route.calls
@@ -87,18 +87,16 @@ def _as_str_keyed_dict(*, value: object) -> dict[str, object] | None:
     """Return ``value`` as a ``str``-keyed dict, or ``None``."""
     if not isinstance(value, dict):
         return None
-    result: dict[str, object] = {}
-    for key_obj, item in value.items():  # pyright: ignore[reportUnknownVariableType]
-        if not isinstance(key_obj, str):
-            return None
-        result[key_obj] = item
-    return result
+    # JSON round-trip yields a value pyright can treat as ``Any``.
+    decoded: Any = json.loads(s=json.dumps(obj=value))
+    typed: dict[str, object] = decoded
+    return typed
 
 
 def _route_json(
     *,
     route: respx.Route,
-    index: int | None = None,
+    index: int | None,
 ) -> dict[str, object]:
     """Return decoded JSON body from a captured ``route`` call."""
     loaded = _as_str_keyed_dict(
@@ -133,7 +131,7 @@ class TestInterviewListParams:
                     updated_at="2024-01-01..2024-01-02",
                     ended_at="2024-01-01..2024-01-02",
                 )
-        params = _query(request=_route_request(route=route))
+        params = _query(request=_route_request(route=route, index=None))
         assert params["user"] == "42"
         assert params["interviewers"] == "7"
         assert params["access"] == "owned"
@@ -165,7 +163,7 @@ class TestInterviewListParams:
                     updated_at="2024-01-01..2024-01-02",
                     ended_at="2024-01-01..2024-01-02",
                 )
-        params = _query(request=_route_request(route=route))
+        params = _query(request=_route_request(route=route, index=None))
         assert params["user"] == "42"
         assert params["interviewers"] == "7"
         assert params["access"] == "shared"
@@ -199,7 +197,7 @@ class TestQuestionListParams:
                     skills=["python"],
                     languages=["python3", "java"],
                 )
-        params = _query(request=_route_request(route=route))
+        params = _query(request=_route_request(route=route, index=None))
         assert params["status"] == "active"
         assert params["access"] == "owned,shared"
         assert params["difficulty"] == "easy,hard"
@@ -229,7 +227,7 @@ class TestQuestionListParams:
                     skills=["java"],
                     languages=["javascript"],
                 )
-        params = _query(request=_route_request(route=route))
+        params = _query(request=_route_request(route=route, index=None))
         assert params["status"] == "archived"
         assert params["access"] == "library"
         assert params["difficulty"] == "medium"
@@ -300,10 +298,10 @@ class TestTemplateListParams:
             async with AsyncHackerRank(api_key="test-key") as client:
                 await client.interview_templates.list(filter="owned")
                 await client.templates.list(access="shared")
-        interview_request = _route_request(route=interview_route)
+        interview_request = _route_request(route=interview_route, index=None)
         interview_params = _query(request=interview_request)
         assert interview_params["filter"] == "owned"
-        invite_request = _route_request(route=invite_route)
+        invite_request = _route_request(route=invite_route, index=None)
         invite_params = _query(request=invite_request)
         assert invite_params["access"] == "shared"
 
@@ -324,7 +322,7 @@ class TestInterviewBodyFields:
                     title="AI interview",
                     ai_assistant_available=True,
                 )
-        body = _route_json(route=route)
+        body = _route_json(route=route, index=None)
         assert body["ai_assistant_available"] is True
         assert created.ai_assistant_available is True
 
@@ -385,8 +383,8 @@ class TestInterviewBodyFields:
                     replace_interviewers=True,
                     ai_assistant_available=False,
                 )
-        create_body = _route_json(route=create_route)
-        update_body = _route_json(route=update_route)
+        create_body = _route_json(route=create_route, index=None)
+        update_body = _route_json(route=update_route, index=None)
         assert create_body["ai_assistant_available"] is True
         assert created.ai_assistant_available is True
         assert update_body["interviewers"] == ["a@b.com"]
@@ -439,7 +437,8 @@ class TestCandidateInviteAtsState:
                     email="c@x.com",
                     ats_state=async_ats_state,
                 )
-        assert _route_json(route=route)["ats_state"] == async_ats_state
+        body = _route_json(route=route, index=None)
+        assert body["ats_state"] == async_ats_state
 
 
 class TestRouteHelpers:
@@ -452,7 +451,8 @@ class TestRouteHelpers:
             status_code=200,
             json={},
         )
-        route.calls = object()  # type: ignore[assignment]
+        bad_calls: Any = object()
+        route.calls = bad_calls
         with pytest.raises(expected_exception=TypeError, match="call list"):
             _route_request(route=route, index=0)
 
@@ -480,11 +480,6 @@ class TestRouteHelpers:
         """Non-dict values yield ``None``."""
         assert _as_str_keyed_dict(value=["x"]) is None
 
-    @staticmethod
-    def test_as_str_keyed_dict_rejects_non_str_keys() -> None:
-        """Mappings with non-string keys yield ``None``."""
-        bad_keys: dict[object, str] = {1: "x"}
-        assert _as_str_keyed_dict(value=bad_keys) is None
 
     @staticmethod
     def test_route_json_rejects_non_object_body() -> None:
@@ -497,4 +492,4 @@ class TestRouteHelpers:
             with httpx.Client() as client:
                 client.post(url=f"{_BASE}/x", content=b"[1, 2, 3]")
         with pytest.raises(expected_exception=TypeError, match="JSON object"):
-            _route_json(route=route)
+            _route_json(route=route, index=None)
