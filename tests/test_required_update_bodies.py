@@ -79,30 +79,19 @@ class TestUserUpdateBody:
     @staticmethod
     def test_omission_rejected_by_constructor() -> None:
         """Missing required fields raise ``TypeError`` at construction."""
-<<<<<<< HEAD
         user_update_ctor: Any = UserUpdate
         with pytest.raises(expected_exception=TypeError):
             user_update_ctor(firstname="Alice")
-=======
-        incomplete: Any = UserUpdate
-        with pytest.raises(expected_exception=TypeError):
-            incomplete(firstname="Alice")
->>>>>>> 66b59b6 (Restore OpenAPI-required kwargs after main merge.)
 
     @staticmethod
     def test_omission_rejected_by_beartype(
         sync_client: HackerRank,
     ) -> None:
         """Passing a bare mapping to ``users.update`` is rejected."""
-        bad: Any = {}
         with pytest.raises(expected_exception=BeartypeCallHintParamViolation):
             sync_client.users.update(
                 user_id="u1",
-<<<<<<< HEAD
                 body=_BAD_BODY,
-=======
-                body=bad,
->>>>>>> 66b59b6 (Restore OpenAPI-required kwargs after main merge.)
             )
 
     @staticmethod
@@ -174,15 +163,10 @@ class TestUserUpdateBody:
         """Passing a bare mapping to async ``users.update`` is
         rejected.
         """
-        bad: Any = {}
         with pytest.raises(expected_exception=BeartypeCallHintParamViolation):
             await async_client.users.update(
                 user_id="u1",
-<<<<<<< HEAD
                 body=_BAD_BODY,
-=======
-                body=bad,
->>>>>>> 66b59b6 (Restore OpenAPI-required kwargs after main merge.)
             )
 
 
@@ -192,30 +176,19 @@ class TestTestsUpdateBody:
     @staticmethod
     def test_omission_rejected_by_constructor() -> None:
         """Missing required fields raise ``TypeError`` at construction."""
-<<<<<<< HEAD
         tests_update_ctor: Any = TestsUpdate
         with pytest.raises(expected_exception=TypeError):
             tests_update_ctor(name="T")
-=======
-        incomplete: Any = TestsUpdate
-        with pytest.raises(expected_exception=TypeError):
-            incomplete(name="T")
->>>>>>> 66b59b6 (Restore OpenAPI-required kwargs after main merge.)
 
     @staticmethod
     def test_omission_rejected_by_beartype(
         sync_client: HackerRank,
     ) -> None:
         """Passing a bare mapping to ``tests.update`` is rejected."""
-        bad: Any = {}
         with pytest.raises(expected_exception=BeartypeCallHintParamViolation):
             sync_client.tests.update(
                 test_id="t1",
-<<<<<<< HEAD
                 body=_BAD_BODY,
-=======
-                body=bad,
->>>>>>> 66b59b6 (Restore OpenAPI-required kwargs after main merge.)
             )
 
     @staticmethod
@@ -303,13 +276,8 @@ class TestTestsUpdateBody:
         """Passing a bare mapping to async ``tests.update`` is
         rejected.
         """
-        bad: Any = {}
         with pytest.raises(expected_exception=BeartypeCallHintParamViolation):
             await async_client.tests.update(
                 test_id="t1",
-<<<<<<< HEAD
                 body=_BAD_BODY,
-=======
-                body=bad,
->>>>>>> 66b59b6 (Restore OpenAPI-required kwargs after main merge.)
             )
