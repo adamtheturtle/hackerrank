@@ -40,7 +40,7 @@ _INTERVIEW = {
 _CANDIDATE_INVITE = {
     "id": "c1",
     "email": "c@x.com",
-    "test_link": "https://example.com/invite",
+    "test_link": "https://example.com/invite/c1",
 }
 
 
