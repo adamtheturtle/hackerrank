@@ -65,6 +65,14 @@ _TEAM_OBJ = {"id": "tm1", "name": "Engineering"}
 _MEMBERSHIP_OBJ = {"team": "tm1", "user": "u1"}
 _SCIM_USER_OBJ = {"id": "scim-1", "userName": "x@y.com"}
 _SCIM_TEAM_OBJ = {"id": "scim-2", "displayName": "G"}
+_SCIM_MESSAGE_OBJ = {
+    "schemas": ["urn:ietf:params:scim:schemas:core:2.0:User"],
+    "message": "Successful transaction",
+}
+_SCIM_GROUP_MESSAGE_OBJ = {
+    "schemas": ["urn:ietf:params:scim:schemas:core:2.0:Group"],
+    "message": "Successful transaction",
+}
 
 
 def _response_for(  # noqa: C901, PLR0911, PLR0912, PLR0915  # pylint: disable=too-complex,too-many-branches,too-many-statements
@@ -301,12 +309,12 @@ def _response_for(  # noqa: C901, PLR0911, PLR0912, PLR0915  # pylint: disable=t
         if re.fullmatch(pattern=r"/scim/v2/Users/[^/]+", string=path):
             return httpx.Response(
                 status_code=200,
-                json=_SCIM_USER_OBJ,
+                json=_SCIM_MESSAGE_OBJ,
             )
         if re.fullmatch(pattern=r"/scim/v2/Groups/[^/]+", string=path):
             return httpx.Response(
                 status_code=200,
-                json=_SCIM_TEAM_OBJ,
+                json=_SCIM_GROUP_MESSAGE_OBJ,
             )
     if method == "DELETE":
         return httpx.Response(status_code=204)

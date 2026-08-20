@@ -297,3 +297,224 @@ class TestSCIMPagingEdgeCases:
             finally:
                 await client.aclose()
         assert result.schemas == []
+
+
+class TestSCIMStartIndex:
+    """Preserve an explicit SCIM ``startIndex`` of zero."""
+
+    @staticmethod
+    def test_sync_preserves_zero_start_index() -> None:
+        """A server ``startIndex`` of ``0`` is kept as ``0``."""
+        with respx.mock(assert_all_called=False) as router:
+            router.get(url__regex=r".*/Users.*").mock(
+                return_value=httpx.Response(
+                    status_code=200,
+                    json={
+                        "Resources": [],
+                        "startIndex": 0,
+                        "itemsPerPage": 0,
+                        "totalResults": 0,
+                    },
+                ),
+            )
+            client = HackerRank(api_key="test-key")
+            try:
+                result = client.scim.users.list()
+            finally:
+                client.close()
+        assert result.start_index == 0
+
+    @staticmethod
+    @pytest.mark.asyncio
+    async def test_async_preserves_zero_start_index() -> None:
+        """Async list keeps a server ``startIndex`` of ``0``."""
+        with respx.mock(assert_all_called=False) as router:
+            router.get(url__regex=r".*/Groups.*").mock(
+                return_value=httpx.Response(
+                    status_code=200,
+                    json={
+                        "Resources": [],
+                        "startIndex": 0,
+                        "itemsPerPage": 0,
+                        "totalResults": 0,
+                    },
+                ),
+            )
+            client = AsyncHackerRank(api_key="test-key")
+            try:
+                result = await client.scim.groups.list()
+            finally:
+                await client.aclose()
+        assert result.start_index == 0
+
+
+class TestBaseURLJoining:
+    """Custom base URLs must not produce double-slash paths."""
+
+    @staticmethod
+    def test_trailing_slash_does_not_double_slash_path() -> None:
+        """A trailing slash on ``base_url`` is stripped before join."""
+        captured: list[str] = []
+
+        class _SpyTransport:
+            """Capture the absolute URL of each request."""
+
+            def __call__(
+                self,
+                *,
+                method: str,
+                url: str,
+                headers: dict[str, str],
+                params: dict[str, str | int] | None,
+                json: object | None,
+                files: object | None,
+            ) -> TransportResponse:
+                """Record ``url`` and return an empty page."""
+                del method, headers, params, json, files
+                captured.append(url)
+                return TransportResponse(
+                    status_code=200,
+                    headers={},
+                    content=(
+                        b'{"data":[],"page_total":0,"offset":0,'
+                        b'"previous":"","next":"","first":"",'
+                        b'"last":"","total":0}'
+                    ),
+                )
+
+        client = HackerRank(
+            api_key="test-key",
+            base_url="https://example.test/",
+            transport=_SpyTransport(),
+        )
+        client.users.list()
+        assert captured == ["https://example.test/x/api/v3/users"]
+
+
+class TestGenerateCodestubsBody:
+    """``generate_codestubs`` requires a request body."""
+
+    @staticmethod
+    def test_sync_requires_body() -> None:
+        """Omitting ``body`` is rejected locally."""
+        client = HackerRank(api_key="test-key")
+        with pytest.raises(expected_exception=TypeError):
+            client.questions.generate_codestubs(  # type: ignore[call-arg]  # pyright: ignore[reportCallIssue]  # pylint: disable=missing-kwoa  # ty: ignore[missing-argument]
+                question_id="q1",
+            )
+
+    @staticmethod
+    @pytest.mark.asyncio
+    async def test_async_requires_body() -> None:
+        """Omitting ``body`` is rejected locally in the async client."""
+        client = AsyncHackerRank(api_key="test-key")
+        with pytest.raises(expected_exception=TypeError):
+            await client.questions.generate_codestubs(  # type: ignore[call-arg]  # pyright: ignore[reportCallIssue]  # pylint: disable=missing-kwoa  # ty: ignore[missing-argument]
+                question_id="q1",
+            )
+
+
+class TestSCIMPatchMessage:
+    """SCIM PATCH returns a message acknowledgement, not a resource."""
+
+    @staticmethod
+    def test_sync_user_patch_returns_message() -> None:
+        """User PATCH parses the documented message payload."""
+        with respx.mock(assert_all_called=False) as router:
+            router.patch(url__regex=r".*/Users/.*").mock(
+                return_value=httpx.Response(
+                    status_code=200,
+                    json={
+                        "schemas": [
+                            "urn:ietf:params:scim:schemas:core:2.0:User",
+                        ],
+                        "message": "Successful transaction",
+                    },
+                ),
+            )
+            client = HackerRank(api_key="test-key")
+            try:
+                result = client.scim.users.patch(
+                    scim_user_id="scim-1",
+                    operations=[{"op": "replace"}],
+                )
+            finally:
+                client.close()
+        assert result.message == "Successful transaction"
+
+    @staticmethod
+    def test_sync_group_patch_returns_message() -> None:
+        """Group PATCH parses the documented message payload."""
+        with respx.mock(assert_all_called=False) as router:
+            router.patch(url__regex=r".*/Groups/.*").mock(
+                return_value=httpx.Response(
+                    status_code=200,
+                    json={
+                        "schemas": [
+                            "urn:ietf:params:scim:schemas:core:2.0:Group",
+                        ],
+                        "message": "Successful transaction",
+                    },
+                ),
+            )
+            client = HackerRank(api_key="test-key")
+            try:
+                result = client.scim.groups.patch(
+                    scim_group_id="scim-2",
+                    operations=[{"op": "replace"}],
+                )
+            finally:
+                client.close()
+        assert result.message == "Successful transaction"
+
+    @staticmethod
+    @pytest.mark.asyncio
+    async def test_async_user_patch_returns_message() -> None:
+        """Async user PATCH parses the documented message payload."""
+        with respx.mock(assert_all_called=False) as router:
+            router.patch(url__regex=r".*/Users/.*").mock(
+                return_value=httpx.Response(
+                    status_code=200,
+                    json={
+                        "schemas": [
+                            "urn:ietf:params:scim:schemas:core:2.0:User",
+                        ],
+                        "message": "Successful transaction",
+                    },
+                ),
+            )
+            client = AsyncHackerRank(api_key="test-key")
+            try:
+                result = await client.scim.users.patch(
+                    scim_user_id="scim-1",
+                    operations=[{"op": "replace"}],
+                )
+            finally:
+                await client.aclose()
+        assert result.message == "Successful transaction"
+
+    @staticmethod
+    @pytest.mark.asyncio
+    async def test_async_group_patch_returns_message() -> None:
+        """Async group PATCH parses the documented message payload."""
+        with respx.mock(assert_all_called=False) as router:
+            router.patch(url__regex=r".*/Groups/.*").mock(
+                return_value=httpx.Response(
+                    status_code=200,
+                    json={
+                        "schemas": [
+                            "urn:ietf:params:scim:schemas:core:2.0:Group",
+                        ],
+                        "message": "Successful transaction",
+                    },
+                ),
+            )
+            client = AsyncHackerRank(api_key="test-key")
+            try:
+                result = await client.scim.groups.patch(
+                    scim_group_id="scim-2",
+                    operations=[{"op": "replace"}],
+                )
+            finally:
+                await client.aclose()
+        assert result.message == "Successful transaction"

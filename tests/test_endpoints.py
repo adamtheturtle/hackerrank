@@ -232,7 +232,10 @@ class TestSyncEndpoints:
             question_id="q1",
             codestubs={"java": "..."},
         )
-        sync_client.questions.generate_codestubs(question_id="q1")
+        sync_client.questions.generate_codestubs(
+            question_id="q1",
+            body={"type": "code"},
+        )
         sync_client.questions.generate_codestubs(
             question_id="q1",
             body={"lang": "java"},
@@ -762,7 +765,10 @@ class TestAsyncEndpoints:
             question_id="q1",
             codestubs={"java": "..."},
         )
-        await async_client.questions.generate_codestubs(question_id="q1")
+        await async_client.questions.generate_codestubs(
+            question_id="q1",
+            body={"type": "code"},
+        )
         await async_client.questions.generate_codestubs(
             question_id="q1",
             body={"lang": "java"},

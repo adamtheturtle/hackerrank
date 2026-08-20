@@ -378,3 +378,10 @@ class SCIMTeamDict(TypedDict):
     displayName: NotRequired[str]
     diplayName: NotRequired[str]
     schemas: NotRequired[list[str]]
+
+
+class SCIMMessageDict(TypedDict):
+    """A SCIM patch acknowledgement message."""
+
+    message: str
+    schemas: NotRequired[list[str]]
