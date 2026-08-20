@@ -1,9 +1,14 @@
 """Tests for the async HackerRank client."""
 
+from collections.abc import Mapping
+from typing import Any
+
 import pytest
 
 import hackerrank.async_client as async_client_module
 from hackerrank.async_client import AsyncHackerRank
+from hackerrank.transports import TransportResponse
+from hackerrank.types import JSONValue
 
 
 class TestAsyncHackerRank:
@@ -65,9 +70,9 @@ class TestAsyncHackerRank:
                 url: str,
                 headers: dict[str, str],
                 params: dict[str, str | int] | None,
-                json: object | None,
-                files: object | None,
-            ) -> object:  # pragma: no cover
+                json: Mapping[str, JSONValue] | None,
+                files: Mapping[str, Any] | None,
+            ) -> TransportResponse:  # pragma: no cover
                 """Make a request."""
                 del method, url, headers, params, json, files
                 raise NotImplementedError

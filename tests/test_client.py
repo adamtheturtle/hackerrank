@@ -1,6 +1,8 @@
 """Tests for the synchronous HackerRank client."""
 
+from collections.abc import Mapping
 from http import HTTPStatus
+from typing import Any
 
 import httpx
 import pytest
@@ -26,6 +28,7 @@ from hackerrank.transports import (
     Transport,
     TransportResponse,
 )
+from hackerrank.types import JSONValue
 
 
 class TestHackerRank:
@@ -77,8 +80,8 @@ class TestHackerRank:
                 url: str,
                 headers: dict[str, str],
                 params: dict[str, str | int] | None,
-                json: object | None,
-                files: object | None,
+                json: Mapping[str, JSONValue] | None,
+                files: Mapping[str, Any] | None,
             ) -> TransportResponse:  # pragma: no cover
                 """Make a request."""
                 del method, url, headers, params, json, files
