@@ -22,11 +22,10 @@ def _as_str_keyed_dict(*, value: object) -> dict[str, Any] | None:
     """Return ``value`` as a ``str``-keyed dict, or ``None``."""
     if not isinstance(value, dict):
         return None
+    # Route through ``Any`` so strict unknown-key iteration is allowed.
+    raw: Any = value
     result: dict[str, Any] = {}
-    items: list[tuple[object, object]] = list(
-        value.items(),  # pyright: ignore[reportUnknownArgumentType]
-    )
-    for key_obj, item in items:
+    for key_obj, item in raw.items():
         if not isinstance(key_obj, str):
             return None
         result[key_obj] = item
@@ -37,9 +36,8 @@ def _as_object_list(*, value: object) -> list[object] | None:
     """Return ``value`` as a list, or ``None``."""
     if not isinstance(value, list):
         return None
-    return list(
-        value,  # pyright: ignore[reportUnknownArgumentType]
-    )
+    raw: Any = value
+    return list(raw)
 
 
 def _fix_schema_required(*, schema: dict[str, Any]) -> dict[str, Any]:
