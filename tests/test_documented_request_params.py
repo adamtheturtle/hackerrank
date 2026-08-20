@@ -401,7 +401,7 @@ class TestCandidateInviteAtsState:
         with respx.mock(assert_all_called=True) as router:
             route = router.post(
                 url=f"{_BASE}/tests/t1/candidates",
-            ).respond(status_code=200, json=_CANDIDATE)
+            ).respond(status_code=200, json=_CANDIDATE_INVITE)
             first_ats_state = 0
             second_ats_state = 22
             with HackerRank(api_key="test-key") as client:
@@ -429,7 +429,7 @@ class TestCandidateInviteAtsState:
         with respx.mock(assert_all_called=True) as router:
             route = router.post(
                 url=f"{_BASE}/tests/t1/candidates",
-            ).respond(status_code=200, json=_CANDIDATE)
+            ).respond(status_code=200, json=_CANDIDATE_INVITE)
             async_ats_state = 5
             async with AsyncHackerRank(api_key="test-key") as client:
                 await client.tests.candidates.invite(
