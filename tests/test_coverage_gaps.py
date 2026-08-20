@@ -9,7 +9,6 @@ context manager hooks on the HTTP transports, and the
 from __future__ import annotations
 
 from http import HTTPStatus
-from typing import Any
 
 import httpx
 import pytest
