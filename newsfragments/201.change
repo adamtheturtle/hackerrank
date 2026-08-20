@@ -1,0 +1,3 @@
+Reject bare ``str`` values for list-like API fields (``interviewers``,
+``languages``, ``tags``, and related parameters) so they are no longer
+split into character arrays in request bodies.

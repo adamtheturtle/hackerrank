@@ -13,6 +13,7 @@ asyncio
 auth
 beartype
 bool
+callables
 changelog
 codestubs
 config
