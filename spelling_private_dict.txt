@@ -57,6 +57,8 @@ refactoring
 regex
 repo
 reportPrivateUsage
+reportUnknownArgumentType
+reportUnknownMemberType
 reportUnknownVariableType
 respx
 schemas
