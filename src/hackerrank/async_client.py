@@ -33,8 +33,10 @@ from hackerrank.types import (
     Template,
     Test,
     TestCandidate,
+    TestsUpdate,
     User,
     UserTeamMembership,
+    UserUpdate,
 )
 
 _API_V3 = "/x/api/v3"
@@ -374,7 +376,7 @@ class AsyncInterviewsNamespace(_AsyncNamespace):
     async def create(
         self,
         *,
-        title: str | None = None,
+        title: str,
         from_: str | None = None,
         to: str | None = None,
         notes: str | None = None,
@@ -456,20 +458,20 @@ class AsyncInterviewsNamespace(_AsyncNamespace):
         self,
         *,
         interview_id: str,
-        title: str | None = None,
-        from_: str | None = None,
-        to: str | None = None,
-        notes: str | None = None,
-        resume_url: str | None = None,
+        title: str,
+        from_: str,
+        to: str,
+        notes: str,
+        resume_url: str,
+        result_url: str,
+        candidate: Mapping[str, JSONValue],
+        send_email: bool,
+        metadata: Mapping[str, JSONValue],
+        interview_template_id: int,
         interviewers: (
             builtins.list[str] | builtins.list[Mapping[str, JSONValue]] | None
         ) = None,
-        result_url: str | None = None,
-        candidate: Mapping[str, JSONValue] | None = None,
-        send_email: bool | None = None,
         replace_interviewers: bool | None = None,
-        metadata: Mapping[str, JSONValue] | None = None,
-        interview_template_id: int | None = None,
         ai_assistant_available: bool | None = None,
     ) -> Interview:
         """Update an interview.
@@ -853,13 +855,13 @@ class AsyncQuestionsNamespace(_AsyncNamespace):
         *,
         name: str,
         type: str,  # noqa: A002  # pylint: disable=redefined-builtin
+        problem_statement: str,
+        recommended_duration: int,
         internal_notes: str | None = None,
         languages: builtins.list[str] | None = None,
-        problem_statement: str | None = None,
-        recommended_duration: int | None = None,
         tags: builtins.list[str] | None = None,
         options: builtins.list[str] | None = None,
-        answer: int | Sequence[int] | None = None,
+        answer: int | builtins.list[int] | None = None,
         score: float | None = None,
         environment_id: int | None = None,
         role_type: str | None = None,
@@ -868,7 +870,7 @@ class AsyncQuestionsNamespace(_AsyncNamespace):
         readonly_paths: builtins.list[str] | None = None,
         default_files: builtins.list[str] | None = None,
         configuration: Mapping[str, JSONValue] | None = None,
-        testcases: Sequence[Mapping[str, JSONValue]] | None = None,
+        testcases: builtins.list[Mapping[str, JSONValue]] | None = None,
     ) -> Question:
         """Create a question.
 
@@ -927,16 +929,16 @@ class AsyncQuestionsNamespace(_AsyncNamespace):
         self,
         *,
         question_id: str,
-        name: str | None = None,
+        name: str,
         # pylint: disable-next=redefined-builtin
-        type: str | None = None,  # noqa: A002
-        internal_notes: str | None = None,
-        languages: builtins.list[str] | None = None,
-        problem_statement: str | None = None,
-        recommended_duration: int | None = None,
-        tags: builtins.list[str] | None = None,
-        options: builtins.list[str] | None = None,
-        answer: int | Sequence[int] | None = None,
+        type: str,  # noqa: A002
+        internal_notes: str,
+        languages: builtins.list[str],
+        problem_statement: str,
+        recommended_duration: int,
+        tags: builtins.list[str],
+        options: builtins.list[str],
+        answer: int | builtins.list[int],
         score: float | None = None,
         environment_id: int | None = None,
         role_type: str | None = None,
@@ -945,7 +947,7 @@ class AsyncQuestionsNamespace(_AsyncNamespace):
         readonly_paths: builtins.list[str] | None = None,
         default_files: builtins.list[str] | None = None,
         configuration: Mapping[str, JSONValue] | None = None,
-        testcases: Sequence[Mapping[str, JSONValue]] | None = None,
+        testcases: builtins.list[Mapping[str, JSONValue]] | None = None,
     ) -> Question | None:
         """Update a question.
 
@@ -1352,18 +1354,18 @@ class AsyncTestCandidatesNamespace(_AsyncNamespace):
         *,
         test_id: str,
         candidate_id: str,
-        full_name: str | None = None,
-        ats_state: int | None = None,
-        invite_valid_from: str | None = None,
-        invite_valid_to: str | None = None,
-        invite_metadata: Mapping[str, JSONValue] | None = None,
-        evaluator_email: str | None = None,
-        test_finish_url: str | None = None,
-        test_result_url: str | None = None,
-        webhook_authentication: Mapping[str, JSONValue] | None = None,
-        accept_result_updates: bool | None = None,
-        tags: builtins.list[str] | None = None,
-        accommodations: Mapping[str, JSONValue] | None = None,
+        full_name: str,
+        ats_state: int,
+        invite_valid_from: str,
+        invite_valid_to: str,
+        invite_metadata: Mapping[str, JSONValue],
+        evaluator_email: str,
+        test_finish_url: str,
+        test_result_url: str,
+        webhook_authentication: Mapping[str, JSONValue],
+        accept_result_updates: bool,
+        tags: builtins.list[str],
+        accommodations: Mapping[str, JSONValue],
     ) -> TestCandidate:
         """Update a candidate.
 
@@ -1386,22 +1388,20 @@ class AsyncTestCandidatesNamespace(_AsyncNamespace):
         Returns:
             The updated candidate.
         """
-        body = _drop_none(
-            {
-                "full_name": full_name,
-                "ats_state": ats_state,
-                "invite_valid_from": invite_valid_from,
-                "invite_valid_to": invite_valid_to,
-                "invite_metadata": invite_metadata,
-                "evaluator_email": evaluator_email,
-                "test_finish_url": test_finish_url,
-                "test_result_url": test_result_url,
-                "webhook_authentication": webhook_authentication,
-                "accept_result_updates": accept_result_updates,
-                "tags": list(tags) if tags is not None else None,
-                "accommodations": accommodations,
-            },
-        )
+        body: dict[str, JSONValue] = {
+            "full_name": full_name,
+            "ats_state": ats_state,
+            "invite_valid_from": invite_valid_from,
+            "invite_valid_to": invite_valid_to,
+            "invite_metadata": invite_metadata,
+            "evaluator_email": evaluator_email,
+            "test_finish_url": test_finish_url,
+            "test_result_url": test_result_url,
+            "webhook_authentication": webhook_authentication,
+            "accept_result_updates": accept_result_updates,
+            "tags": list(tags),
+            "accommodations": accommodations,
+        }
         response = await self._request(
             method="PUT",
             url=(f"{_API_V3}/tests/{test_id}/candidates/{candidate_id}"),
@@ -1547,9 +1547,11 @@ class AsyncTestsNamespace(_AsyncNamespace):
         self,
         *,
         name: str,
+        duration: int,
+        role_ids: builtins.list[str],
+        experience: builtins.list[str],
         starttime: str | None = None,
         endtime: str | None = None,
-        duration: int | None = None,
         instructions: str | None = None,
         locked: bool | None = None,
         draft: bool | None = None,
@@ -1562,8 +1564,6 @@ class AsyncTestsNamespace(_AsyncNamespace):
         master_password: str | None = None,
         hide_compile_test: bool | None = None,
         tags: builtins.list[str] | None = None,
-        role_ids: builtins.list[str] | None = None,
-        experience: builtins.list[str] | None = None,
         questions: builtins.list[str] | None = None,
         mcq_incorrect_score: int | None = None,
         mcq_correct_score: int | None = None,
@@ -1636,10 +1636,8 @@ class AsyncTestsNamespace(_AsyncNamespace):
                 "master_password": master_password,
                 "hide_compile_test": hide_compile_test,
                 "tags": list(tags) if tags is not None else None,
-                "role_ids": (list(role_ids) if role_ids is not None else None),
-                "experience": (
-                    list(experience) if experience is not None else None
-                ),
+                "role_ids": list(role_ids),
+                "experience": list(experience),
                 "questions": (
                     list(questions) if questions is not None else None
                 ),
@@ -1703,20 +1701,18 @@ class AsyncTestsNamespace(_AsyncNamespace):
         self,
         *,
         test_id: str,
-        body: Mapping[str, JSONValue],
+        body: TestsUpdate,
     ) -> None:
-        """Update a test using a raw payload.
+        """Update a test.
 
         Args:
             test_id: The id of the test.
-            body: A mapping of fields to update. See the
-                HackerRank API documentation for the
-                supported fields.
+            body: The required update fields for a test.
         """
         await self._request(
             method="PUT",
             url=f"{_API_V3}/tests/{test_id}",
-            json=body,
+            json=body.to_dict(),
             params=None,
             files=None,
         )
@@ -1911,10 +1907,11 @@ class AsyncUsersNamespace(_AsyncNamespace):
         self,
         *,
         email: str,
-        firstname: str | None = None,
+        firstname: str,
+        role: str,
+        teams: builtins.list[str],
         lastname: str | None = None,
         country: str | None = None,
-        role: str | None = None,
         send_email: bool | None = None,
         phone: str | None = None,
         questions_permission: int | None = None,
@@ -1927,7 +1924,6 @@ class AsyncUsersNamespace(_AsyncNamespace):
         shared_candidates_permission: int | None = None,
         company_admin: bool | None = None,
         team_admin: bool | None = None,
-        teams: builtins.list[str] | None = None,
     ) -> User:
         """Create a user.
 
@@ -1973,9 +1969,7 @@ class AsyncUsersNamespace(_AsyncNamespace):
                 "shared_candidates_permission": (shared_candidates_permission),
                 "company_admin": company_admin,
                 "team_admin": team_admin,
-                "teams": (
-                    [{"id": t} for t in teams] if teams is not None else None
-                ),
+                "teams": [{"id": t} for t in teams],
             },
         )
         response = await self._request(
@@ -2009,20 +2003,18 @@ class AsyncUsersNamespace(_AsyncNamespace):
         self,
         *,
         user_id: str,
-        body: Mapping[str, JSONValue],
+        body: UserUpdate,
     ) -> None:
         """Update a user.
 
         Args:
             user_id: The id of the user.
-            body: A mapping of fields to update. See the
-                HackerRank API documentation for the
-                supported fields.
+            body: The required update fields for a user.
         """
         await self._request(
             method="PUT",
             url=f"{_API_V3}/users/{user_id}",
-            json=body,
+            json=body.to_dict(),
             params=None,
             files=None,
         )
@@ -2277,12 +2269,12 @@ class AsyncTeamsNamespace(_AsyncNamespace):
         self,
         *,
         team_id: str,
-        name: str | None = None,
-        recruiter_cap: int | None = None,
-        developer_cap: int | None = None,
-        invite_as: str | None = None,
-        locations: builtins.list[str] | None = None,
-        departments: builtins.list[str] | None = None,
+        name: str,
+        recruiter_cap: int,
+        developer_cap: int,
+        invite_as: str,
+        locations: builtins.list[str],
+        departments: builtins.list[str],
     ) -> None:
         """Update a team.
 
@@ -2295,20 +2287,14 @@ class AsyncTeamsNamespace(_AsyncNamespace):
             locations: New allowed locations.
             departments: New allowed departments.
         """
-        body = _drop_none(
-            {
-                "name": name,
-                "recruiter_cap": recruiter_cap,
-                "developer_cap": developer_cap,
-                "invite_as": invite_as,
-                "locations": (
-                    list(locations) if locations is not None else None
-                ),
-                "departments": (
-                    list(departments) if departments is not None else None
-                ),
-            },
-        )
+        body: dict[str, JSONValue] = {
+            "name": name,
+            "recruiter_cap": recruiter_cap,
+            "developer_cap": developer_cap,
+            "invite_as": invite_as,
+            "locations": list(locations),
+            "departments": list(departments),
+        }
         await self._request(
             method="PUT",
             url=f"{_API_V3}/teams/{team_id}",
@@ -2382,9 +2368,9 @@ class AsyncATSCodePairNamespace(_AsyncNamespace):
     async def invite(
         self,
         *,
-        title: str | None = None,
-        requisition_id: str | None = None,
-        candidate_id: str | None = None,
+        title: str,
+        requisition_id: str,
+        candidate_id: str,
         candidate: Mapping[str, JSONValue] | None = None,
         send_email: bool | None = None,
         interview_metadata: Mapping[str, JSONValue] | None = None,
@@ -2431,8 +2417,8 @@ class AsyncATSCodeScreenNamespace(_AsyncNamespace):
         *,
         test_id: str,
         email: str,
-        requisition_id: str | None = None,
-        candidate_id: str | None = None,
+        requisition_id: str,
+        candidate_id: str,
         send_email: bool | None = None,
         test_result_url: str | None = None,
         webhook_authentication: Mapping[str, JSONValue] | None = None,
