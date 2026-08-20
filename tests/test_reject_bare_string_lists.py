@@ -260,7 +260,9 @@ class TestSyncRejectBareStringLists:
         client = HackerRank(api_key="test-key")
         try:
             for _field_name, call in _sync_calls(client=client):
-                with pytest.raises(expected_exception=BeartypeCallHintParamViolation):
+                with pytest.raises(
+                    expected_exception=BeartypeCallHintParamViolation
+                ):
                     call()
         finally:
             client.close()
@@ -276,7 +278,9 @@ class TestAsyncRejectBareStringLists:
         client = AsyncHackerRank(api_key="test-key")
         try:
             for _field_name, call in _async_calls(client=client):
-                with pytest.raises(expected_exception=BeartypeCallHintParamViolation):
+                with pytest.raises(
+                    expected_exception=BeartypeCallHintParamViolation
+                ):
                     await call()
         finally:
             await client.aclose()
