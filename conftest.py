@@ -17,6 +17,7 @@ _HTTP_METHODS = frozenset(
     {"get", "post", "put", "delete", "patch", "head", "options", "trace"},
 )
 
+
 def _is_str_keyed_dict(*, value: object) -> TypeGuard[dict[str, Any]]:
     """Return whether ``value`` is a ``dict`` with ``str`` keys."""
     if not isinstance(value, dict):
@@ -42,9 +43,7 @@ def _fix_schema_required(*, schema: dict[str, Any]) -> dict[str, Any]:
         existing_required_obj = result.get("required")
         if _is_object_list(value=existing_required_obj):
             required_names.extend(
-                name
-                for name in existing_required_obj
-                if isinstance(name, str)
+                name for name in existing_required_obj if isinstance(name, str)
             )
         fixed_props: dict[str, Any] = {}
         for prop_name, prop_schema_obj in props.items():
@@ -80,7 +79,10 @@ def _migrate_body_parameter(*, operation: dict[str, Any]) -> dict[str, Any]:
     kept: list[object] = []
     body_param: dict[str, Any] | None = None
     for param_obj in params_obj:
-        if _is_str_keyed_dict(value=param_obj) and param_obj.get("in") == "body":
+        if (
+            _is_str_keyed_dict(value=param_obj)
+            and param_obj.get("in") == "body"
+        ):
             body_param = param_obj
         else:
             kept.append(param_obj)
