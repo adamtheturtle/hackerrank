@@ -9,6 +9,7 @@ context manager hooks on the HTTP transports, and the
 from __future__ import annotations
 
 from http import HTTPStatus
+from typing import Any
 
 import httpx
 import pytest
@@ -399,7 +400,7 @@ class TestGenerateCodestubsBody:
         """Omitting ``body`` is rejected locally."""
         client = HackerRank(api_key="test-key")
         with pytest.raises(expected_exception=TypeError):
-            client.questions.generate_codestubs(  # type: ignore[call-arg]  # pyright: ignore[reportCallIssue]  # pylint: disable=missing-kwoa
+            client.questions.generate_codestubs(  # type: ignore[call-arg]  # pyright: ignore[reportCallIssue]  # pylint: disable=missing-kwoa  # ty: ignore[missing-argument]
                 question_id="q1",
             )
 
@@ -409,7 +410,7 @@ class TestGenerateCodestubsBody:
         """Omitting ``body`` is rejected locally in the async client."""
         client = AsyncHackerRank(api_key="test-key")
         with pytest.raises(expected_exception=TypeError):
-            await client.questions.generate_codestubs(  # type: ignore[call-arg]  # pyright: ignore[reportCallIssue]  # pylint: disable=missing-kwoa
+            await client.questions.generate_codestubs(  # type: ignore[call-arg]  # pyright: ignore[reportCallIssue]  # pylint: disable=missing-kwoa  # ty: ignore[missing-argument]
                 question_id="q1",
             )
 
