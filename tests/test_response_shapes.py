@@ -306,6 +306,9 @@ class TestAsyncResponseShapes:
                 )
                 test = await client.tests.create(
                     name="Example",
+                    duration=60,
+                    role_ids=["role"],
+                    experience=["0-2 years"],
                     candidate_details=[
                         {"predefined_label": "full_name", "required": True},
                     ],
