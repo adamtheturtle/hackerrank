@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, TypeGuard
 
 import pytest
 import respx
@@ -17,26 +17,40 @@ _HTTP_METHODS = frozenset(
     {"get", "post", "put", "delete", "patch", "head", "options", "trace"},
 )
 
+def _is_str_keyed_dict(*, value: object) -> TypeGuard[dict[str, Any]]:
+    """Return whether ``value`` is a ``dict`` with ``str`` keys."""
+    if not isinstance(value, dict):
+        return False
+    keys: list[object] = list(value)
+    return all(isinstance(key, str) for key in keys)
+
+
+def _is_object_list(*, value: object) -> TypeGuard[list[object]]:
+    """Return whether ``value`` is a ``list``."""
+    return isinstance(value, list)
+
 
 def _fix_schema_required(*, schema: dict[str, Any]) -> dict[str, Any]:
     """Normalize Swagger-style ``required`` flags for OpenAPI 3
     schemas.
     """
     result = dict(schema)
-    props = result.get("properties")
-    if isinstance(props, dict):
+    props_obj = result.get("properties")
+    if _is_str_keyed_dict(value=props_obj):
+        props = props_obj
         required_names: list[str] = []
-        existing_required = result.get("required")
-        if isinstance(existing_required, list):
+        existing_required_obj = result.get("required")
+        if _is_object_list(value=existing_required_obj):
             required_names.extend(
-                name for name in existing_required if isinstance(name, str)
+                name
+                for name in existing_required_obj
+                if isinstance(name, str)
             )
         fixed_props: dict[str, Any] = {}
-        for prop_name, prop_schema in props.items():
-            if not isinstance(prop_name, str) or not isinstance(
-                prop_schema, dict
-            ):
+        for prop_name, prop_schema_obj in props.items():
+            if not _is_str_keyed_dict(value=prop_schema_obj):
                 continue
+            prop_schema = prop_schema_obj
             fixed_prop = _fix_schema_required(schema=prop_schema)
             if (
                 fixed_prop.pop("required", None) is True
@@ -49,9 +63,9 @@ def _fix_schema_required(*, schema: dict[str, Any]) -> dict[str, Any]:
             result["required"] = required_names
         elif "required" in result and not isinstance(result["required"], list):
             result.pop("required", None)
-    items = result.get("items")
-    if isinstance(items, dict):
-        result["items"] = _fix_schema_required(schema=items)
+    items_obj = result.get("items")
+    if _is_str_keyed_dict(value=items_obj):
+        result["items"] = _fix_schema_required(schema=items_obj)
     return result
 
 
@@ -60,21 +74,22 @@ def _migrate_body_parameter(*, operation: dict[str, Any]) -> dict[str, Any]:
     requestBody.
     """
     result = dict(operation)
-    params = result.get("parameters")
-    if not isinstance(params, list):
+    params_obj = result.get("parameters")
+    if not _is_object_list(value=params_obj):
         return result
     kept: list[object] = []
     body_param: dict[str, Any] | None = None
-    for param in params:
-        if isinstance(param, dict) and param.get("in") == "body":
-            body_param = param
+    for param_obj in params_obj:
+        if _is_str_keyed_dict(value=param_obj) and param_obj.get("in") == "body":
+            body_param = param_obj
         else:
-            kept.append(param)
+            kept.append(param_obj)
     result["parameters"] = kept
     if body_param is not None and "requestBody" not in result:
-        schema = body_param.get("schema", {})
-        if isinstance(schema, dict):
-            schema = _fix_schema_required(schema=schema)
+        schema_obj = body_param.get("schema", {})
+        schema: object = schema_obj
+        if _is_str_keyed_dict(value=schema_obj):
+            schema = _fix_schema_required(schema=schema_obj)
         result["requestBody"] = {
             "required": bool(body_param.get("required", False)),
             "content": {"application/json": {"schema": schema}},
@@ -88,19 +103,17 @@ def _prepare_openapi_spec(*, spec: dict[str, object]) -> dict[str, object]:
     """
     prepared = dict(spec)
     raw_paths_obj = prepared.get("paths", {})
-    if not isinstance(raw_paths_obj, dict):
+    if not _is_str_keyed_dict(value=raw_paths_obj):
         return prepared
 
     cleaned_paths: dict[str, dict[str, object]] = {}
-    for raw_key, raw_value in raw_paths_obj.items():
-        if not isinstance(raw_key, str) or not isinstance(raw_value, dict):
+    for raw_key, raw_value_obj in raw_paths_obj.items():
+        if not _is_str_keyed_dict(value=raw_value_obj):
             continue
         cleaned = raw_key.split(sep="?", maxsplit=1)[0]
         merged: dict[str, object] = dict(cleaned_paths.get(cleaned, {}))
-        for op_key, op_val in raw_value.items():
-            if not isinstance(op_key, str):
-                continue
-            if op_key in _HTTP_METHODS and isinstance(op_val, dict):
+        for op_key, op_val in raw_value_obj.items():
+            if op_key in _HTTP_METHODS and _is_str_keyed_dict(value=op_val):
                 merged[op_key] = _migrate_body_parameter(operation=op_val)
             else:
                 merged[op_key] = op_val
