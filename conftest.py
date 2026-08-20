@@ -25,20 +25,20 @@ def _fix_schema_required(*, schema: dict[str, Any]) -> dict[str, Any]:
     result: dict[str, Any] = dict(schema)
     props_raw = result.get("properties")
     if isinstance(props_raw, dict):
-        props = cast(dict[str, Any], props_raw)
+        props = cast("dict[str, Any]", props_raw)
         required_names: list[str] = []
         existing_required = result.get("required")
         if isinstance(existing_required, list):
             required_names.extend(
                 name
-                for name in cast(list[object], existing_required)
+                for name in cast("list[object]", existing_required)
                 if isinstance(name, str)
             )
         fixed_props: dict[str, Any] = {}
         for prop_name, prop_schema_raw in props.items():
             if not isinstance(prop_schema_raw, dict):
                 continue
-            prop_schema = cast(dict[str, Any], prop_schema_raw)
+            prop_schema = cast("dict[str, Any]", prop_schema_raw)
             fixed_prop = _fix_schema_required(schema=prop_schema)
             if (
                 fixed_prop.pop("required", None) is True
@@ -53,7 +53,7 @@ def _fix_schema_required(*, schema: dict[str, Any]) -> dict[str, Any]:
             result.pop("required", None)
     items_raw = result.get("items")
     if isinstance(items_raw, dict):
-        items = cast(dict[str, Any], items_raw)
+        items = cast("dict[str, Any]", items_raw)
         result["items"] = _fix_schema_required(schema=items)
     return result
 
@@ -66,12 +66,12 @@ def _migrate_body_parameter(*, operation: dict[str, Any]) -> dict[str, Any]:
     params_raw = result.get("parameters")
     if not isinstance(params_raw, list):
         return result
-    params = cast(list[object], params_raw)
+    params = cast("list[object]", params_raw)
     kept: list[object] = []
     body_param: dict[str, Any] | None = None
     for param_raw in params:
         if isinstance(param_raw, dict):
-            param = cast(dict[str, Any], param_raw)
+            param = cast("dict[str, Any]", param_raw)
             if param.get("in") == "body":
                 body_param = param
             else:
@@ -84,7 +84,7 @@ def _migrate_body_parameter(*, operation: dict[str, Any]) -> dict[str, Any]:
         schema: object = schema_raw
         if isinstance(schema_raw, dict):
             schema = _fix_schema_required(
-                schema=cast(dict[str, Any], schema_raw),
+                schema=cast("dict[str, Any]", schema_raw),
             )
         result["requestBody"] = {
             "required": bool(body_param.get("required", False)),
@@ -102,7 +102,7 @@ def _prepare_openapi_spec(*, spec: dict[str, object]) -> dict[str, object]:
     if not isinstance(raw_paths_obj, dict):
         return prepared
 
-    raw_paths = cast(dict[object, object], raw_paths_obj)
+    raw_paths = cast("dict[object, object]", raw_paths_obj)
     cleaned_paths: dict[str, dict[str, object]] = {}
     for raw_key_obj, raw_value_obj in raw_paths.items():
         if not isinstance(raw_key_obj, str) or not isinstance(
@@ -111,7 +111,7 @@ def _prepare_openapi_spec(*, spec: dict[str, object]) -> dict[str, object]:
         ):
             continue
         raw_key = raw_key_obj
-        raw_value = cast(dict[object, object], raw_value_obj)
+        raw_value = cast("dict[object, object]", raw_value_obj)
         cleaned = raw_key.split(sep="?", maxsplit=1)[0]
         merged: dict[str, object] = dict(cleaned_paths.get(cleaned, {}))
         for op_key_obj, op_val_obj in raw_value.items():
@@ -119,7 +119,7 @@ def _prepare_openapi_spec(*, spec: dict[str, object]) -> dict[str, object]:
                 continue
             op_key = op_key_obj
             if op_key in _HTTP_METHODS and isinstance(op_val_obj, dict):
-                op_val = cast(dict[str, Any], op_val_obj)
+                op_val = cast("dict[str, Any]", op_val_obj)
                 merged[op_key] = _migrate_body_parameter(operation=op_val)
             else:
                 merged[op_key] = op_val_obj
