@@ -154,7 +154,9 @@ class TestFromDict:
 
     @staticmethod
     def test_test_from_object_candidate_details_and_sections() -> None:
-        """``Test.from_dict`` accepts object candidate details and sections."""
+        """``Test.from_dict`` accepts object candidate details and
+        sections.
+        """
         test = Test.from_dict(
             data={
                 "id": "1PxfG1348",
@@ -331,7 +333,9 @@ class TestFromDict:
 
     @staticmethod
     def test_test_candidate_added_time_string_and_int() -> None:
-        """``TestCandidate.from_dict`` accepts string or int added_time."""
+        """``TestCandidate.from_dict`` accepts string or int
+        added_time.
+        """
         as_string = TestCandidate.from_dict(
             data={
                 "id": "98Sjnbj12",

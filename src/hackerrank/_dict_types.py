@@ -142,9 +142,7 @@ class TestDict(TypedDict):
     locked: NotRequired[bool]
     draft: NotRequired[bool]
     languages: NotRequired[list[str]]
-    candidate_details: NotRequired[
-        list[str | TestCandidateDetailFieldDict]
-    ]
+    candidate_details: NotRequired[list[str | TestCandidateDetailFieldDict]]
     custom_acknowledge_text: NotRequired[str]
     cutoff_score: NotRequired[int]
     master_password: NotRequired[str]

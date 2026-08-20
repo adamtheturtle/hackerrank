@@ -12,7 +12,6 @@ from hackerrank.async_client import AsyncHackerRank
 from hackerrank.client import HackerRank
 from hackerrank.types import CandidateInvite, Interview, Interviewer, Test
 
-
 _INTERVIEW_PAYLOAD = {
     "id": "289187",
     "status": "active",
@@ -140,9 +139,7 @@ class TestSyncResponseShapes:
         """Candidate invite returns test_link and integer id."""
         with respx.mock(assert_all_called=True) as router:
             router.post(
-                url=(
-                    "https://www.hackerrank.com/x/api/v3/tests/t/candidates"
-                ),
+                url=("https://www.hackerrank.com/x/api/v3/tests/t/candidates"),
             ).mock(
                 return_value=httpx.Response(
                     status_code=200,
@@ -161,12 +158,13 @@ class TestSyncResponseShapes:
 
     @staticmethod
     def test_candidate_update_returns_candidate() -> None:
-        """Candidate update returns the documented TestCandidateShow body."""
+        """Candidate update returns the documented TestCandidateShow
+        body.
+        """
         with respx.mock(assert_all_called=True) as router:
             router.put(
                 url=(
-                    "https://www.hackerrank.com/x/api/v3/"
-                    "tests/t/candidates/c"
+                    "https://www.hackerrank.com/x/api/v3/tests/t/candidates/c"
                 ),
             ).mock(
                 return_value=httpx.Response(
@@ -243,9 +241,7 @@ class TestAsyncResponseShapes:
                 ),
             )
             router.post(
-                url=(
-                    "https://www.hackerrank.com/x/api/v3/tests/t/candidates"
-                ),
+                url=("https://www.hackerrank.com/x/api/v3/tests/t/candidates"),
             ).mock(
                 return_value=httpx.Response(
                     status_code=200,
@@ -254,8 +250,7 @@ class TestAsyncResponseShapes:
             )
             router.put(
                 url=(
-                    "https://www.hackerrank.com/x/api/v3/"
-                    "tests/t/candidates/c"
+                    "https://www.hackerrank.com/x/api/v3/tests/t/candidates/c"
                 ),
             ).mock(
                 return_value=httpx.Response(

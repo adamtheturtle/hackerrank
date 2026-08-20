@@ -231,7 +231,7 @@ class Interview:
                 for item in raw_interviewers
             ]
         # ``from`` is a reserved keyword, so read it from the mapping.
-        raw_from = cast(Mapping[str, object], data).get("from")
+        raw_from = cast("Mapping[str, object]", data).get("from")
         from_value = raw_from if isinstance(raw_from, str) else None
         return cls(
             id=data["id"],
