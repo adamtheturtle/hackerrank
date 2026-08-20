@@ -37,10 +37,10 @@ _INTERVIEW = {
     "title": "Interview",
     "ai_assistant_available": True,
 }
-_CANDIDATE = {
+_CANDIDATE_INVITE = {
     "id": "c1",
     "email": "c@x.com",
-    "full_name": "Candidate",
+    "test_link": "https://example.com/invite",
 }
 
 
@@ -316,7 +316,7 @@ class TestInterviewBodyFields:
         with respx.mock(assert_all_called=True) as router:
             route = router.put(url=f"{_BASE}/interviews/iv1").respond(
                 status_code=200,
-                json={},
+                json=_INTERVIEW,
             )
             with HackerRank(api_key="test-key") as client:
                 client.interviews.update(
@@ -355,7 +355,7 @@ class TestInterviewBodyFields:
             ).respond(status_code=200, json=_INTERVIEW)
             update_route = router.put(
                 url=f"{_BASE}/interviews/iv1",
-            ).respond(status_code=200, json={})
+            ).respond(status_code=200, json=_INTERVIEW)
             async with AsyncHackerRank(api_key="test-key") as client:
                 created = await client.interviews.create(
                     title="AI interview",
@@ -385,7 +385,7 @@ class TestCandidateInviteAtsState:
         with respx.mock(assert_all_called=True) as router:
             route = router.post(
                 url=f"{_BASE}/tests/t1/candidates",
-            ).respond(status_code=200, json=_CANDIDATE)
+            ).respond(status_code=200, json=_CANDIDATE_INVITE)
             first_ats_state = 0
             second_ats_state = 22
             with HackerRank(api_key="test-key") as client:
@@ -411,7 +411,7 @@ class TestCandidateInviteAtsState:
         with respx.mock(assert_all_called=True) as router:
             route = router.post(
                 url=f"{_BASE}/tests/t1/candidates",
-            ).respond(status_code=200, json=_CANDIDATE)
+            ).respond(status_code=200, json=_CANDIDATE_INVITE)
             async_ats_state = 5
             async with AsyncHackerRank(api_key="test-key") as client:
                 await client.tests.candidates.invite(
