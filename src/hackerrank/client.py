@@ -15,9 +15,8 @@ from hackerrank.transports import (
     TransportResponse,
 )
 from hackerrank.types import (
-    ATSCodePair,
-    ATSCodeScreen,
     AuditLog,
+    CandidateInvite,
     Environment,
     Interview,
     InterviewTemplate,
@@ -347,7 +346,7 @@ class InterviewsNamespace(_Namespace):
         to: str | None = None,
         notes: str | None = None,
         resume_url: str | None = None,
-        interviewers: builtins.list[str] | None = None,
+        interviewers: builtins.list[str | Mapping[str, str]] | None = None,
         result_url: str | None = None,
         candidate: Mapping[str, JSONValue] | None = None,
         send_email: bool | None = None,
@@ -363,7 +362,7 @@ class InterviewsNamespace(_Namespace):
             to: Scheduled end time.
             notes: Private notes.
             resume_url: URL to the candidate resume.
-            interviewers: Emails of interviewers.
+            interviewers: Interviewer emails or email/name objects.
             result_url: URL invoked when the interview ends.
             candidate: Candidate details.
             send_email: Whether to send an email invite.
@@ -439,7 +438,7 @@ class InterviewsNamespace(_Namespace):
         metadata: Mapping[str, JSONValue] | None = None,
         interview_template_id: int | None = None,
         ai_assistant_available: bool | None = None,
-    ) -> None:
+    ) -> Interview:
         """Update an interview.
 
         Args:
@@ -462,6 +461,9 @@ class InterviewsNamespace(_Namespace):
             interview_template_id: New template id.
             ai_assistant_available: Whether the AI assistant
                 is available for this interview.
+
+        Returns:
+            The updated interview.
         """
         body = _drop_none(
             {
@@ -482,13 +484,14 @@ class InterviewsNamespace(_Namespace):
                 "ai_assistant_available": ai_assistant_available,
             },
         )
-        self._request(
+        response = self._request(
             method="PUT",
             url=f"{_API_V3}/interviews/{interview_id}",
             json=body,
             params=None,
             files=None,
         )
+        return Interview.from_dict(data=response.json())
 
     def delete(self, *, interview_id: str) -> None:
         """Delete an interview.
@@ -1219,7 +1222,7 @@ class TestCandidatesNamespace(_Namespace):
         subject: str | None = None,
         message: str | None = None,
         template: str | None = None,
-    ) -> TestCandidate:
+    ) -> CandidateInvite:
         """Invite a candidate to a test.
 
         Args:
@@ -1246,7 +1249,7 @@ class TestCandidatesNamespace(_Namespace):
             template: Email template id.
 
         Returns:
-            The created candidate.
+            The invitation result, including ``test_link``.
         """
         body = _drop_none(
             {
@@ -1278,7 +1281,7 @@ class TestCandidatesNamespace(_Namespace):
             params=None,
             files=None,
         )
-        return TestCandidate.from_dict(data=response.json())
+        return CandidateInvite.from_dict(data=response.json())
 
     def get(
         self,
@@ -1326,7 +1329,7 @@ class TestCandidatesNamespace(_Namespace):
         accept_result_updates: bool | None = None,
         tags: builtins.list[str] | None = None,
         accommodations: Mapping[str, JSONValue] | None = None,
-    ) -> None:
+    ) -> TestCandidate:
         """Update a candidate.
 
         Args:
@@ -1344,6 +1347,9 @@ class TestCandidatesNamespace(_Namespace):
             accept_result_updates: New flag value.
             tags: New tags.
             accommodations: New accommodations.
+
+        Returns:
+            The updated candidate.
         """
         body = _drop_none(
             {
@@ -1361,13 +1367,14 @@ class TestCandidatesNamespace(_Namespace):
                 "accommodations": accommodations,
             },
         )
-        self._request(
+        response = self._request(
             method="PUT",
             url=(f"{_API_V3}/tests/{test_id}/candidates/{candidate_id}"),
             json=body,
             params=None,
             files=None,
         )
+        return TestCandidate.from_dict(data=response.json())
 
     def cancel_invite(
         self,
@@ -1510,7 +1517,9 @@ class TestsNamespace(_Namespace):
         locked: bool | None = None,
         draft: bool | None = None,
         languages: builtins.list[str] | None = None,
-        candidate_details: builtins.list[str] | None = None,
+        candidate_details: (
+            builtins.list[str | Mapping[str, JSONValue]] | None
+        ) = None,
         custom_acknowledge_text: str | None = None,
         cutoff_score: int | None = None,
         master_password: str | None = None,
@@ -1543,7 +1552,7 @@ class TestsNamespace(_Namespace):
             locked: Whether the test is locked.
             draft: Whether the test is a draft.
             languages: Allowed programming languages.
-            candidate_details: Candidate detail fields.
+            candidate_details: Candidate detail field descriptors.
             custom_acknowledge_text: Custom acknowledge text.
             cutoff_score: The cut-off score.
             master_password: Master password for the test.
@@ -2340,7 +2349,7 @@ class ATSCodePairNamespace(_Namespace):
         candidate: Mapping[str, JSONValue] | None = None,
         send_email: bool | None = None,
         interview_metadata: Mapping[str, JSONValue] | None = None,
-    ) -> ATSCodePair:
+    ) -> Interview:
         """Invite a candidate to an ATS Codepair interview.
 
         Args:
@@ -2352,7 +2361,7 @@ class ATSCodePairNamespace(_Namespace):
             interview_metadata: Arbitrary metadata.
 
         Returns:
-            The ATS Codepair result.
+            The created interview.
         """
         body = _drop_none(
             {
@@ -2371,7 +2380,7 @@ class ATSCodePairNamespace(_Namespace):
             params=None,
             files=None,
         )
-        return ATSCodePair.from_dict(data=response.json())
+        return Interview.from_dict(data=response.json())
 
 
 @beartype
@@ -2392,7 +2401,7 @@ class ATSCodeScreenNamespace(_Namespace):
         force: bool | None = None,
         force_reattempt_after: int | None = None,
         accommodations: Mapping[str, JSONValue] | None = None,
-    ) -> ATSCodeScreen:
+    ) -> CandidateInvite:
         """Invite a candidate to a CodeScreen test.
 
         Args:
@@ -2409,7 +2418,7 @@ class ATSCodeScreenNamespace(_Namespace):
             accommodations: Accommodation settings.
 
         Returns:
-            The ATS CodeScreen result.
+            The invitation result, including ``test_link``.
         """
         body = _drop_none(
             {
@@ -2433,7 +2442,7 @@ class ATSCodeScreenNamespace(_Namespace):
             params=None,
             files=None,
         )
-        return ATSCodeScreen.from_dict(data=response.json())
+        return CandidateInvite.from_dict(data=response.json())
 
 
 @beartype
