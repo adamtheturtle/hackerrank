@@ -39,6 +39,8 @@ def _sync_calls(
             lambda: client.questions.create(
                 name="n",
                 type="coding",
+                problem_statement="ps",
+                recommended_duration=10,
                 languages=_BARE,
             ),
         ),
@@ -47,6 +49,8 @@ def _sync_calls(
             lambda: client.questions.create(
                 name="n",
                 type="coding",
+                problem_statement="ps",
+                recommended_duration=10,
                 tags=_BARE,
             ),
         ),
@@ -55,6 +59,8 @@ def _sync_calls(
             lambda: client.questions.create(
                 name="n",
                 type="mcq",
+                problem_statement="ps",
+                recommended_duration=10,
                 options=_BARE,
             ),
         ),
@@ -63,6 +69,8 @@ def _sync_calls(
             lambda: client.questions.create(
                 name="n",
                 type="coding",
+                problem_statement="ps",
+                recommended_duration=10,
                 scoring_files=_BARE,
             ),
         ),
@@ -71,6 +79,8 @@ def _sync_calls(
             lambda: client.questions.create(
                 name="n",
                 type="coding",
+                problem_statement="ps",
+                recommended_duration=10,
                 readonly_paths=_BARE,
             ),
         ),
@@ -79,6 +89,8 @@ def _sync_calls(
             lambda: client.questions.create(
                 name="n",
                 type="coding",
+                problem_statement="ps",
+                recommended_duration=10,
                 default_files=_BARE,
             ),
         ),
@@ -92,38 +104,80 @@ def _sync_calls(
         ),
         (
             "tests.languages",
-            lambda: client.tests.create(name="t", languages=_BARE),
+            lambda: client.tests.create(
+                name="t",
+                duration=60,
+                role_ids=["r"],
+                experience=["junior"],
+                languages=_BARE,
+            ),
         ),
         (
             "tests.candidate_details",
             lambda: client.tests.create(
                 name="t",
+                duration=60,
+                role_ids=["r"],
+                experience=["junior"],
                 candidate_details=_BARE,
             ),
         ),
         (
             "tests.tags",
-            lambda: client.tests.create(name="t", tags=_BARE),
+            lambda: client.tests.create(
+                name="t",
+                duration=60,
+                role_ids=["r"],
+                experience=["junior"],
+                tags=_BARE,
+            ),
         ),
         (
             "tests.role_ids",
-            lambda: client.tests.create(name="t", role_ids=_BARE),
+            lambda: client.tests.create(
+                name="t",
+                duration=60,
+                role_ids=_BARE,
+                experience=["junior"],
+            ),
         ),
         (
             "tests.experience",
-            lambda: client.tests.create(name="t", experience=_BARE),
+            lambda: client.tests.create(
+                name="t",
+                duration=60,
+                role_ids=["r"],
+                experience=_BARE,
+            ),
         ),
         (
             "tests.questions",
-            lambda: client.tests.create(name="t", questions=_BARE),
+            lambda: client.tests.create(
+                name="t",
+                duration=60,
+                role_ids=["r"],
+                experience=["junior"],
+                questions=_BARE,
+            ),
         ),
         (
             "tests.test_admins",
-            lambda: client.tests.create(name="t", test_admins=_BARE),
+            lambda: client.tests.create(
+                name="t",
+                duration=60,
+                role_ids=["r"],
+                experience=["junior"],
+                test_admins=_BARE,
+            ),
         ),
         (
             "users.teams",
-            lambda: client.users.create(email="a@b.com", teams=_BARE),
+            lambda: client.users.create(
+                email="a@b.com",
+                firstname="A",
+                role="recruiter",
+                teams=_BARE,
+            ),
         ),
         (
             "teams.locations",
@@ -153,6 +207,8 @@ def _async_calls(
             lambda: client.questions.create(
                 name="n",
                 type="coding",
+                problem_statement="ps",
+                recommended_duration=10,
                 languages=_BARE,
             ),
         ),
@@ -161,6 +217,8 @@ def _async_calls(
             lambda: client.questions.create(
                 name="n",
                 type="coding",
+                problem_statement="ps",
+                recommended_duration=10,
                 tags=_BARE,
             ),
         ),
@@ -169,6 +227,8 @@ def _async_calls(
             lambda: client.questions.create(
                 name="n",
                 type="mcq",
+                problem_statement="ps",
+                recommended_duration=10,
                 options=_BARE,
             ),
         ),
@@ -177,6 +237,8 @@ def _async_calls(
             lambda: client.questions.create(
                 name="n",
                 type="coding",
+                problem_statement="ps",
+                recommended_duration=10,
                 scoring_files=_BARE,
             ),
         ),
@@ -185,6 +247,8 @@ def _async_calls(
             lambda: client.questions.create(
                 name="n",
                 type="coding",
+                problem_statement="ps",
+                recommended_duration=10,
                 readonly_paths=_BARE,
             ),
         ),
@@ -193,6 +257,8 @@ def _async_calls(
             lambda: client.questions.create(
                 name="n",
                 type="coding",
+                problem_statement="ps",
+                recommended_duration=10,
                 default_files=_BARE,
             ),
         ),
@@ -206,38 +272,80 @@ def _async_calls(
         ),
         (
             "tests.languages",
-            lambda: client.tests.create(name="t", languages=_BARE),
+            lambda: client.tests.create(
+                name="t",
+                duration=60,
+                role_ids=["r"],
+                experience=["junior"],
+                languages=_BARE,
+            ),
         ),
         (
             "tests.candidate_details",
             lambda: client.tests.create(
                 name="t",
+                duration=60,
+                role_ids=["r"],
+                experience=["junior"],
                 candidate_details=_BARE,
             ),
         ),
         (
             "tests.tags",
-            lambda: client.tests.create(name="t", tags=_BARE),
+            lambda: client.tests.create(
+                name="t",
+                duration=60,
+                role_ids=["r"],
+                experience=["junior"],
+                tags=_BARE,
+            ),
         ),
         (
             "tests.role_ids",
-            lambda: client.tests.create(name="t", role_ids=_BARE),
+            lambda: client.tests.create(
+                name="t",
+                duration=60,
+                role_ids=_BARE,
+                experience=["junior"],
+            ),
         ),
         (
             "tests.experience",
-            lambda: client.tests.create(name="t", experience=_BARE),
+            lambda: client.tests.create(
+                name="t",
+                duration=60,
+                role_ids=["r"],
+                experience=_BARE,
+            ),
         ),
         (
             "tests.questions",
-            lambda: client.tests.create(name="t", questions=_BARE),
+            lambda: client.tests.create(
+                name="t",
+                duration=60,
+                role_ids=["r"],
+                experience=["junior"],
+                questions=_BARE,
+            ),
         ),
         (
             "tests.test_admins",
-            lambda: client.tests.create(name="t", test_admins=_BARE),
+            lambda: client.tests.create(
+                name="t",
+                duration=60,
+                role_ids=["r"],
+                experience=["junior"],
+                test_admins=_BARE,
+            ),
         ),
         (
             "users.teams",
-            lambda: client.users.create(email="a@b.com", teams=_BARE),
+            lambda: client.users.create(
+                email="a@b.com",
+                firstname="A",
+                role="recruiter",
+                teams=_BARE,
+            ),
         ),
         (
             "teams.locations",
