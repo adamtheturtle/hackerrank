@@ -80,9 +80,9 @@ class TestUserUpdateBody:
     def test_omission_rejected_by_constructor() -> None:
         """Missing required fields raise ``TypeError`` at construction."""
         user_update_ctor: Any = UserUpdate
-        incomplete_user: Any = {"firstname": "Alice"}
         with pytest.raises(expected_exception=TypeError):
-            user_update_ctor(**incomplete_user)
+            # Intentionally incomplete to assert required kwargs.
+            user_update_ctor(firstname="Alice")  # pylint: disable=no-value-for-parameter
 
     @staticmethod
     def test_omission_rejected_by_beartype(
@@ -178,9 +178,9 @@ class TestTestsUpdateBody:
     def test_omission_rejected_by_constructor() -> None:
         """Missing required fields raise ``TypeError`` at construction."""
         tests_update_ctor: Any = TestsUpdate
-        incomplete_kwargs: Any = {"name": "T"}
         with pytest.raises(expected_exception=TypeError):
-            tests_update_ctor(**incomplete_kwargs)
+            # Intentionally incomplete to assert required kwargs.
+            tests_update_ctor(name="T")  # pylint: disable=no-value-for-parameter
 
     @staticmethod
     def test_omission_rejected_by_beartype(
