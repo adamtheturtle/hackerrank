@@ -29,15 +29,19 @@ def _fix_schema_required(*, schema: dict[str, Any]) -> dict[str, Any]:
         existing_required = result.get("required")
         if isinstance(existing_required, list):
             required_names.extend(
-                name for name in existing_required if isinstance(name, str)
+                name
+                for name in existing_required  # pyright: ignore[reportUnknownVariableType]
+                if isinstance(name, str)
             )
         fixed_props: dict[str, Any] = {}
-        for prop_name, prop_schema in props.items():
+        for prop_name, prop_schema in props.items():  # pyright: ignore[reportUnknownVariableType]
             if not isinstance(prop_name, str) or not isinstance(
                 prop_schema, dict
             ):
                 continue
-            fixed_prop = _fix_schema_required(schema=prop_schema)
+            fixed_prop = _fix_schema_required(
+                schema=prop_schema,  # pyright: ignore[reportUnknownArgumentType]
+            )
             if (
                 fixed_prop.pop("required", None) is True
                 and prop_name not in required_names
@@ -51,7 +55,9 @@ def _fix_schema_required(*, schema: dict[str, Any]) -> dict[str, Any]:
             result.pop("required", None)
     items = result.get("items")
     if isinstance(items, dict):
-        result["items"] = _fix_schema_required(schema=items)
+        result["items"] = _fix_schema_required(
+            schema=items,  # pyright: ignore[reportUnknownArgumentType]
+        )
     return result
 
 
@@ -65,16 +71,20 @@ def _migrate_body_parameter(*, operation: dict[str, Any]) -> dict[str, Any]:
         return result
     kept: list[object] = []
     body_param: dict[str, Any] | None = None
-    for param in params:
-        if isinstance(param, dict) and param.get("in") == "body":
-            body_param = param
+    for param in params:  # pyright: ignore[reportUnknownVariableType]
+        if (
+            isinstance(param, dict) and param.get("in") == "body"  # pyright: ignore[reportUnknownMemberType]
+        ):
+            body_param = param  # pyright: ignore[reportUnknownVariableType]
         else:
-            kept.append(param)
+            kept.append(param)  # pyright: ignore[reportUnknownArgumentType]
     result["parameters"] = kept
     if body_param is not None and "requestBody" not in result:
         schema = body_param.get("schema", {})
         if isinstance(schema, dict):
-            schema = _fix_schema_required(schema=schema)
+            schema = _fix_schema_required(
+                schema=schema,  # pyright: ignore[reportUnknownArgumentType]
+            )
         result["requestBody"] = {
             "required": bool(body_param.get("required", False)),
             "content": {"application/json": {"schema": schema}},
@@ -92,16 +102,18 @@ def _prepare_openapi_spec(*, spec: dict[str, object]) -> dict[str, object]:
         return prepared
 
     cleaned_paths: dict[str, dict[str, object]] = {}
-    for raw_key, raw_value in raw_paths_obj.items():
+    for raw_key, raw_value in raw_paths_obj.items():  # pyright: ignore[reportUnknownVariableType]
         if not isinstance(raw_key, str) or not isinstance(raw_value, dict):
             continue
         cleaned = raw_key.split(sep="?", maxsplit=1)[0]
         merged: dict[str, object] = dict(cleaned_paths.get(cleaned, {}))
-        for op_key, op_val in raw_value.items():
+        for op_key, op_val in raw_value.items():  # pyright: ignore[reportUnknownVariableType]
             if not isinstance(op_key, str):
                 continue
             if op_key in _HTTP_METHODS and isinstance(op_val, dict):
-                merged[op_key] = _migrate_body_parameter(operation=op_val)
+                merged[op_key] = _migrate_body_parameter(
+                    operation=op_val,  # pyright: ignore[reportUnknownArgumentType]
+                )
             else:
                 merged[op_key] = op_val
         cleaned_paths[cleaned] = merged
