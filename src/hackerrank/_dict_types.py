@@ -354,4 +354,3 @@ class SCIMMessageDict(TypedDict):
 
     message: str
     schemas: NotRequired[list[str]]
-

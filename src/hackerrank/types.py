@@ -1113,4 +1113,3 @@ class SCIMMessage:
             message=data["message"],
             schemas=data.get("schemas"),
         )
-
