@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 from typing import TYPE_CHECKING
 
+import httpx
 import pytest
 import respx
 
@@ -14,13 +15,12 @@ from hackerrank.client import HackerRank
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
-    import httpx
-
     from hackerrank.types import JSONValue
 
 _BASE = "https://www.hackerrank.com/x/api/v3"
-_PAGE = {
-    "data": [],
+_EMPTY_DATA: list[object] = []
+_PAGE: dict[str, object] = {
+    "data": _EMPTY_DATA,
     "page_total": 0,
     "offset": 0,
     "previous": "",
@@ -48,6 +48,69 @@ def _query(*, request: httpx.Request) -> dict[str, str]:
     return dict(request.url.params)
 
 
+def _route_request(
+    *,
+    route: respx.Route,
+    index: int | None = None,
+) -> httpx.Request:
+    """Return a typed ``httpx.Request`` captured by ``route``."""
+    # respx call objects are untyped; getattr is the narrowest access.
+    calls_obj: object = route.calls
+    call_obj: object
+    if index is None:
+        call_obj = getattr(  # pylint: disable=bad-builtin
+            calls_obj,
+            "last",
+            None,
+        )
+    else:
+        getitem = getattr(  # pylint: disable=bad-builtin
+            calls_obj,
+            "__getitem__",
+            None,
+        )
+        if not callable(getitem):
+            message = "expected respx call list"
+            raise TypeError(message)
+        call_obj = getitem(index)
+    request_obj = getattr(  # pylint: disable=bad-builtin
+        call_obj,
+        "request",
+        None,
+    )
+    if not isinstance(request_obj, httpx.Request):
+        message = "expected httpx.Request from respx call"
+        raise TypeError(message)
+    return request_obj
+
+
+def _as_str_keyed_dict(*, value: object) -> dict[str, object] | None:
+    """Return ``value`` as a ``str``-keyed dict, or ``None``."""
+    if not isinstance(value, dict):
+        return None
+    result: dict[str, object] = {}
+    for key_obj, item in value.items():  # pyright: ignore[reportUnknownVariableType]
+        if not isinstance(key_obj, str):
+            return None
+        result[key_obj] = item
+    return result
+
+
+def _route_json(
+    *,
+    route: respx.Route,
+    index: int | None = None,
+) -> dict[str, object]:
+    """Return decoded JSON body from a captured ``route`` call."""
+    loaded = _as_str_keyed_dict(
+        value=json.loads(s=_route_request(route=route, index=index).content),
+    )
+    if loaded is None:
+        message = "expected JSON object body"
+        raise TypeError(message)
+    return loaded
+
+
 class TestInterviewListParams:
     """Interview list query parameters."""
 
@@ -71,7 +134,7 @@ class TestInterviewListParams:
                     updated_at="2024-01-01..2024-01-02",
                     ended_at="2024-01-01..2024-01-02",
                 )
-        params = _query(request=route.calls.last.request)
+        params = _query(request=_route_request(route=route))
         assert params["user"] == "42"
         assert params["interviewers"] == "7"
         assert params["access"] == "owned"
@@ -103,7 +166,7 @@ class TestInterviewListParams:
                     updated_at="2024-01-01..2024-01-02",
                     ended_at="2024-01-01..2024-01-02",
                 )
-        params = _query(request=route.calls.last.request)
+        params = _query(request=_route_request(route=route))
         assert params["user"] == "42"
         assert params["interviewers"] == "7"
         assert params["access"] == "shared"
@@ -137,7 +200,7 @@ class TestQuestionListParams:
                     skills=["python"],
                     languages=["python3", "java"],
                 )
-        params = _query(request=route.calls.last.request)
+        params = _query(request=_route_request(route=route))
         assert params["status"] == "active"
         assert params["access"] == "owned,shared"
         assert params["difficulty"] == "easy,hard"
@@ -167,7 +230,7 @@ class TestQuestionListParams:
                     skills=["java"],
                     languages=["javascript"],
                 )
-        params = _query(request=route.calls.last.request)
+        params = _query(request=_route_request(route=route))
         assert params["status"] == "archived"
         assert params["access"] == "library"
         assert params["difficulty"] == "medium"
@@ -191,8 +254,14 @@ class TestTemplateListParams:
             with HackerRank(api_key="test-key") as client:
                 client.interview_templates.list(filter="owned")
                 client.interview_templates.list(filter="shared")
-        assert _query(request=route.calls[0].request)["filter"] == "owned"
-        assert _query(request=route.calls[1].request)["filter"] == "shared"
+        assert (
+            _query(request=_route_request(route=route, index=0))["filter"]
+            == "owned"
+        )
+        assert (
+            _query(request=_route_request(route=route, index=1))["filter"]
+            == "shared"
+        )
 
     @staticmethod
     def test_sync_invite_template_access() -> None:
@@ -206,9 +275,17 @@ class TestTemplateListParams:
                 client.templates.list(access="owned")
                 client.templates.list(access="shared")
                 client.templates.list()
-        assert _query(request=route.calls[0].request)["access"] == "owned"
-        assert _query(request=route.calls[1].request)["access"] == "shared"
-        assert "access" not in _query(request=route.calls[2].request)
+        assert (
+            _query(request=_route_request(route=route, index=0))["access"]
+            == "owned"
+        )
+        assert (
+            _query(request=_route_request(route=route, index=1))["access"]
+            == "shared"
+        )
+        assert "access" not in _query(
+            request=_route_request(route=route, index=2)
+        )
 
     @staticmethod
     @pytest.mark.asyncio
@@ -224,9 +301,11 @@ class TestTemplateListParams:
             async with AsyncHackerRank(api_key="test-key") as client:
                 await client.interview_templates.list(filter="owned")
                 await client.templates.list(access="shared")
-        interview_params = _query(request=interview_route.calls.last.request)
+        interview_request = _route_request(route=interview_route)
+        interview_params = _query(request=interview_request)
         assert interview_params["filter"] == "owned"
-        invite_params = _query(request=invite_route.calls.last.request)
+        invite_request = _route_request(route=invite_route)
+        invite_params = _query(request=invite_request)
         assert invite_params["access"] == "shared"
 
 
@@ -246,7 +325,7 @@ class TestInterviewBodyFields:
                     title="AI interview",
                     ai_assistant_available=True,
                 )
-        body = json.loads(s=route.calls.last.request.content)
+        body = _route_json(route=route)
         assert body["ai_assistant_available"] is True
         assert created.ai_assistant_available is True
 
@@ -274,8 +353,8 @@ class TestInterviewBodyFields:
                     replace_interviewers=False,
                     ai_assistant_available=True,
                 )
-        first = json.loads(s=route.calls[0].request.content)
-        second = json.loads(s=route.calls[1].request.content)
+        first = _route_json(route=route, index=0)
+        second = _route_json(route=route, index=1)
         assert first["interviewers"] == ["a@b.com"]
         assert first["replace_interviewers"] is True
         assert first["ai_assistant_available"] is False
@@ -307,8 +386,8 @@ class TestInterviewBodyFields:
                     replace_interviewers=True,
                     ai_assistant_available=False,
                 )
-        create_body = json.loads(s=create_route.calls.last.request.content)
-        update_body = json.loads(s=update_route.calls.last.request.content)
+        create_body = _route_json(route=create_route)
+        update_body = _route_json(route=update_route)
         assert create_body["ai_assistant_available"] is True
         assert created.ai_assistant_available is True
         assert update_body["interviewers"] == ["a@b.com"]
@@ -340,12 +419,10 @@ class TestCandidateInviteAtsState:
                     ats_state=second_ats_state,
                 )
         assert (
-            json.loads(s=route.calls[0].request.content)["ats_state"]
-            == first_ats_state
+            _route_json(route=route, index=0)["ats_state"] == first_ats_state
         )
         assert (
-            json.loads(s=route.calls[1].request.content)["ats_state"]
-            == second_ats_state
+            _route_json(route=route, index=1)["ats_state"] == second_ats_state
         )
 
     @staticmethod
@@ -363,7 +440,4 @@ class TestCandidateInviteAtsState:
                     email="c@x.com",
                     ats_state=async_ats_state,
                 )
-        assert (
-            json.loads(s=route.calls.last.request.content)["ats_state"]
-            == async_ats_state
-        )
+        assert _route_json(route=route)["ats_state"] == async_ats_state
