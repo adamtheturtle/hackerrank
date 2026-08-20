@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from typing import TYPE_CHECKING, Any, TypeGuard
+from typing import TYPE_CHECKING, Any
 
 import pytest
 import respx
@@ -18,16 +18,30 @@ _HTTP_METHODS = frozenset(
 )
 
 
-def _is_str_keyed_dict(*, value: object) -> TypeGuard[dict[str, Any]]:
-    """Return whether ``value`` is a ``dict`` (JSON object keys are
-    strings).
+def _as_str_keyed_dict(*, value: object) -> dict[str, Any] | None:
+    """Return ``value`` as a ``str``-keyed dict, or ``None``.
+
+    Uses a JSON round-trip so static checkers see concrete ``Any``
+    values rather than unknown dict items from ``isinstance`` narrowing.
     """
-    return isinstance(value, dict)
+    if not isinstance(value, dict):
+        return None
+    decoded: Any = json.loads(s=json.dumps(obj=value))
+    if not isinstance(decoded, dict):
+        return None
+    typed: dict[str, Any] = decoded
+    return typed
 
 
-def _is_object_list(*, value: object) -> TypeGuard[list[object]]:
-    """Return whether ``value`` is a list."""
-    return isinstance(value, list)
+def _as_object_list(*, value: object) -> list[object] | None:
+    """Return ``value`` as a list of objects, or ``None``."""
+    if not isinstance(value, list):
+        return None
+    decoded: Any = json.loads(s=json.dumps(obj=value))
+    if not isinstance(decoded, list):
+        return None
+    typed: list[object] = decoded
+    return typed
 
 
 def _fix_schema_required(*, schema: dict[str, Any]) -> dict[str, Any]:
@@ -35,19 +49,20 @@ def _fix_schema_required(*, schema: dict[str, Any]) -> dict[str, Any]:
     schemas.
     """
     result: dict[str, Any] = dict(schema)
-    props_raw = result.get("properties")
-    if _is_str_keyed_dict(value=props_raw):
+    props = _as_str_keyed_dict(value=result.get("properties"))
+    if props is not None:
         required_names: list[str] = []
-        existing_required = result.get("required")
-        if _is_object_list(value=existing_required):
+        existing_required = _as_object_list(value=result.get("required"))
+        if existing_required is not None:
             required_names.extend(
                 name for name in existing_required if isinstance(name, str)
             )
         fixed_props: dict[str, Any] = {}
-        for prop_name, prop_schema_raw in props_raw.items():
-            if not _is_str_keyed_dict(value=prop_schema_raw):
+        for prop_name, prop_schema_raw in props.items():
+            prop_schema = _as_str_keyed_dict(value=prop_schema_raw)
+            if prop_schema is None:
                 continue
-            fixed_prop = _fix_schema_required(schema=prop_schema_raw)
+            fixed_prop = _fix_schema_required(schema=prop_schema)
             if (
                 fixed_prop.pop("required", None) is True
                 and prop_name not in required_names
@@ -59,9 +74,9 @@ def _fix_schema_required(*, schema: dict[str, Any]) -> dict[str, Any]:
             result["required"] = required_names
         elif "required" in result and not isinstance(result["required"], list):
             result.pop("required", None)
-    items_raw = result.get("items")
-    if _is_str_keyed_dict(value=items_raw):
-        result["items"] = _fix_schema_required(schema=items_raw)
+    items = _as_str_keyed_dict(value=result.get("items"))
+    if items is not None:
+        result["items"] = _fix_schema_required(schema=items)
     return result
 
 
@@ -70,22 +85,24 @@ def _migrate_body_parameter(*, operation: dict[str, Any]) -> dict[str, Any]:
     requestBody.
     """
     result: dict[str, Any] = dict(operation)
-    params_raw = result.get("parameters")
-    if not _is_object_list(value=params_raw):
+    params = _as_object_list(value=result.get("parameters"))
+    if params is None:
         return result
     kept: list[object] = []
     body_param: dict[str, Any] | None = None
-    for param_raw in params_raw:
-        if _is_str_keyed_dict(value=param_raw) and param_raw.get("in") == "body":
-            body_param = param_raw
+    for param_raw in params:
+        param = _as_str_keyed_dict(value=param_raw)
+        if param is not None and param.get("in") == "body":
+            body_param = param
         else:
             kept.append(param_raw)
     result["parameters"] = kept
     if body_param is not None and "requestBody" not in result:
         schema_raw = body_param.get("schema", {})
         schema: object = schema_raw
-        if _is_str_keyed_dict(value=schema_raw):
-            schema = _fix_schema_required(schema=schema_raw)
+        schema_dict = _as_str_keyed_dict(value=schema_raw)
+        if schema_dict is not None:
+            schema = _fix_schema_required(schema=schema_dict)
         result["requestBody"] = {
             "required": bool(body_param.get("required", False)),
             "content": {"application/json": {"schema": schema}},
@@ -98,19 +115,21 @@ def _prepare_openapi_spec(*, spec: dict[str, object]) -> dict[str, object]:
     registration.
     """
     prepared: dict[str, object] = dict(spec)
-    raw_paths_obj = prepared.get("paths", {})
-    if not _is_str_keyed_dict(value=raw_paths_obj):
+    raw_paths = _as_str_keyed_dict(value=prepared.get("paths", {}))
+    if raw_paths is None:
         return prepared
 
     cleaned_paths: dict[str, dict[str, object]] = {}
-    for raw_key, raw_value_obj in raw_paths_obj.items():
-        if not _is_str_keyed_dict(value=raw_value_obj):
+    for raw_key, raw_value_obj in raw_paths.items():
+        raw_value = _as_str_keyed_dict(value=raw_value_obj)
+        if raw_value is None:
             continue
         cleaned = raw_key.split(sep="?", maxsplit=1)[0]
         merged: dict[str, object] = dict(cleaned_paths.get(cleaned, {}))
-        for op_key, op_val_obj in raw_value_obj.items():
-            if op_key in _HTTP_METHODS and _is_str_keyed_dict(value=op_val_obj):
-                merged[op_key] = _migrate_body_parameter(operation=op_val_obj)
+        for op_key, op_val_obj in raw_value.items():
+            op_val = _as_str_keyed_dict(value=op_val_obj)
+            if op_key in _HTTP_METHODS and op_val is not None:
+                merged[op_key] = _migrate_body_parameter(operation=op_val)
             else:
                 merged[op_key] = op_val_obj
         cleaned_paths[cleaned] = merged
