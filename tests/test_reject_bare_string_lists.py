@@ -259,14 +259,9 @@ class TestSyncRejectBareStringLists:
         """Each affected sync field raises a beartype violation."""
         client = HackerRank(api_key="test-key")
         try:
-            for field_name, call in _sync_calls(client=client):
-                try:
+            for _field_name, call in _sync_calls(client=client):
+                with pytest.raises(BeartypeCallHintParamViolation):
                     call()
-                except BeartypeCallHintParamViolation:
-                    continue
-                pytest.fail(
-                    f"{field_name} accepted a bare str",
-                )
         finally:
             client.close()
 
@@ -280,13 +275,8 @@ class TestAsyncRejectBareStringLists:
         """Each affected async field raises a beartype violation."""
         client = AsyncHackerRank(api_key="test-key")
         try:
-            for field_name, call in _async_calls(client=client):
-                try:
+            for _field_name, call in _async_calls(client=client):
+                with pytest.raises(BeartypeCallHintParamViolation):
                     await call()
-                except BeartypeCallHintParamViolation:
-                    continue
-                pytest.fail(
-                    f"{field_name} accepted a bare str",
-                )
         finally:
             await client.aclose()
