@@ -27,8 +27,6 @@ def _as_str_keyed_dict(*, value: object) -> dict[str, Any] | None:
     if not isinstance(value, dict):
         return None
     decoded: Any = json.loads(s=json.dumps(obj=value))
-    if not isinstance(decoded, dict):
-        return None
     typed: dict[str, Any] = decoded
     return typed
 
@@ -38,8 +36,6 @@ def _as_object_list(*, value: object) -> list[object] | None:
     if not isinstance(value, list):
         return None
     decoded: Any = json.loads(s=json.dumps(obj=value))
-    if not isinstance(decoded, list):
-        return None
     typed: list[object] = decoded
     return typed
 
