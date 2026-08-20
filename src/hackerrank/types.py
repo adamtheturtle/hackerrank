@@ -2,7 +2,7 @@
 
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
-from typing import Any, ClassVar, Self, cast
+from typing import Any, ClassVar, Self
 
 from beartype import beartype
 
@@ -230,9 +230,7 @@ class Interview:
                 else Interviewer.from_dict(data=item)
                 for item in raw_interviewers
             ]
-        # ``from`` is a reserved keyword, so read it from the mapping.
-        raw_from = cast("Mapping[str, object]", data).get("from")
-        from_value = raw_from if isinstance(raw_from, str) else None
+        from_value = data.get("from")
         return cls(
             id=data["id"],
             status=data["status"],

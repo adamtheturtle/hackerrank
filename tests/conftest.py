@@ -67,7 +67,7 @@ _SCIM_USER_OBJ = {"id": "scim-1", "userName": "x@y.com"}
 _SCIM_TEAM_OBJ = {"id": "scim-2", "displayName": "G"}
 
 
-def _response_for(  # noqa: C901, PLR0911, PLR0912  # pylint: disable=too-complex,too-many-branches
+def _response_for(  # noqa: C901, PLR0911, PLR0912, PLR0915  # pylint: disable=too-complex,too-many-branches,too-many-statements
     request: httpx.Request,
 ) -> httpx.Response:
     """Return a plausible response for ``request``.
