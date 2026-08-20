@@ -54,7 +54,6 @@ def _route_request(
     index: int | None = None,
 ) -> httpx.Request:
     """Return a typed ``httpx.Request`` captured by ``route``."""
-    # respx call objects are untyped; getattr is the narrowest access.
     calls_obj: object = route.calls
     call_obj: object
     if index is None:
