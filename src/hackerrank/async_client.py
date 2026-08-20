@@ -26,6 +26,7 @@ from hackerrank.types import (
     JSONValue,
     Page,
     Question,
+    SCIMMessage,
     SCIMPage,
     SCIMTeam,
     SCIMUser,
@@ -139,7 +140,10 @@ def _make_scim_page[T](
         for item in (schemas_raw if isinstance(schemas_raw, list) else [])
         if isinstance(item, str)
     ]
-    start_index = _coerce_int(payload.get("startIndex")) or 1
+    raw_start_index = payload.get("startIndex", 1)
+    start_index = (
+        1 if raw_start_index is None else _coerce_int(raw_start_index)
+    )
     return SCIMPage(
         items,
         schemas=schemas,
@@ -276,7 +280,7 @@ class _AsyncNamespace:
 
         Raises:
             HackerRankError: If the response has an error
-                status code.
+                or redirect status code.
         """
         response = await self.transport(
             method=method,
@@ -286,7 +290,7 @@ class _AsyncNamespace:
             json=json,
             files=files,
         )
-        if response.status_code >= HTTPStatus.BAD_REQUEST:
+        if response.status_code >= HTTPStatus.MULTIPLE_CHOICES:
             raise HackerRankError.from_response(response=response)
         return response
 
@@ -936,13 +940,13 @@ class AsyncQuestionsNamespace(_AsyncNamespace):
         self,
         *,
         question_id: str,
-        body: Mapping[str, JSONValue] | None = None,
+        body: Mapping[str, JSONValue],
     ) -> dict[str, JSONValue]:
         """Generate code-stubs for a question.
 
         Args:
             question_id: The id of the question.
-            body: An optional request body.
+            body: The generation request body.
 
         Returns:
             The raw API response.
@@ -950,7 +954,7 @@ class AsyncQuestionsNamespace(_AsyncNamespace):
         response = await self._request(
             method="PUT",
             url=(f"{_API_V3}/questions/{question_id}/generate"),
-            json=body if body is not None else {},
+            json=body,
             params=None,
             files=None,
         )
@@ -2480,7 +2484,7 @@ class AsyncSCIMUsersNamespace(_AsyncNamespace):
         *,
         scim_user_id: str,
         operations: Sequence[Mapping[str, JSONValue]],
-    ) -> SCIMUser:
+    ) -> SCIMMessage:
         """Patch a SCIM user.
 
         Args:
@@ -2488,7 +2492,7 @@ class AsyncSCIMUsersNamespace(_AsyncNamespace):
             operations: The SCIM patch operations.
 
         Returns:
-            The updated SCIM user.
+            The SCIM patch acknowledgement message.
         """
         body: dict[str, JSONValue] = {
             "operations": [dict(op) for op in operations],
@@ -2500,7 +2504,7 @@ class AsyncSCIMUsersNamespace(_AsyncNamespace):
             params=None,
             files=None,
         )
-        return SCIMUser.from_dict(data=response.json())
+        return SCIMMessage.from_dict(data=response.json())
 
     async def delete(self, *, scim_user_id: str) -> None:
         """Lock a SCIM user.
@@ -2589,7 +2593,7 @@ class AsyncSCIMGroupsNamespace(_AsyncNamespace):
         *,
         scim_group_id: str,
         operations: Sequence[Mapping[str, JSONValue]],
-    ) -> SCIMTeam:
+    ) -> SCIMMessage:
         """Patch a SCIM group.
 
         Args:
@@ -2597,7 +2601,7 @@ class AsyncSCIMGroupsNamespace(_AsyncNamespace):
             operations: The SCIM patch operations.
 
         Returns:
-            The updated SCIM team.
+            The SCIM patch acknowledgement message.
         """
         body: dict[str, JSONValue] = {
             "operations": [dict(op) for op in operations],
@@ -2609,7 +2613,7 @@ class AsyncSCIMGroupsNamespace(_AsyncNamespace):
             params=None,
             files=None,
         )
-        return SCIMTeam.from_dict(data=response.json())
+        return SCIMMessage.from_dict(data=response.json())
 
     async def delete(self, *, scim_group_id: str) -> None:
         """Deprovision a SCIM group.
@@ -2665,6 +2669,9 @@ class AsyncSCIMNamespace(_AsyncNamespace):
 class AsyncHackerRank:
     """An async client for the HackerRank for Work API."""
 
+    base_url: str
+    scim_base_url: str
+
     def __init__(
         self,
         *,
@@ -2684,70 +2691,72 @@ class AsyncHackerRank:
             transport: The HTTP transport. Defaults to
                 ``AsyncHTTPXTransport()``.
         """
-        self.base_url = base_url
-        self.scim_base_url = scim_base_url
-        resolved_transport = transport or AsyncHTTPXTransport()
+        self.base_url: str = base_url.rstrip("/")
+        self.scim_base_url: str = scim_base_url.rstrip("/")
+        resolved_transport = (
+            AsyncHTTPXTransport() if transport is None else transport
+        )
         headers = {
             "Authorization": f"Bearer {api_key}",
             "Accept": "application/json",
         }
         self.interviews: AsyncInterviewsNamespace = AsyncInterviewsNamespace(
             transport=resolved_transport,
-            base_url=base_url,
+            base_url=self.base_url,
             headers=headers,
         )
         self.interview_templates: AsyncInterviewTemplatesNamespace = (
             AsyncInterviewTemplatesNamespace(
                 transport=resolved_transport,
-                base_url=base_url,
+                base_url=self.base_url,
                 headers=headers,
             )
         )
         self.environments: AsyncEnvironmentsNamespace = (
             AsyncEnvironmentsNamespace(
                 transport=resolved_transport,
-                base_url=base_url,
+                base_url=self.base_url,
                 headers=headers,
             )
         )
         self.questions: AsyncQuestionsNamespace = AsyncQuestionsNamespace(
             transport=resolved_transport,
-            base_url=base_url,
+            base_url=self.base_url,
             headers=headers,
         )
         self.tests: AsyncTestsNamespace = AsyncTestsNamespace(
             transport=resolved_transport,
-            base_url=base_url,
+            base_url=self.base_url,
             headers=headers,
         )
         self.templates: AsyncTemplatesNamespace = AsyncTemplatesNamespace(
             transport=resolved_transport,
-            base_url=base_url,
+            base_url=self.base_url,
             headers=headers,
         )
         self.users: AsyncUsersNamespace = AsyncUsersNamespace(
             transport=resolved_transport,
-            base_url=base_url,
+            base_url=self.base_url,
             headers=headers,
         )
         self.teams: AsyncTeamsNamespace = AsyncTeamsNamespace(
             transport=resolved_transport,
-            base_url=base_url,
+            base_url=self.base_url,
             headers=headers,
         )
         self.audit_logs: AsyncAuditLogsNamespace = AsyncAuditLogsNamespace(
             transport=resolved_transport,
-            base_url=base_url,
+            base_url=self.base_url,
             headers=headers,
         )
         self.ats: AsyncATSNamespace = AsyncATSNamespace(
             transport=resolved_transport,
-            base_url=base_url,
+            base_url=self.base_url,
             headers=headers,
         )
         self.scim: AsyncSCIMNamespace = AsyncSCIMNamespace(
             transport=resolved_transport,
-            base_url=scim_base_url,
+            base_url=self.scim_base_url,
             headers=headers,
         )
         self._owned_transport = (

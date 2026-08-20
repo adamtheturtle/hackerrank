@@ -1,9 +1,14 @@
 """Tests for the async HackerRank client."""
 
+from collections.abc import Mapping
+from typing import Any
+
 import pytest
 
 import hackerrank.async_client as async_client_module
 from hackerrank.async_client import AsyncHackerRank
+from hackerrank.transports import TransportResponse
+from hackerrank.types import JSONValue
 
 
 class TestAsyncHackerRank:
@@ -33,6 +38,48 @@ class TestAsyncHackerRank:
         )
         assert client.scim_base_url == "https://scim.example.com/v2"
         assert client.scim.base_url == "https://scim.example.com/v2"
+
+    @staticmethod
+    def test_trailing_slash_base_urls_are_normalized() -> None:
+        """Trailing slashes are stripped from custom base URLs."""
+        client = AsyncHackerRank(
+            api_key="test-key",
+            base_url="https://custom.example.com/",
+            scim_base_url="https://scim.example.com/v2/",
+        )
+        assert client.base_url == "https://custom.example.com"
+        assert client.users.base_url == "https://custom.example.com"
+        assert client.scim_base_url == "https://scim.example.com/v2"
+        assert client.scim.base_url == "https://scim.example.com/v2"
+
+    @staticmethod
+    def test_falsy_transport_is_preserved() -> None:
+        """A falsy custom transport is not replaced by the default."""
+
+        class _FalsyTransport:
+            """A transport whose ``__bool__`` returns ``False``."""
+
+            def __bool__(self) -> bool:  # pragma: no cover
+                """Report as falsy."""
+                return False
+
+            async def __call__(
+                self,
+                *,
+                method: str,
+                url: str,
+                headers: dict[str, str],
+                params: dict[str, str | int] | None,
+                json: Mapping[str, JSONValue] | None,
+                files: Mapping[str, Any] | None,
+            ) -> TransportResponse:  # pragma: no cover
+                """Make a request."""
+                del method, url, headers, params, json, files
+                raise NotImplementedError
+
+        transport: Any = _FalsyTransport()
+        client = AsyncHackerRank(api_key="test-key", transport=transport)
+        assert client.users.transport is transport
 
     @staticmethod
     def test_namespaces_are_attached() -> None:

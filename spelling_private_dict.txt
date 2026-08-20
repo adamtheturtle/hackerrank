@@ -44,6 +44,7 @@ linters
 linting
 macOS
 metadata
+missing-argument
 namespace
 namespaces
 noqa
@@ -58,7 +59,10 @@ readme
 refactoring
 regex
 repo
+reportCallIssue
 reportPrivateUsage
+reportUnknownArgumentType
+reportUnknownMemberType
 reportUnknownVariableType
 respx
 schemas
@@ -68,6 +72,7 @@ subclasses
 testcases
 todo
 txt
+ty
 typecheck
 unmapped
 url
