@@ -12,6 +12,8 @@ from hackerrank._dict_types import (
     AuditLogDict,
     CandidateDetailDict,
     CandidateInviteDict,
+    CandidateSearchAttemptResultDict,
+    CandidateSearchResultDict,
     EnvironmentDict,
     EnvironmentRuntimeDict,
     InterviewDict,
@@ -154,6 +156,78 @@ class CandidateDetail:
             field_name=data["field_name"],
             title=data["title"],
             value=data["value"],
+        )
+
+
+@beartype
+@dataclass(frozen=True, kw_only=True)
+class CandidateSearchAttemptResult:
+    """A test attempt returned by global candidate search."""
+
+    attempt_id: str
+    test_id: str
+    report_url: str
+    score: float | None = None
+    percentage_score: float | None = None
+    attempt_starttime: str | None = None
+    attempt_endtime: str | None = None
+
+    @classmethod
+    def from_dict(
+        cls,
+        data: CandidateSearchAttemptResultDict,
+    ) -> Self:
+        """Create from an API response dictionary.
+
+        Args:
+            data: The dictionary to convert.
+
+        Returns:
+            A new instance.
+        """
+        return cls(
+            attempt_id=data["attempt_id"],
+            test_id=data["test_id"],
+            report_url=data["report_url"],
+            score=data.get("score"),
+            percentage_score=data.get("percentage_score"),
+            attempt_starttime=data.get("attempt_starttime"),
+            attempt_endtime=data.get("attempt_endtime"),
+        )
+
+
+@beartype
+@dataclass(frozen=True, kw_only=True)
+class CandidateSearchResult:
+    """A candidate match from global candidate search."""
+
+    uuid: str
+    name: str
+    email: str
+    created_at: str
+    updated_at: str
+    attempts: list[CandidateSearchAttemptResult]
+
+    @classmethod
+    def from_dict(cls, data: CandidateSearchResultDict) -> Self:
+        """Create from an API response dictionary.
+
+        Args:
+            data: The dictionary to convert.
+
+        Returns:
+            A new instance.
+        """
+        return cls(
+            uuid=data["uuid"],
+            name=data["name"],
+            email=data["email"],
+            created_at=data["created_at"],
+            updated_at=data["updated_at"],
+            attempts=[
+                CandidateSearchAttemptResult.from_dict(data=item)
+                for item in data["attempts"]
+            ],
         )
 
 

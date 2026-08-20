@@ -17,6 +17,7 @@ from hackerrank.transports import (
 from hackerrank.types import (
     AuditLog,
     CandidateInvite,
+    CandidateSearchResult,
     Environment,
     Interview,
     InterviewTemplate,
@@ -1695,6 +1696,47 @@ class TemplatesNamespace(_Namespace):
 
 
 @beartype
+class CandidatesNamespace(_Namespace):
+    """Namespace for global candidate operations."""
+
+    def search(
+        self,
+        *,
+        query: str,
+        limit: int | None = None,
+        offset: int | None = None,
+    ) -> Page[CandidateSearchResult]:
+        """Search candidates across accessible tests.
+
+        Args:
+            query: Candidate name or email search query.
+            limit: Number of records to fetch.
+            offset: Offset of records.
+
+        Returns:
+            A page of candidate search results.
+        """
+        params = _list_params(
+            limit=limit,
+            offset=offset,
+            extra={"query": query},
+        )
+        response = self._request(
+            method="GET",
+            url=f"{_API_V3}/candidates/search",
+            params=params,
+            json=None,
+            files=None,
+        )
+        payload = response.json()
+        raw_items = list(payload.get("data", []))
+        items: list[CandidateSearchResult] = [
+            CandidateSearchResult.from_dict(data=item) for item in raw_items
+        ]
+        return _make_page(items, payload)
+
+
+@beartype
 class UsersNamespace(_Namespace):
     """Namespace for user operations."""
 
@@ -2746,6 +2788,11 @@ class HackerRank:
             headers=headers,
         )
         self.templates: TemplatesNamespace = TemplatesNamespace(
+            transport=resolved_transport,
+            base_url=self.base_url,
+            headers=headers,
+        )
+        self.candidates: CandidatesNamespace = CandidatesNamespace(
             transport=resolved_transport,
             base_url=self.base_url,
             headers=headers,

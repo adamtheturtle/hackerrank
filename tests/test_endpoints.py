@@ -390,6 +390,16 @@ class TestSyncEndpoints:
         sync_client.templates.get(template_id="tpl1")
 
     @staticmethod
+    def test_candidates(sync_client: HackerRank) -> None:
+        """Exercise the top-level ``candidates`` namespace."""
+        sync_client.candidates.search(query="jane")
+        sync_client.candidates.search(
+            query="jane",
+            limit=1,
+            offset=0,
+        )
+
+    @staticmethod
     def test_users(sync_client: HackerRank) -> None:
         """Exercise the ``users`` namespace."""
         sync_client.users.list()
@@ -933,6 +943,19 @@ class TestAsyncEndpoints:
         await async_client.templates.list()
         await async_client.templates.list(limit=1, offset=0)
         await async_client.templates.get(template_id="tpl1")
+
+    @staticmethod
+    @pytest.mark.asyncio
+    async def test_candidates(
+        async_client: AsyncHackerRank,
+    ) -> None:
+        """Exercise the async top-level ``candidates`` namespace."""
+        await async_client.candidates.search(query="jane")
+        await async_client.candidates.search(
+            query="jane",
+            limit=1,
+            offset=0,
+        )
 
     @staticmethod
     @pytest.mark.asyncio

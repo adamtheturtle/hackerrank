@@ -5,6 +5,8 @@ from hackerrank.types import (
     ATSCodeScreen,
     AuditLog,
     CandidateInvite,
+    CandidateSearchAttemptResult,
+    CandidateSearchResult,
     Environment,
     Interview,
     Interviewer,
@@ -389,6 +391,48 @@ class TestFromDict:  # pylint: disable=too-many-public-methods
             },
         )
         assert inviter.role == "recruiter"
+
+    @staticmethod
+    def test_candidate_search_result_from_dict() -> None:
+        """``CandidateSearchResult.from_dict`` parses nested attempts."""
+        result = CandidateSearchResult.from_dict(
+            data={
+                "uuid": "u1",
+                "name": "Jane",
+                "email": "jane@example.com",
+                "created_at": "2024-01-01T00:00:00Z",
+                "updated_at": "2024-06-01T00:00:00Z",
+                "attempts": [
+                    {
+                        "attempt_id": "a1",
+                        "test_id": "t1",
+                        "report_url": "https://example.com/report",
+                        "score": 10.0,
+                    },
+                    {
+                        "attempt_id": "a2",
+                        "test_id": "t2",
+                        "report_url": "https://example.com/report-2",
+                    },
+                ],
+            },
+        )
+        assert result.uuid == "u1"
+        assert len(result.attempts) == 2
+        assert result.attempts[0].score == 10.0
+        assert result.attempts[1].percentage_score is None
+        attempt = CandidateSearchAttemptResult.from_dict(
+            data={
+                "attempt_id": "a3",
+                "test_id": "t3",
+                "report_url": "https://example.com/r",
+                "percentage_score": 50.0,
+                "attempt_starttime": "2024-02-01T00:00:00Z",
+                "attempt_endtime": "2024-02-01T01:00:00Z",
+            },
+        )
+        assert attempt.percentage_score == 50.0
+        assert attempt.attempt_endtime == "2024-02-01T01:00:00Z"
 
     @staticmethod
     def test_ats_codepair_from_dict() -> None:
