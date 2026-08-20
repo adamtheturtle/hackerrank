@@ -480,7 +480,6 @@ class TestRouteHelpers:
         """Non-dict values yield ``None``."""
         assert _as_str_keyed_dict(value=["x"]) is None
 
-
     @staticmethod
     def test_route_json_rejects_non_object_body() -> None:
         """JSON bodies that are not objects raise ``TypeError``."""
