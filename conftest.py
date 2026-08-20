@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import json
-from collections.abc import Generator
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import pytest
 import respx
 from openapi_mock import add_openapi_to_respx
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
 
 _BASE_URL = "https://www.hackerrank.com"
 _HTTP_METHODS = frozenset(
