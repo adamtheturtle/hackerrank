@@ -87,7 +87,7 @@ class TestHackerRank:
                 del method, url, headers, params, json, files
                 raise NotImplementedError
 
-        transport = _FalsyTransport()
+        transport: Any = _FalsyTransport()
         client = HackerRank(api_key="test-key", transport=transport)
         assert client.users.transport is transport
 
