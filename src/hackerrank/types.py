@@ -177,6 +177,7 @@ class Interview:
     updated_at: str | None = None
     user: int | None = None
     send_email: bool | None = None
+    ai_assistant_available: bool | None = None
 
     @classmethod
     def from_dict(cls, data: InterviewDict) -> Self:
@@ -210,6 +211,9 @@ class Interview:
             updated_at=data.get("updated_at"),
             user=data.get("user"),
             send_email=data.get("send_email"),
+            ai_assistant_available=data.get(
+                "ai_assistant_available",
+            ),
         )
 
 

@@ -25,6 +25,7 @@ class InterviewDict(TypedDict):
     updated_at: NotRequired[str]
     user: NotRequired[int]
     send_email: NotRequired[bool]
+    ai_assistant_available: NotRequired[bool]
 
 
 class InterviewTranscriptMessageDict(TypedDict):

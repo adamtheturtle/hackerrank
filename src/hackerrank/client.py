@@ -273,6 +273,12 @@ class InterviewsNamespace(_Namespace):
         created_at: str | None = None,
         updated_at: str | None = None,
         ended_at: str | None = None,
+        user: int | None = None,
+        interviewers: int | None = None,
+        access: str | None = None,
+        current_status: int | None = None,
+        order_by: str | None = None,
+        order_dir: str | None = None,
     ) -> Page[Interview]:
         """List interviews.
 
@@ -282,6 +288,15 @@ class InterviewsNamespace(_Namespace):
             created_at: ``from..to`` filter for creation time.
             updated_at: ``from..to`` filter for update time.
             ended_at: ``from..to`` filter for ending time.
+            user: Filter by creator user ID.
+            interviewers: Filter by interviewer user ID.
+            access: Access filter (``owned`` or ``shared``).
+            current_status: Status filter (``0`` new, ``1``
+                active, ``2`` ended, ``3`` paused).
+            order_by: Sort key (``title``, ``id``,
+                ``created_at``, ``ended_at``,
+                ``current_status``, or ``user``).
+            order_dir: Sort direction (``asc`` or ``desc``).
 
         Returns:
             A page of interviews.
@@ -293,6 +308,18 @@ class InterviewsNamespace(_Namespace):
             extra["updated_at"] = updated_at
         if ended_at is not None:
             extra["ended_at"] = ended_at
+        if user is not None:
+            extra["user"] = user
+        if interviewers is not None:
+            extra["interviewers"] = interviewers
+        if access is not None:
+            extra["access"] = access
+        if current_status is not None:
+            extra["current_status"] = current_status
+        if order_by is not None:
+            extra["order_by"] = order_by
+        if order_dir is not None:
+            extra["order_dir"] = order_dir
         response = self._request(
             method="GET",
             url=f"{_API_V3}/interviews",
@@ -325,6 +352,7 @@ class InterviewsNamespace(_Namespace):
         send_email: bool | None = None,
         metadata: Mapping[str, JSONValue] | None = None,
         interview_template_id: int | None = None,
+        ai_assistant_available: bool | None = None,
     ) -> Interview:
         """Create an interview.
 
@@ -340,6 +368,8 @@ class InterviewsNamespace(_Namespace):
             send_email: Whether to send an email invite.
             metadata: Arbitrary metadata.
             interview_template_id: Template to apply.
+            ai_assistant_available: Whether the AI assistant
+                is available for this interview.
 
         Returns:
             The created interview.
@@ -359,6 +389,7 @@ class InterviewsNamespace(_Namespace):
                 "send_email": send_email,
                 "metadata": metadata,
                 "interview_template_id": interview_template_id,
+                "ai_assistant_available": ai_assistant_available,
             },
         )
         response = self._request(
@@ -397,11 +428,18 @@ class InterviewsNamespace(_Namespace):
         to: str | None = None,
         notes: str | None = None,
         resume_url: str | None = None,
+        interviewers: (
+            builtins.list[str]
+            | builtins.list[Mapping[str, JSONValue]]
+            | None
+        ) = None,
         result_url: str | None = None,
         candidate: Mapping[str, JSONValue] | None = None,
         send_email: bool | None = None,
+        replace_interviewers: bool | None = None,
         metadata: Mapping[str, JSONValue] | None = None,
         interview_template_id: int | None = None,
+        ai_assistant_available: bool | None = None,
     ) -> None:
         """Update an interview.
 
@@ -412,11 +450,19 @@ class InterviewsNamespace(_Namespace):
             to: New end time.
             notes: New private notes.
             resume_url: New resume URL.
+            interviewers: Interviewer emails, or objects with
+                ``email`` / ``name``. Used with
+                ``replace_interviewers``.
             result_url: New result URL.
             candidate: New candidate details.
             send_email: Whether to send an email.
+            replace_interviewers: When ``True``, replace the
+                existing interviewer list with
+                ``interviewers``.
             metadata: New metadata.
             interview_template_id: New template id.
+            ai_assistant_available: Whether the AI assistant
+                is available for this interview.
         """
         body = _drop_none(
             {
@@ -425,11 +471,16 @@ class InterviewsNamespace(_Namespace):
                 "to": to,
                 "notes": notes,
                 "resume_url": resume_url,
+                "interviewers": (
+                    list(interviewers) if interviewers is not None else None
+                ),
                 "result_url": result_url,
                 "candidate": candidate,
                 "send_email": send_email,
+                "replace_interviewers": replace_interviewers,
                 "metadata": metadata,
                 "interview_template_id": interview_template_id,
+                "ai_assistant_available": ai_assistant_available,
             },
         )
         self._request(
@@ -486,20 +537,30 @@ class InterviewTemplatesNamespace(_Namespace):
         *,
         limit: int | None = None,
         offset: int | None = None,
+        filter: str | None = None,  # noqa: A002  # pylint: disable=redefined-builtin
     ) -> Page[InterviewTemplate]:
         """List interview templates.
 
         Args:
             limit: Number of records to fetch.
             offset: Offset of records.
+            filter: Ownership filter (``owned`` or
+                ``shared``).
 
         Returns:
             A page of interview templates.
         """
+        extra: dict[str, str | int] = {}
+        if filter is not None:
+            extra["filter"] = filter
         response = self._request(
             method="GET",
             url=f"{_API_V3}/interview_templates",
-            params=_list_params(limit=limit, offset=offset, extra=None),
+            params=_list_params(
+                limit=limit,
+                offset=offset,
+                extra=extra or None,
+            ),
             json=None,
             files=None,
         )
@@ -667,20 +728,59 @@ class QuestionsNamespace(_Namespace):
         *,
         limit: int | None = None,
         offset: int | None = None,
+        status: str | None = None,
+        access: builtins.list[str] | None = None,
+        difficulty: builtins.list[str] | None = None,
+        type: builtins.list[str] | None = None,  # noqa: A002  # pylint: disable=redefined-builtin
+        owner: builtins.list[str] | None = None,
+        tags: builtins.list[str] | None = None,
+        skills: builtins.list[str] | None = None,
+        languages: builtins.list[str] | None = None,
     ) -> Page[Question]:
         """List questions.
 
         Args:
             limit: Number of records to fetch.
             offset: Offset of records.
+            status: Question status (``active`` or
+                ``archived``).
+            access: Access filter values (``library``,
+                ``owned``, and/or ``shared``).
+            difficulty: Difficulty values (comma-separated).
+            type: Question types (comma-separated).
+            owner: Owning user IDs (comma-separated).
+            tags: Tags (comma-separated).
+            skills: Skills (comma-separated).
+            languages: Languages (comma-separated).
 
         Returns:
             A page of questions.
         """
+        extra: dict[str, str | int] = {}
+        if status is not None:
+            extra["status"] = status
+        if access is not None:
+            extra["access"] = ",".join(access)
+        if difficulty is not None:
+            extra["difficulty"] = ",".join(difficulty)
+        if type is not None:
+            extra["type"] = ",".join(type)
+        if owner is not None:
+            extra["owner"] = ",".join(owner)
+        if tags is not None:
+            extra["tags"] = ",".join(tags)
+        if skills is not None:
+            extra["skills"] = ",".join(skills)
+        if languages is not None:
+            extra["languages"] = ",".join(languages)
         response = self._request(
             method="GET",
             url=f"{_API_V3}/questions",
-            params=_list_params(limit=limit, offset=offset, extra=None),
+            params=_list_params(
+                limit=limit,
+                offset=offset,
+                extra=extra or None,
+            ),
             json=None,
             files=None,
         )
@@ -1103,6 +1203,7 @@ class TestCandidatesNamespace(_Namespace):
         test_id: str,
         email: str,
         full_name: str | None = None,
+        ats_state: int | None = None,
         send_email: bool | None = None,
         evaluator_email: str | None = None,
         test_result_url: str | None = None,
@@ -1126,6 +1227,8 @@ class TestCandidatesNamespace(_Namespace):
             test_id: The id of the test.
             email: Candidate email address.
             full_name: Candidate full name.
+            ats_state: Initial ATS application state
+                (``0`` to ``22``).
             send_email: Whether to send the invitation email.
             evaluator_email: Evaluator email.
             test_result_url: URL to which results are posted.
@@ -1150,6 +1253,7 @@ class TestCandidatesNamespace(_Namespace):
             {
                 "email": email,
                 "full_name": full_name,
+                "ats_state": ats_state,
                 "send_email": send_email,
                 "evaluator_email": evaluator_email,
                 "test_result_url": test_result_url,
@@ -1641,20 +1745,29 @@ class TemplatesNamespace(_Namespace):
         *,
         limit: int | None = None,
         offset: int | None = None,
+        access: str | None = None,
     ) -> Page[Template]:
         """List invite templates.
 
         Args:
             limit: Number of records to fetch.
             offset: Offset of records.
+            access: Access filter (``owned`` or ``shared``).
 
         Returns:
             A page of templates.
         """
+        extra: dict[str, str | int] = {}
+        if access is not None:
+            extra["access"] = access
         response = self._request(
             method="GET",
             url=f"{_API_V3}/templates",
-            params=_list_params(limit=limit, offset=offset, extra=None),
+            params=_list_params(
+                limit=limit,
+                offset=offset,
+                extra=extra or None,
+            ),
             json=None,
             files=None,
         )
