@@ -3,9 +3,8 @@
 from __future__ import annotations
 
 import json
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
-import httpx
 import pytest
 import respx
 
@@ -14,6 +13,8 @@ from hackerrank.client import HackerRank
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
+
+    import httpx
 
     from hackerrank.types import JSONValue
 
@@ -36,10 +37,10 @@ _INTERVIEW = {
     "title": "Interview",
     "ai_assistant_available": True,
 }
-_CANDIDATE_INVITE = {
+_CANDIDATE = {
     "id": "c1",
     "email": "c@x.com",
-    "test_link": "https://example.com/invite/c1",
+    "full_name": "Candidate",
 }
 
 
@@ -48,64 +49,46 @@ def _query(*, request: httpx.Request) -> dict[str, str]:
     return dict(request.url.params)
 
 
-def _route_request(
-    *,
-    route: respx.Route,
-    index: int | None,
-) -> httpx.Request:
-    """Return a typed ``httpx.Request`` captured by ``route``."""
-    calls_obj: object = route.calls
-    call_obj: object
-    if index is None:
-        call_obj = getattr(  # pylint: disable=bad-builtin
-            calls_obj,
-            "last",
-            None,
-        )
-    else:
-        getitem = getattr(  # pylint: disable=bad-builtin
-            calls_obj,
-            "__getitem__",
-            None,
-        )
-        if not callable(getitem):
-            message = "expected respx call list"
-            raise TypeError(message)
-        call_obj = getitem(index)
-    request_obj = getattr(  # pylint: disable=bad-builtin
-        call_obj,
-        "request",
-        None,
+def _last_route_request(*, route: respx.Route) -> httpx.Request:
+    """Return the last typed ``httpx.Request`` captured by ``route``."""
+    call: object = route.calls.last
+    assert isinstance(call, respx.models.Call)
+    return call.request
+
+
+def _indexed_route_request(*, route: respx.Route, index: int) -> httpx.Request:
+    """Return a typed ``httpx.Request`` captured by ``route`` at ``index``."""
+    # CallList.__getitem__ is untyped in respx stubs.
+    call: object = route.calls[index]  # pyright: ignore[reportUnknownVariableType]
+    assert isinstance(call, respx.models.Call)
+    return call.request
+
+
+def _as_str_keyed_dict(*, value: object) -> dict[str, object]:
+    """Return ``value`` as a ``str``-keyed dict."""
+    assert isinstance(value, dict)
+    result: dict[str, object] = {}
+    for key_obj, item in value.items():  # pyright: ignore[reportUnknownVariableType]
+        assert isinstance(key_obj, str)
+        result[key_obj] = item
+    return result
+
+
+def _last_route_json(*, route: respx.Route) -> dict[str, object]:
+    """Return decoded JSON body from the last captured ``route`` call."""
+    return _as_str_keyed_dict(
+        value=json.loads(s=_last_route_request(route=route).content),
     )
-    if not isinstance(request_obj, httpx.Request):
-        message = "expected httpx.Request from respx call"
-        raise TypeError(message)
-    return request_obj
 
 
-def _as_str_keyed_dict(*, value: object) -> dict[str, object] | None:
-    """Return ``value`` as a ``str``-keyed dict, or ``None``."""
-    if not isinstance(value, dict):
-        return None
-    # JSON round-trip yields a value pyright can treat as ``Any``.
-    decoded: Any = json.loads(s=json.dumps(obj=value))
-    typed: dict[str, object] = decoded
-    return typed
-
-
-def _route_json(
+def _indexed_route_json(
     *,
     route: respx.Route,
-    index: int | None,
+    index: int,
 ) -> dict[str, object]:
     """Return decoded JSON body from a captured ``route`` call."""
-    loaded = _as_str_keyed_dict(
-        value=json.loads(s=_route_request(route=route, index=index).content),
-    )
-    if loaded is None:
-        message = "expected JSON object body"
-        raise TypeError(message)
-    return loaded
+    request = _indexed_route_request(route=route, index=index)
+    return _as_str_keyed_dict(value=json.loads(s=request.content))
 
 
 class TestInterviewListParams:
@@ -131,7 +114,7 @@ class TestInterviewListParams:
                     updated_at="2024-01-01..2024-01-02",
                     ended_at="2024-01-01..2024-01-02",
                 )
-        params = _query(request=_route_request(route=route, index=None))
+        params = _query(request=_last_route_request(route=route))
         assert params["user"] == "42"
         assert params["interviewers"] == "7"
         assert params["access"] == "owned"
@@ -163,7 +146,7 @@ class TestInterviewListParams:
                     updated_at="2024-01-01..2024-01-02",
                     ended_at="2024-01-01..2024-01-02",
                 )
-        params = _query(request=_route_request(route=route, index=None))
+        params = _query(request=_last_route_request(route=route))
         assert params["user"] == "42"
         assert params["interviewers"] == "7"
         assert params["access"] == "shared"
@@ -197,7 +180,7 @@ class TestQuestionListParams:
                     skills=["python"],
                     languages=["python3", "java"],
                 )
-        params = _query(request=_route_request(route=route, index=None))
+        params = _query(request=_last_route_request(route=route))
         assert params["status"] == "active"
         assert params["access"] == "owned,shared"
         assert params["difficulty"] == "easy,hard"
@@ -227,7 +210,7 @@ class TestQuestionListParams:
                     skills=["java"],
                     languages=["javascript"],
                 )
-        params = _query(request=_route_request(route=route, index=None))
+        params = _query(request=_last_route_request(route=route))
         assert params["status"] == "archived"
         assert params["access"] == "library"
         assert params["difficulty"] == "medium"
@@ -251,14 +234,14 @@ class TestTemplateListParams:
             with HackerRank(api_key="test-key") as client:
                 client.interview_templates.list(filter="owned")
                 client.interview_templates.list(filter="shared")
-        assert (
-            _query(request=_route_request(route=route, index=0))["filter"]
-            == "owned"
+        first = _query(
+            request=_indexed_route_request(route=route, index=0),
         )
-        assert (
-            _query(request=_route_request(route=route, index=1))["filter"]
-            == "shared"
+        second = _query(
+            request=_indexed_route_request(route=route, index=1),
         )
+        assert first["filter"] == "owned"
+        assert second["filter"] == "shared"
 
     @staticmethod
     def test_sync_invite_template_access() -> None:
@@ -272,17 +255,18 @@ class TestTemplateListParams:
                 client.templates.list(access="owned")
                 client.templates.list(access="shared")
                 client.templates.list()
-        assert (
-            _query(request=_route_request(route=route, index=0))["access"]
-            == "owned"
+        first = _query(
+            request=_indexed_route_request(route=route, index=0),
         )
-        assert (
-            _query(request=_route_request(route=route, index=1))["access"]
-            == "shared"
+        second = _query(
+            request=_indexed_route_request(route=route, index=1),
         )
-        assert "access" not in _query(
-            request=_route_request(route=route, index=2)
+        third = _query(
+            request=_indexed_route_request(route=route, index=2),
         )
+        assert first["access"] == "owned"
+        assert second["access"] == "shared"
+        assert "access" not in third
 
     @staticmethod
     @pytest.mark.asyncio
@@ -298,10 +282,10 @@ class TestTemplateListParams:
             async with AsyncHackerRank(api_key="test-key") as client:
                 await client.interview_templates.list(filter="owned")
                 await client.templates.list(access="shared")
-        interview_request = _route_request(route=interview_route, index=None)
+        interview_request = _last_route_request(route=interview_route)
         interview_params = _query(request=interview_request)
         assert interview_params["filter"] == "owned"
-        invite_request = _route_request(route=invite_route, index=None)
+        invite_request = _last_route_request(route=invite_route)
         invite_params = _query(request=invite_request)
         assert invite_params["access"] == "shared"
 
@@ -322,7 +306,7 @@ class TestInterviewBodyFields:
                     title="AI interview",
                     ai_assistant_available=True,
                 )
-        body = _route_json(route=route, index=None)
+        body = _last_route_json(route=route)
         assert body["ai_assistant_available"] is True
         assert created.ai_assistant_available is True
 
@@ -332,7 +316,7 @@ class TestInterviewBodyFields:
         with respx.mock(assert_all_called=True) as router:
             route = router.put(url=f"{_BASE}/interviews/iv1").respond(
                 status_code=200,
-                json=_INTERVIEW,
+                json={},
             )
             with HackerRank(api_key="test-key") as client:
                 client.interviews.update(
@@ -350,8 +334,8 @@ class TestInterviewBodyFields:
                     replace_interviewers=False,
                     ai_assistant_available=True,
                 )
-        first = _route_json(route=route, index=0)
-        second = _route_json(route=route, index=1)
+        first = _indexed_route_json(route=route, index=0)
+        second = _indexed_route_json(route=route, index=1)
         assert first["interviewers"] == ["a@b.com"]
         assert first["replace_interviewers"] is True
         assert first["ai_assistant_available"] is False
@@ -371,7 +355,7 @@ class TestInterviewBodyFields:
             ).respond(status_code=200, json=_INTERVIEW)
             update_route = router.put(
                 url=f"{_BASE}/interviews/iv1",
-            ).respond(status_code=200, json=_INTERVIEW)
+            ).respond(status_code=200, json={})
             async with AsyncHackerRank(api_key="test-key") as client:
                 created = await client.interviews.create(
                     title="AI interview",
@@ -383,8 +367,8 @@ class TestInterviewBodyFields:
                     replace_interviewers=True,
                     ai_assistant_available=False,
                 )
-        create_body = _route_json(route=create_route, index=None)
-        update_body = _route_json(route=update_route, index=None)
+        create_body = _last_route_json(route=create_route)
+        update_body = _last_route_json(route=update_route)
         assert create_body["ai_assistant_available"] is True
         assert created.ai_assistant_available is True
         assert update_body["interviewers"] == ["a@b.com"]
@@ -401,7 +385,7 @@ class TestCandidateInviteAtsState:
         with respx.mock(assert_all_called=True) as router:
             route = router.post(
                 url=f"{_BASE}/tests/t1/candidates",
-            ).respond(status_code=200, json=_CANDIDATE_INVITE)
+            ).respond(status_code=200, json=_CANDIDATE)
             first_ats_state = 0
             second_ats_state = 22
             with HackerRank(api_key="test-key") as client:
@@ -415,12 +399,10 @@ class TestCandidateInviteAtsState:
                     email="c@x.com",
                     ats_state=second_ats_state,
                 )
-        assert (
-            _route_json(route=route, index=0)["ats_state"] == first_ats_state
-        )
-        assert (
-            _route_json(route=route, index=1)["ats_state"] == second_ats_state
-        )
+        first_body = _indexed_route_json(route=route, index=0)
+        second_body = _indexed_route_json(route=route, index=1)
+        assert first_body["ats_state"] == first_ats_state
+        assert second_body["ats_state"] == second_ats_state
 
     @staticmethod
     @pytest.mark.asyncio
@@ -429,7 +411,7 @@ class TestCandidateInviteAtsState:
         with respx.mock(assert_all_called=True) as router:
             route = router.post(
                 url=f"{_BASE}/tests/t1/candidates",
-            ).respond(status_code=200, json=_CANDIDATE_INVITE)
+            ).respond(status_code=200, json=_CANDIDATE)
             async_ats_state = 5
             async with AsyncHackerRank(api_key="test-key") as client:
                 await client.tests.candidates.invite(
@@ -437,58 +419,4 @@ class TestCandidateInviteAtsState:
                     email="c@x.com",
                     ats_state=async_ats_state,
                 )
-        body = _route_json(route=route, index=None)
-        assert body["ats_state"] == async_ats_state
-
-
-class TestRouteHelpers:
-    """Coverage for request-capture helper edge cases."""
-
-    @staticmethod
-    def test_route_request_rejects_non_callable_getitem() -> None:
-        """Indexed capture fails when ``calls`` has no ``__getitem__``."""
-        route = respx.Route(method="GET", url=f"{_BASE}/x").respond(
-            status_code=200,
-            json={},
-        )
-        bad_calls: Any = object()
-        route.calls = bad_calls
-        with pytest.raises(expected_exception=TypeError, match="call list"):
-            _route_request(route=route, index=0)
-
-    @staticmethod
-    def test_route_request_rejects_missing_request_attr() -> None:
-        """Capture fails when the call object has no ``request``."""
-        route = respx.Route(method="GET", url=f"{_BASE}/x").respond(
-            status_code=200,
-            json={},
-        )
-
-        class _Call:
-            request = "not-a-request"
-
-        bad_calls: Any = [_Call()]
-        route.calls = bad_calls
-        with pytest.raises(
-            expected_exception=TypeError,
-            match=r"httpx\.Request",
-        ):
-            _route_request(route=route, index=0)
-
-    @staticmethod
-    def test_as_str_keyed_dict_rejects_non_dict() -> None:
-        """Non-dict values yield ``None``."""
-        assert _as_str_keyed_dict(value=["x"]) is None
-
-    @staticmethod
-    def test_route_json_rejects_non_object_body() -> None:
-        """JSON bodies that are not objects raise ``TypeError``."""
-        with respx.mock(assert_all_called=True) as router:
-            route = router.post(url=f"{_BASE}/x").respond(
-                status_code=200,
-                json={},
-            )
-            with httpx.Client() as client:
-                client.post(url=f"{_BASE}/x", content=b"[1, 2, 3]")
-        with pytest.raises(expected_exception=TypeError, match="JSON object"):
-            _route_json(route=route, index=None)
+        assert _last_route_json(route=route)["ats_state"] == async_ats_state
