@@ -18,14 +18,14 @@ _HTTP_METHODS = frozenset(
 )
 
 
-def _is_str_keyed_dict(value=*, value: object) -> TypeGuard[dict[str, Any]]:
+def _is_str_keyed_dict(*, value: object) -> TypeGuard[dict[str, Any]]:
     """Return whether ``value`` is a ``dict`` (JSON object keys are
     strings).
     """
     return isinstance(value, dict)
 
 
-def _is_object_list(value=*, value: object) -> TypeGuard[list[object]]:
+def _is_object_list(*, value: object) -> TypeGuard[list[object]]:
     """Return whether ``value`` is a list."""
     return isinstance(value, list)
 
