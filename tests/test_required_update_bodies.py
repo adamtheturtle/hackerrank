@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from typing import Any, cast
+from typing import Any
 
 import httpx
 import pytest
@@ -13,6 +13,8 @@ from beartype.roar import BeartypeCallHintParamViolation
 from hackerrank.async_client import AsyncHackerRank
 from hackerrank.client import HackerRank
 from hackerrank.types import TestsUpdate, UserUpdate
+
+_BAD_BODY: Any = {}
 
 
 def _user_update() -> UserUpdate:
@@ -77,10 +79,9 @@ class TestUserUpdateBody:
     @staticmethod
     def test_omission_rejected_by_constructor() -> None:
         """Missing required fields raise ``TypeError`` at construction."""
+        user_update_ctor: Any = UserUpdate
         with pytest.raises(expected_exception=TypeError):
-            UserUpdate(  # type: ignore[call-arg]  # pyright: ignore[reportCallIssue]  # pylint: disable=no-value-for-parameter
-                firstname="Alice",
-            )
+            user_update_ctor(firstname="Alice")
 
     @staticmethod
     def test_omission_rejected_by_beartype(
@@ -90,7 +91,7 @@ class TestUserUpdateBody:
         with pytest.raises(expected_exception=BeartypeCallHintParamViolation):
             sync_client.users.update(
                 user_id="u1",
-                body=cast("Any", {}),
+                body=_BAD_BODY,
             )
 
     @staticmethod
@@ -165,7 +166,7 @@ class TestUserUpdateBody:
         with pytest.raises(expected_exception=BeartypeCallHintParamViolation):
             await async_client.users.update(
                 user_id="u1",
-                body=cast("Any", {}),
+                body=_BAD_BODY,
             )
 
 
@@ -175,10 +176,9 @@ class TestTestsUpdateBody:
     @staticmethod
     def test_omission_rejected_by_constructor() -> None:
         """Missing required fields raise ``TypeError`` at construction."""
+        tests_update_ctor: Any = TestsUpdate
         with pytest.raises(expected_exception=TypeError):
-            TestsUpdate(  # type: ignore[call-arg]  # pyright: ignore[reportCallIssue]  # pylint: disable=no-value-for-parameter
-                name="T",
-            )
+            tests_update_ctor(name="T")
 
     @staticmethod
     def test_omission_rejected_by_beartype(
@@ -188,7 +188,7 @@ class TestTestsUpdateBody:
         with pytest.raises(expected_exception=BeartypeCallHintParamViolation):
             sync_client.tests.update(
                 test_id="t1",
-                body=cast("Any", {}),
+                body=_BAD_BODY,
             )
 
     @staticmethod
@@ -279,5 +279,5 @@ class TestTestsUpdateBody:
         with pytest.raises(expected_exception=BeartypeCallHintParamViolation):
             await async_client.tests.update(
                 test_id="t1",
-                body=cast("Any", {}),
+                body=_BAD_BODY,
             )
