@@ -8,7 +8,7 @@ that mistake on both clients.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import pytest
 from beartype.roar import BeartypeCallHintParamViolation
@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
     from typing import Any
 
-_BARE = "not-a-list"
+_BARE: Any = "not-a-list"
 
 
 def _sync_calls(
@@ -260,7 +260,7 @@ class TestSyncRejectBareStringLists:
         client = HackerRank(api_key="test-key")
         try:
             for _field_name, call in _sync_calls(client=client):
-                with pytest.raises(BeartypeCallHintParamViolation):
+                with pytest.raises(expected_exception=BeartypeCallHintParamViolation):
                     call()
         finally:
             client.close()
@@ -276,7 +276,7 @@ class TestAsyncRejectBareStringLists:
         client = AsyncHackerRank(api_key="test-key")
         try:
             for _field_name, call in _async_calls(client=client):
-                with pytest.raises(BeartypeCallHintParamViolation):
+                with pytest.raises(expected_exception=BeartypeCallHintParamViolation):
                     await call()
         finally:
             await client.aclose()
