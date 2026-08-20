@@ -49,7 +49,9 @@ class TestNormalizeOpenAPI:
 
     @staticmethod
     def test_strips_examples_and_normalizes_datetime_defaults() -> None:
-        """Example and date-time default differences do not affect equality."""
+        """Example and date-time default differences do not affect
+        equality.
+        """
         left: dict[str, object] = {
             "paths": {
                 "/x/api/v3/candidates/search": {
