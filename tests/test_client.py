@@ -169,6 +169,7 @@ class TestHackerRank:
             client_module.TestCandidatesNamespace,
         )
         assert isinstance(client.templates, client_module.TemplatesNamespace)
+        assert isinstance(client.candidates, client_module.CandidatesNamespace)
         assert isinstance(client.users, client_module.UsersNamespace)
         assert isinstance(client.teams, client_module.TeamsNamespace)
         assert isinstance(

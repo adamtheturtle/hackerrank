@@ -438,7 +438,10 @@ ignore_names = [
     "public_login_url",
     "pygments_style",
     # pytest configuration
+    "pytest_addoption",
     "pytest_collect_file",
+    "pytest_collection_modifyitems",
+    "pytest_configure",
     "pytest_plugins",
     "raise_for_status",
     "RateLimitError",
@@ -535,6 +538,7 @@ plugins = [
 
 [tool.pyrefly]
 errors.non-exhaustive-match = "error"
+search-path = [ "." ]
 
 [tool.pyright]
 typeCheckingMode = "strict"

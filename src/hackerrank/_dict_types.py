@@ -180,6 +180,29 @@ class CandidateDetailDict(TypedDict):
     value: str
 
 
+class CandidateSearchAttemptResultDict(TypedDict):
+    """A test attempt returned by global candidate search."""
+
+    attempt_id: str
+    test_id: str
+    report_url: str
+    score: NotRequired[float]
+    percentage_score: NotRequired[float]
+    attempt_starttime: NotRequired[str]
+    attempt_endtime: NotRequired[str]
+
+
+class CandidateSearchResultDict(TypedDict):
+    """A candidate match from global candidate search."""
+
+    uuid: str
+    name: str
+    email: str
+    created_at: str
+    updated_at: str
+    attempts: list[CandidateSearchAttemptResultDict]
+
+
 class TestCandidateDict(TypedDict):
     """A candidate associated with a test."""
 

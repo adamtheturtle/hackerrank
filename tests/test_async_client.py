@@ -114,6 +114,10 @@ class TestAsyncHackerRank:
             async_client_module.AsyncTemplatesNamespace,
         )
         assert isinstance(
+            client.candidates,
+            async_client_module.AsyncCandidatesNamespace,
+        )
+        assert isinstance(
             client.users,
             async_client_module.AsyncUsersNamespace,
         )

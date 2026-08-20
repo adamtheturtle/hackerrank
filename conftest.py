@@ -40,6 +40,53 @@ def _as_object_list(*, value: object) -> list[object] | None:
     return typed
 
 
+def pytest_addoption(parser: pytest.Parser) -> None:
+    """Register command-line options used by this test suite.
+
+    Args:
+        parser: The pytest argument parser.
+    """
+    parser.addoption(
+        "--run-network",
+        action="store_true",
+        default=False,
+        help="Run tests marked with @pytest.mark.network.",
+    )
+
+
+def pytest_configure(config: pytest.Config) -> None:
+    """Register custom markers.
+
+    Args:
+        config: The pytest config object.
+    """
+    config.addinivalue_line(
+        name="markers",
+        line=(
+            "network: tests that fetch live resources "
+            "(skipped without --run-network)"
+        ),
+    )
+
+
+def pytest_collection_modifyitems(
+    config: pytest.Config,
+    items: list[pytest.Item],
+) -> None:
+    """Skip network tests unless ``--run-network`` is given.
+
+    Args:
+        config: The pytest config object.
+        items: Collected test items.
+    """
+    if config.getoption(name="--run-network"):
+        return
+    skip_network = pytest.mark.skip(reason="need --run-network option to run")
+    for item in items:
+        if "network" in item.keywords:
+            item.add_marker(marker=skip_network)
+
+
 def _fix_schema_required(*, schema: dict[str, Any]) -> dict[str, Any]:
     """Normalize Swagger-style ``required`` flags for OpenAPI 3
     schemas.
