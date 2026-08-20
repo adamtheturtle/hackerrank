@@ -1,0 +1,1 @@
+SCIM pagination preserves an explicit ``startIndex`` of ``0`` instead of rewriting it to ``1``.

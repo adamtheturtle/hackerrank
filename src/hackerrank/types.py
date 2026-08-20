@@ -19,6 +19,7 @@ from hackerrank._dict_types import (
     InterviewTranscriptMessageDict,
     InviterDict,
     QuestionDict,
+    SCIMMessageDict,
     SCIMTeamDict,
     SCIMUserDict,
     TeamDict,
@@ -116,7 +117,7 @@ class SCIMPage[T](list[T]):
         Args:
             iterable: The items for the list.
             schemas: The SCIM schemas for the response.
-            start_index: 1-based index of the first item.
+            start_index: Index of the first item in the page.
             items_per_page: Number of items per page.
             total_results: Total number of items.
         """
@@ -1164,3 +1165,24 @@ class TestsUpdate:
             The update body as a dictionary.
         """
         return dict(asdict(obj=self))
+
+class SCIMMessage:
+    """A SCIM patch acknowledgement response."""
+
+    message: str
+    schemas: list[str] | None = None
+
+    @classmethod
+    def from_dict(cls, data: SCIMMessageDict) -> Self:
+        """Create from an API response dictionary.
+
+        Args:
+            data: The dictionary to convert.
+
+        Returns:
+            A new instance.
+        """
+        return cls(
+            message=data["message"],
+            schemas=data.get("schemas"),
+        )

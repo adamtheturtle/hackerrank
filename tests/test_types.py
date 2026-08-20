@@ -11,6 +11,7 @@ from hackerrank.types import (
     Inviter,
     Page,
     Question,
+    SCIMMessage,
     SCIMPage,
     SCIMTeam,
     SCIMUser,
@@ -400,3 +401,19 @@ class TestFromDict:
         )
         assert body.to_dict()["duration"] == expected_duration
         assert body.to_dict()["questions"] == expected_questions
+
+    @staticmethod
+    def test_scim_message_from_dict() -> None:
+        """``SCIMMessage.from_dict`` populates the dataclass."""
+        message = SCIMMessage.from_dict(
+            data={
+                "schemas": [
+                    "urn:ietf:params:scim:schemas:core:2.0:User",
+                ],
+                "message": "Successful transaction",
+            },
+        )
+        assert message.message == "Successful transaction"
+        assert message.schemas == [
+            "urn:ietf:params:scim:schemas:core:2.0:User",
+        ]
