@@ -36,10 +36,10 @@ _INTERVIEW = {
     "title": "Interview",
     "ai_assistant_available": True,
 }
-_CANDIDATE = {
+_CANDIDATE_INVITE = {
     "id": "c1",
     "email": "c@x.com",
-    "full_name": "Candidate",
+    "test_link": "https://example.com/invite/c1",
 }
 
 
@@ -332,7 +332,7 @@ class TestInterviewBodyFields:
         with respx.mock(assert_all_called=True) as router:
             route = router.put(url=f"{_BASE}/interviews/iv1").respond(
                 status_code=200,
-                json={},
+                json=_INTERVIEW,
             )
             with HackerRank(api_key="test-key") as client:
                 client.interviews.update(
@@ -371,7 +371,7 @@ class TestInterviewBodyFields:
             ).respond(status_code=200, json=_INTERVIEW)
             update_route = router.put(
                 url=f"{_BASE}/interviews/iv1",
-            ).respond(status_code=200, json={})
+            ).respond(status_code=200, json=_INTERVIEW)
             async with AsyncHackerRank(api_key="test-key") as client:
                 created = await client.interviews.create(
                     title="AI interview",
