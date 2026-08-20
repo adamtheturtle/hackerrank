@@ -441,6 +441,7 @@ class TestCandidateInviteAtsState:
                 )
         assert _route_json(route=route)["ats_state"] == async_ats_state
 
+
 class TestRouteHelpers:
     """Coverage for request-capture helper edge cases."""
 
@@ -467,7 +468,9 @@ class TestRouteHelpers:
             request = "not-a-request"
 
         route.calls = [_Call()]  # type: ignore[assignment]
-        with pytest.raises(expected_exception=TypeError, match="httpx.Request"):
+        with pytest.raises(
+            expected_exception=TypeError, match="httpx.Request"
+        ):
             _route_request(route=route, index=0)
 
     @staticmethod
