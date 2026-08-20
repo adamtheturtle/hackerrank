@@ -13,6 +13,7 @@ asyncio
 auth
 beartype
 bool
+callables
 changelog
 codestubs
 config
@@ -23,6 +24,7 @@ dict
 docstring
 endtime
 enum
+falsy
 firstname
 fullstack
 github
