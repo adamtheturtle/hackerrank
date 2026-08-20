@@ -31,7 +31,8 @@ def _load_checked_in_spec() -> dict[str, Any]:
 
 
 def _assert_remote_openapi_matches_checked_in(*, url: str) -> None:
-    """Fetch ``url`` and assert semantic equality with the checked-in schema.
+    """Fetch ``url`` and assert semantic equality with the checked-in
+    schema.
 
     Args:
         url: URL of an OpenAPI document to compare.
