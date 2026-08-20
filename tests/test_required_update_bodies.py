@@ -77,7 +77,7 @@ class TestUserUpdateBody:
     def test_omission_rejected_by_constructor() -> None:
         """Missing required fields raise ``TypeError`` at construction."""
         with pytest.raises(expected_exception=TypeError):
-            UserUpdate(  # type: ignore[call-arg]  # pylint: disable=no-value-for-parameter
+            UserUpdate(  # type: ignore[call-arg]  # pyright: ignore[reportCallIssue]  # pylint: disable=no-value-for-parameter
                 firstname="Alice",
             )
 
@@ -89,7 +89,7 @@ class TestUserUpdateBody:
         with pytest.raises(expected_exception=BeartypeCallHintParamViolation):
             sync_client.users.update(
                 user_id="u1",
-                body={},  # type: ignore[arg-type]
+                body={},  # type: ignore[arg-type]  # pyright: ignore[reportArgumentType]
             )
 
     @staticmethod
@@ -164,7 +164,7 @@ class TestUserUpdateBody:
         with pytest.raises(expected_exception=BeartypeCallHintParamViolation):
             await async_client.users.update(
                 user_id="u1",
-                body={},  # type: ignore[arg-type]
+                body={},  # type: ignore[arg-type]  # pyright: ignore[reportArgumentType]
             )
 
 
@@ -175,7 +175,7 @@ class TestTestsUpdateBody:
     def test_omission_rejected_by_constructor() -> None:
         """Missing required fields raise ``TypeError`` at construction."""
         with pytest.raises(expected_exception=TypeError):
-            TestsUpdate(  # type: ignore[call-arg]  # pylint: disable=no-value-for-parameter
+            TestsUpdate(  # type: ignore[call-arg]  # pyright: ignore[reportCallIssue]  # pylint: disable=no-value-for-parameter
                 name="T",
             )
 
@@ -187,7 +187,7 @@ class TestTestsUpdateBody:
         with pytest.raises(expected_exception=BeartypeCallHintParamViolation):
             sync_client.tests.update(
                 test_id="t1",
-                body={},  # type: ignore[arg-type]
+                body={},  # type: ignore[arg-type]  # pyright: ignore[reportArgumentType]
             )
 
     @staticmethod
@@ -278,5 +278,5 @@ class TestTestsUpdateBody:
         with pytest.raises(expected_exception=BeartypeCallHintParamViolation):
             await async_client.tests.update(
                 test_id="t1",
-                body={},  # type: ignore[arg-type]
+                body={},  # type: ignore[arg-type]  # pyright: ignore[reportArgumentType]
             )
