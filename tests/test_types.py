@@ -80,7 +80,7 @@ class TestSCIMPage:
         assert page.start_index == 1
 
 
-class TestFromDict:
+class TestFromDict:  # pylint: disable=too-many-public-methods
     """Tests for the ``from_dict`` constructors."""
 
     @staticmethod
