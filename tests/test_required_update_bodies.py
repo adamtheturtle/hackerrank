@@ -77,7 +77,9 @@ class TestUserUpdateBody:
     def test_omission_rejected_by_constructor() -> None:
         """Missing required fields raise ``TypeError`` at construction."""
         with pytest.raises(expected_exception=TypeError):
-            UserUpdate(firstname="Alice")  # type: ignore[call-arg]
+            UserUpdate(  # type: ignore[call-arg]  # pylint: disable=no-value-for-parameter
+                firstname="Alice",
+            )
 
     @staticmethod
     def test_omission_rejected_by_beartype(
@@ -173,7 +175,9 @@ class TestTestsUpdateBody:
     def test_omission_rejected_by_constructor() -> None:
         """Missing required fields raise ``TypeError`` at construction."""
         with pytest.raises(expected_exception=TypeError):
-            TestsUpdate(name="T")  # type: ignore[call-arg]
+            TestsUpdate(  # type: ignore[call-arg]  # pylint: disable=no-value-for-parameter
+                name="T",
+            )
 
     @staticmethod
     def test_omission_rejected_by_beartype(
