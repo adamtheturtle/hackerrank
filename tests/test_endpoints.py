@@ -32,6 +32,12 @@ class TestSyncEndpoints:
             created_at="2024-01-01..2024-01-02",
             updated_at="2024-01-01..2024-01-02",
             ended_at="2024-01-01..2024-01-02",
+            user=1,
+            interviewers=2,
+            access="owned",
+            current_status=0,
+            order_by="created_at",
+            order_dir="asc",
         )
         sync_client.interviews.create(title="t")
         sync_client.interviews.create(
@@ -46,6 +52,7 @@ class TestSyncEndpoints:
             send_email=True,
             metadata={"x": "y"},
             interview_template_id=1,
+            ai_assistant_available=True,
         )
         sync_client.interviews.get(interview_id="iv1")
         sync_client.interviews.update(
@@ -55,11 +62,14 @@ class TestSyncEndpoints:
             to="2024",
             notes="n",
             resume_url="r",
+            interviewers=["a@b.com"],
             result_url="rr",
             candidate={"email": "c@x.com"},
             send_email=True,
+            replace_interviewers=True,
             metadata={"x": "y"},
             interview_template_id=1,
+            ai_assistant_available=False,
         )
         sync_client.interviews.delete(interview_id="iv1")
         sync_client.interviews.get_transcript(interview_id="iv1")
@@ -68,7 +78,11 @@ class TestSyncEndpoints:
     def test_interview_templates(sync_client: HackerRank) -> None:
         """Exercise the ``interview_templates`` namespace."""
         sync_client.interview_templates.list()
-        sync_client.interview_templates.list(limit=1, offset=0)
+        sync_client.interview_templates.list(
+            limit=1,
+            offset=0,
+            filter="owned",
+        )
         sync_client.interview_templates.create(name="t")
         sync_client.interview_templates.create(
             name="t",
@@ -155,7 +169,18 @@ class TestSyncEndpoints:
     def test_questions(sync_client: HackerRank) -> None:
         """Exercise the ``questions`` namespace."""
         sync_client.questions.list()
-        sync_client.questions.list(limit=1, offset=0)
+        sync_client.questions.list(
+            limit=1,
+            offset=0,
+            status="active",
+            access=["owned"],
+            difficulty=["easy"],
+            type=["code"],
+            owner=["1"],
+            tags=["algo"],
+            skills=["python"],
+            languages=["python3"],
+        )
         sync_client.questions.create(
             name="Q",
             type="code",
@@ -403,6 +428,7 @@ class TestSyncEndpoints:
             test_id="t1",
             email="c@x.com",
             full_name="Alice",
+            ats_state=3,
             send_email=True,
             evaluator_email="e@x.com",
             test_result_url="r",
@@ -455,7 +481,7 @@ class TestSyncEndpoints:
     def test_templates(sync_client: HackerRank) -> None:
         """Exercise the ``templates`` namespace."""
         sync_client.templates.list()
-        sync_client.templates.list(limit=1, offset=0)
+        sync_client.templates.list(limit=1, offset=0, access="owned")
         sync_client.templates.get(template_id="tpl1")
 
     @staticmethod
@@ -641,7 +667,19 @@ class TestAsyncEndpoints:
     ) -> None:
         """Exercise the async ``interviews`` namespace."""
         await async_client.interviews.list()
-        await async_client.interviews.list(limit=1, offset=0)
+        await async_client.interviews.list(
+            limit=1,
+            offset=0,
+            created_at="2024-01-01..2024-01-02",
+            updated_at="2024-01-01..2024-01-02",
+            ended_at="2024-01-01..2024-01-02",
+            user=1,
+            interviewers=2,
+            access="owned",
+            current_status=0,
+            order_by="created_at",
+            order_dir="asc",
+        )
         await async_client.interviews.create(title="t")
         await async_client.interviews.create(
             title="t",
@@ -655,6 +693,7 @@ class TestAsyncEndpoints:
             send_email=True,
             metadata={"x": "y"},
             interview_template_id=1,
+            ai_assistant_available=True,
         )
         await async_client.interviews.get(interview_id="iv1")
         await async_client.interviews.update(
@@ -664,11 +703,14 @@ class TestAsyncEndpoints:
             to="2024",
             notes="n",
             resume_url="r",
+            interviewers=["a@b.com"],
             result_url="rr",
             candidate={"email": "c@x.com"},
             send_email=True,
+            replace_interviewers=True,
             metadata={"x": "y"},
             interview_template_id=1,
+            ai_assistant_available=False,
         )
         await async_client.interviews.delete(interview_id="iv1")
         await async_client.interviews.get_transcript(
@@ -685,6 +727,7 @@ class TestAsyncEndpoints:
         await async_client.interview_templates.list(
             limit=1,
             offset=0,
+            filter="owned",
         )
         await async_client.interview_templates.create(name="t")
         await async_client.interview_templates.create(
@@ -782,7 +825,18 @@ class TestAsyncEndpoints:
     ) -> None:
         """Exercise the async ``questions`` namespace."""
         await async_client.questions.list()
-        await async_client.questions.list(limit=1, offset=0)
+        await async_client.questions.list(
+            limit=1,
+            offset=0,
+            status="active",
+            access=["owned"],
+            difficulty=["easy"],
+            type=["code"],
+            owner=["1"],
+            tags=["algo"],
+            skills=["python"],
+            languages=["python3"],
+        )
         await async_client.questions.create(
             name="Q",
             type="code",
@@ -1039,6 +1093,7 @@ class TestAsyncEndpoints:
             test_id="t1",
             email="c@x.com",
             full_name="Alice",
+            ats_state=3,
             send_email=True,
             evaluator_email="e@x.com",
             test_result_url="r",
@@ -1094,7 +1149,11 @@ class TestAsyncEndpoints:
     ) -> None:
         """Exercise the async ``templates`` namespace."""
         await async_client.templates.list()
-        await async_client.templates.list(limit=1, offset=0)
+        await async_client.templates.list(
+            limit=1,
+            offset=0,
+            access="owned",
+        )
         await async_client.templates.get(template_id="tpl1")
 
     @staticmethod

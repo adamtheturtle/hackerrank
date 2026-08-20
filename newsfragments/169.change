@@ -1,0 +1,3 @@
+Expose documented list filters and body fields for interviews,
+questions, templates, and candidate invites on sync and async
+clients.

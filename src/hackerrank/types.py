@@ -11,9 +11,11 @@ from hackerrank._dict_types import (
     ATSCodeScreenDict,
     AuditLogDict,
     CandidateDetailDict,
+    CandidateInviteDict,
     EnvironmentDict,
     EnvironmentRuntimeDict,
     InterviewDict,
+    InterviewerDict,
     InterviewTemplateDict,
     InterviewTranscriptDict,
     InterviewTranscriptMessageDict,
@@ -24,6 +26,7 @@ from hackerrank._dict_types import (
     SCIMUserDict,
     TeamDict,
     TemplateDict,
+    TestCandidateDetailFieldDict,
     TestCandidateDict,
     TestDict,
     UserDict,
@@ -156,6 +159,30 @@ class CandidateDetail:
 
 @beartype
 @dataclass(frozen=True, kw_only=True)
+class Interviewer:
+    """An interviewer identified by email and optional name."""
+
+    email: str
+    name: str | None = None
+
+    @classmethod
+    def from_dict(cls, data: InterviewerDict) -> Self:
+        """Create from an API response dictionary.
+
+        Args:
+            data: The dictionary to convert.
+
+        Returns:
+            A new instance.
+        """
+        return cls(
+            email=data["email"],
+            name=data.get("name"),
+        )
+
+
+@beartype
+@dataclass(frozen=True, kw_only=True)
 class Interview:
     """A HackerRank interview."""
 
@@ -167,7 +194,7 @@ class Interview:
     thumbs_up: int | None = None
     notes: str | None = None
     resume_url: str | None = None
-    interviewers: list[str] | None = None
+    interviewers: list[str | Interviewer] | None = None
     result_url: str | None = None
     candidate: dict[str, JSONValue] | None = None
     metadata: dict[str, JSONValue] | None = None
@@ -178,6 +205,10 @@ class Interview:
     updated_at: str | None = None
     user: int | None = None
     send_email: bool | None = None
+    from_: str | None = None
+    to: str | None = None
+    started_at: str | None = None
+    ai_assistant_available: bool | None = None
 
     @classmethod
     def from_dict(cls, data: InterviewDict) -> Self:
@@ -189,6 +220,18 @@ class Interview:
         Returns:
             A new instance.
         """
+        raw_interviewers = data.get("interviewers")
+        interviewers: list[str | Interviewer] | None
+        if raw_interviewers is None:
+            interviewers = None
+        else:
+            interviewers = [
+                item
+                if isinstance(item, str)
+                else Interviewer.from_dict(data=item)
+                for item in raw_interviewers
+            ]
+        from_value = data.get("from")
         return cls(
             id=data["id"],
             status=data["status"],
@@ -198,7 +241,7 @@ class Interview:
             thumbs_up=data.get("thumbs_up"),
             notes=data.get("notes"),
             resume_url=data.get("resume_url"),
-            interviewers=data.get("interviewers"),
+            interviewers=interviewers,
             result_url=data.get("result_url"),
             candidate=data.get("candidate"),
             metadata=data.get("metadata"),
@@ -211,6 +254,12 @@ class Interview:
             updated_at=data.get("updated_at"),
             user=data.get("user"),
             send_email=data.get("send_email"),
+            from_=from_value,
+            to=data.get("to"),
+            started_at=data.get("started_at"),
+            ai_assistant_available=data.get(
+                "ai_assistant_available",
+            ),
         )
 
 
@@ -446,6 +495,38 @@ class Question:
 
 @beartype
 @dataclass(frozen=True, kw_only=True)
+class TestCandidateDetailField:
+    """A candidate-detail field descriptor configured on a test."""
+
+    __test__: ClassVar[bool] = False
+
+    predefined_label: str | None = None
+    required: bool | None = None
+    title: str | None = None
+    type: str | None = None
+    options: list[str] | None = None
+
+    @classmethod
+    def from_dict(cls, data: TestCandidateDetailFieldDict) -> Self:
+        """Create from an API response dictionary.
+
+        Args:
+            data: The dictionary to convert.
+
+        Returns:
+            A new instance.
+        """
+        return cls(
+            predefined_label=data.get("predefined_label"),
+            required=data.get("required"),
+            title=data.get("title"),
+            type=data.get("type"),
+            options=data.get("options"),
+        )
+
+
+@beartype
+@dataclass(frozen=True, kw_only=True)
 class Test:
     """A HackerRank test."""
 
@@ -465,7 +546,7 @@ class Test:
     locked: bool | None = None
     draft: bool | None = None
     languages: list[str] | None = None
-    candidate_details: list[str] | None = None
+    candidate_details: list[str | TestCandidateDetailField] | None = None
     custom_acknowledge_text: str | None = None
     cutoff_score: int | None = None
     master_password: str | None = None
@@ -474,7 +555,7 @@ class Test:
     role_ids: list[str] | None = None
     experience: list[str] | None = None
     questions: list[str] | None = None
-    sections: list[dict[str, JSONValue]] | None = None
+    sections: dict[str, JSONValue] | None = None
     mcq_incorrect_score: int | None = None
     mcq_correct_score: int | None = None
     locked_by: str | None = None
@@ -501,6 +582,17 @@ class Test:
         Returns:
             A new instance.
         """
+        raw_details = data.get("candidate_details")
+        candidate_details: list[str | TestCandidateDetailField] | None
+        if raw_details is None:
+            candidate_details = None
+        else:
+            candidate_details = [
+                item
+                if isinstance(item, str)
+                else TestCandidateDetailField.from_dict(data=item)
+                for item in raw_details
+            ]
         return cls(
             id=data["id"],
             name=data["name"],
@@ -516,7 +608,7 @@ class Test:
             locked=data.get("locked"),
             draft=data.get("draft"),
             languages=data.get("languages"),
-            candidate_details=data.get("candidate_details"),
+            candidate_details=candidate_details,
             custom_acknowledge_text=data.get(
                 "custom_acknowledge_text",
             ),
@@ -593,7 +685,7 @@ class TestCandidate:
     pdf_url: str | None = None
     scores_tags_split: dict[str, JSONValue] | None = None
     scores_skills_split: dict[str, JSONValue] | None = None
-    added_time: int | None = None
+    added_time: str | int | None = None
     unclaimed_added_time: int | None = None
     comments: dict[str, JSONValue] | None = None
     performance_summary: str | None = None
@@ -963,8 +1055,34 @@ class AuditLog:
 
 @beartype
 @dataclass(frozen=True, kw_only=True)
+class CandidateInvite:
+    """Success payload for inviting a candidate to a test."""
+
+    test_link: str
+    email: str
+    id: int | str
+
+    @classmethod
+    def from_dict(cls, data: CandidateInviteDict) -> Self:
+        """Create from an API response dictionary.
+
+        Args:
+            data: The dictionary to convert.
+
+        Returns:
+            A new instance.
+        """
+        return cls(
+            test_link=data["test_link"],
+            email=data["email"],
+            id=data["id"],
+        )
+
+
+@beartype
+@dataclass(frozen=True, kw_only=True)
 class ATSCodePair:
-    """Result of an ATS Codepair invite."""
+    """Request-shaped payload for an ATS Codepair invite."""
 
     title: str | None = None
     requisition_id: str | None = None
@@ -996,7 +1114,7 @@ class ATSCodePair:
 @beartype
 @dataclass(frozen=True, kw_only=True)
 class ATSCodeScreen:
-    """Result of an ATS CodeScreen invite."""
+    """Request-shaped payload for an ATS CodeScreen invite."""
 
     test_id: str | None = None
     requisition_id: str | None = None
@@ -1166,6 +1284,9 @@ class TestsUpdate:
         """
         return dict(asdict(obj=self))
 
+
+@beartype
+@dataclass(frozen=True, kw_only=True)
 class SCIMMessage:
     """A SCIM patch acknowledgement response."""
 
