@@ -2678,6 +2678,9 @@ class SCIMNamespace(_Namespace):
 class HackerRank:
     """A client for the HackerRank for Work API."""
 
+    base_url: str
+    scim_base_url: str
+
     def __init__(
         self,
         *,
@@ -2697,8 +2700,8 @@ class HackerRank:
             transport: The HTTP transport. Defaults to
                 ``HTTPXTransport()``.
         """
-        self.base_url = base_url.rstrip("/")
-        self.scim_base_url = scim_base_url.rstrip("/")
+        self.base_url: str = base_url.rstrip("/")
+        self.scim_base_url: str = scim_base_url.rstrip("/")
         resolved_transport = (
             HTTPXTransport() if transport is None else transport
         )

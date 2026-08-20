@@ -2669,6 +2669,9 @@ class AsyncSCIMNamespace(_AsyncNamespace):
 class AsyncHackerRank:
     """An async client for the HackerRank for Work API."""
 
+    base_url: str
+    scim_base_url: str
+
     def __init__(
         self,
         *,
@@ -2688,8 +2691,8 @@ class AsyncHackerRank:
             transport: The HTTP transport. Defaults to
                 ``AsyncHTTPXTransport()``.
         """
-        self.base_url = base_url.rstrip("/")
-        self.scim_base_url = scim_base_url.rstrip("/")
+        self.base_url: str = base_url.rstrip("/")
+        self.scim_base_url: str = scim_base_url.rstrip("/")
         resolved_transport = (
             AsyncHTTPXTransport() if transport is None else transport
         )
