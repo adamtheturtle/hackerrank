@@ -1,7 +1,0 @@
-Add ``client.interview_templates.explicit_sharing_roles`` with
-``update_access`` and ``remove_access`` for sharing an interview template with
-users, teams or the whole company.
-
-Remove the ``team_share`` argument from interview-template ``create`` and
-``update``. HackerRank ignores the parameter and has removed it from the API
-documentation; use ``explicit_sharing_roles`` instead.

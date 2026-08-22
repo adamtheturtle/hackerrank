@@ -1,2 +1,0 @@
-Add ``client.candidates.search`` (sync and async) for the global
-candidate-search endpoint, with typed attempt and candidate results.

@@ -1,3 +1,0 @@
-Accept documented object-form interviewers and candidate_details, preserve
-interview schedule / live fields, and return invite and update response
-bodies from sync and async clients.

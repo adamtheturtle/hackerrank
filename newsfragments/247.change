@@ -1,2 +1,0 @@
-Refresh ``openapi.json`` from the live HackerRank schema and add a
-semantic drift check that ignores dynamic example timestamps.
