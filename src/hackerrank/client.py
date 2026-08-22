@@ -534,8 +534,93 @@ class InterviewsNamespace(_Namespace):
 
 
 @beartype
+class ExplicitSharingRolesNamespace(_Namespace):
+    """Namespace for interview-template explicit-sharing operations."""
+
+    def update_access(
+        self,
+        *,
+        template_id: int | str,
+        explicit_roles: Sequence[Mapping[str, JSONValue]],
+    ) -> None:
+        """Grant or change access to a template.
+
+        Args:
+            template_id: The id of the template.
+            explicit_roles: The accesses to grant. Each item is a
+                mapping with ``rollable_type`` (``"user"``, ``"team"``
+                or ``"company"``), ``role_name`` (``"viewer"`` or
+                ``"editor"``) and, unless the type is ``"company"``,
+                ``rollable_id`` keys.
+        """
+        self._request(
+            method="POST",
+            url=(
+                f"{_API_V3}/interview_templates/{template_id}"
+                f"/explicit_sharing_roles/update_access"
+            ),
+            json={"explicit_roles": [dict(role) for role in explicit_roles]},
+            params=None,
+            files=None,
+        )
+
+    def remove_access(
+        self,
+        *,
+        template_id: int | str,
+        explicit_roles: Sequence[Mapping[str, JSONValue]],
+    ) -> None:
+        """Revoke access to a template.
+
+        Args:
+            template_id: The id of the template.
+            explicit_roles: The accesses to revoke. Each item is a
+                mapping with ``rollable_type`` (``"user"``, ``"team"``
+                or ``"company"``) and, unless the type is
+                ``"company"``, ``rollable_id`` keys.
+        """
+        self._request(
+            method="DELETE",
+            url=(
+                f"{_API_V3}/interview_templates/{template_id}"
+                f"/explicit_sharing_roles/remove_access"
+            ),
+            json={"explicit_roles": [dict(role) for role in explicit_roles]},
+            params=None,
+            files=None,
+        )
+
+
+@beartype
 class InterviewTemplatesNamespace(_Namespace):
     """Namespace for interview-template operations."""
+
+    def __init__(
+        self,
+        *,
+        transport: Transport,
+        base_url: str,
+        headers: dict[str, str],
+    ) -> None:
+        """Create the namespace.
+
+        Args:
+            transport: The HTTP transport.
+            base_url: The base URL for the API.
+            headers: Headers to send with every request.
+        """
+        super().__init__(
+            transport=transport,
+            base_url=base_url,
+            headers=headers,
+        )
+        self.explicit_sharing_roles: ExplicitSharingRolesNamespace = (
+            ExplicitSharingRolesNamespace(
+                transport=transport,
+                base_url=base_url,
+                headers=headers,
+            )
+        )
 
     def list(
         self,
@@ -581,7 +666,6 @@ class InterviewTemplatesNamespace(_Namespace):
         *,
         name: str,
         role_id: str | None = None,
-        team_share: int | None = None,
         question_ids: Sequence[int] | None = None,
     ) -> InterviewTemplate:
         """Create an interview template.
@@ -589,7 +673,6 @@ class InterviewTemplatesNamespace(_Namespace):
         Args:
             name: The template name.
             role_id: Role unique id for the template.
-            team_share: Team-share flag.
             question_ids: Question ids to add to the template.
 
         Returns:
@@ -599,7 +682,6 @@ class InterviewTemplatesNamespace(_Namespace):
             {
                 "name": name,
                 "role_id": role_id,
-                "team_share": team_share,
                 "question_ids": (
                     list(question_ids) if question_ids is not None else None
                 ),
@@ -638,7 +720,6 @@ class InterviewTemplatesNamespace(_Namespace):
         template_id: int | str,
         name: str | None = None,
         role_id: str | None = None,
-        team_share: int | None = None,
         scorecard_id: int | None = None,
     ) -> InterviewTemplate:
         """Update an interview template.
@@ -647,7 +728,6 @@ class InterviewTemplatesNamespace(_Namespace):
             template_id: The id of the template.
             name: New name.
             role_id: New role unique id.
-            team_share: New team-share flag.
             scorecard_id: New scorecard id.
 
         Returns:
@@ -657,7 +737,6 @@ class InterviewTemplatesNamespace(_Namespace):
             {
                 "name": name,
                 "role_id": role_id,
-                "team_share": team_share,
                 "scorecard_id": scorecard_id,
             },
         )
