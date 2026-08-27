@@ -1,1 +1,0 @@
-Unexpected HTTP 3xx redirect responses now raise ``RedirectError`` instead of being treated as successful API responses.

@@ -1,1 +1,0 @@
-``HackerRank`` and ``AsyncHackerRank`` accept a ``retries`` argument, defaulting to ``0``, which retries transport errors and ``429``, ``500``, ``502``, ``503`` and ``504`` responses for the requests which are safe to repeat.

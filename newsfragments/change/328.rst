@@ -1,1 +1,0 @@
-The built-in ``HTTPXTransport`` and ``AsyncHTTPXTransport`` now default to a 60 second timeout instead of inheriting ``httpx``'s 5 second default, and accept a ``timeout`` argument so callers can choose their own.
