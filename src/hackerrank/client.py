@@ -407,6 +407,9 @@ class InterviewsNamespace(_Namespace):
     ) -> Interview:
         """Create an interview.
 
+        Not safe to retry: a lost response may still have created the
+        interview, so a second attempt can leave a duplicate.
+
         Args:
             title: Title of the interview.
             from_: Scheduled start time.
@@ -494,6 +497,9 @@ class InterviewsNamespace(_Namespace):
     ) -> Interview:
         """Update an interview.
 
+        Safe to retry: the request replaces the interview's fields, so
+        sending it twice has the same effect as sending it once.
+
         Args:
             interview_id: The id of the interview.
             title: New title.
@@ -550,6 +556,9 @@ class InterviewsNamespace(_Namespace):
     def delete(self, *, interview_id: str) -> None:
         """Delete an interview.
 
+        Safe to retry: the interview is gone either way, though a
+        repeat may report that it was not found.
+
         Args:
             interview_id: The id of the interview.
         """
@@ -598,6 +607,9 @@ class ExplicitSharingRolesNamespace(_Namespace):
     ) -> None:
         """Grant or change access to a template.
 
+        Safe to retry: the request replaces the given roles rather than
+        adding to them.
+
         Args:
             template_id: The id of the template.
             explicit_roles: The accesses to grant. Each item is a
@@ -625,6 +637,8 @@ class ExplicitSharingRolesNamespace(_Namespace):
         explicit_roles: Sequence[Mapping[str, JSONValue]],
     ) -> None:
         """Revoke access to a template.
+
+        Safe to retry: the roles are gone either way.
 
         Args:
             template_id: The id of the template.
@@ -731,6 +745,9 @@ class InterviewTemplatesNamespace(_Namespace):
     ) -> InterviewTemplate:
         """Create an interview template.
 
+        Not safe to retry: a lost response may still have created the
+        template, so a second attempt can leave a duplicate.
+
         Args:
             name: The template name.
             role_id: Role unique id for the template.
@@ -787,6 +804,8 @@ class InterviewTemplatesNamespace(_Namespace):
     ) -> InterviewTemplate:
         """Update an interview template.
 
+        Safe to retry: the request replaces the template's fields.
+
         Args:
             template_id: The id of the template.
             name: New name.
@@ -815,6 +834,9 @@ class InterviewTemplatesNamespace(_Namespace):
 
     def delete(self, *, template_id: int | str) -> None:
         """Delete an interview template.
+
+        Safe to retry: the template is gone either way, though a repeat
+        may report that it was not found.
 
         Args:
             template_id: The id of the template.
@@ -967,6 +989,10 @@ class QuestionsNamespace(_Namespace):
     ) -> Question:
         """Create a question.
 
+        Not safe to retry: a lost response may still have created the
+        question, and this API cannot delete questions, so a duplicate
+        has to be removed by hand in the web interface.
+
         Args:
             name: Question name.
             type: Question type (``code``, ``mcq``, ...).
@@ -1065,6 +1091,8 @@ class QuestionsNamespace(_Namespace):
     ) -> Question | None:
         """Update a question.
 
+        Safe to retry: the request replaces the question's fields.
+
         Args:
             question_id: The id of the question.
             name: New name.
@@ -1132,6 +1160,8 @@ class QuestionsNamespace(_Namespace):
     ) -> dict[str, JSONValue]:
         """Upload a project zip for a fullstack question.
 
+        Safe to retry: uploading again replaces the project archive.
+
         Args:
             question_id: The id of the question.
             file: The zip file content or a binary file object.
@@ -1161,6 +1191,8 @@ class QuestionsNamespace(_Namespace):
     ) -> None:
         """Update custom code-stubs for a question.
 
+        Safe to retry: the request replaces the custom code stubs.
+
         Args:
             question_id: The id of the question.
             codestubs: A mapping describing the code-stubs.
@@ -1181,6 +1213,8 @@ class QuestionsNamespace(_Namespace):
         body: Mapping[str, JSONValue],
     ) -> dict[str, JSONValue]:
         """Generate code-stubs for a question.
+
+        Safe to retry: the request replaces the generated code stubs.
 
         Args:
             question_id: The id of the question.
@@ -1207,6 +1241,8 @@ class QuestionsNamespace(_Namespace):
         body: Mapping[str, JSONValue],
     ) -> dict[str, JSONValue]:
         """Add a test case to a question.
+
+        Not safe to retry: each call appends another test case.
 
         Args:
             question_id: The id of the question.
@@ -1235,6 +1271,8 @@ class QuestionsNamespace(_Namespace):
     ) -> None:
         """Update an existing test case.
 
+        Safe to retry: the request replaces the test case.
+
         Args:
             question_id: The id of the question.
             testcase_id: The id of the test case.
@@ -1257,6 +1295,9 @@ class QuestionsNamespace(_Namespace):
     ) -> None:
         """Delete a single test case.
 
+        Safe to retry: the test case is gone either way, though a
+        repeat may report that it was not found.
+
         Args:
             question_id: The id of the question.
             testcase_id: The id of the test case.
@@ -1272,6 +1313,8 @@ class QuestionsNamespace(_Namespace):
 
     def delete_all_testcases(self, *, question_id: str) -> None:
         """Delete every test case on a question.
+
+        Safe to retry: the test cases are gone either way.
 
         Args:
             question_id: The id of the question.
@@ -1387,6 +1430,9 @@ class TestCandidatesNamespace(_Namespace):
     ) -> CandidateInvite:
         """Invite a candidate to a test.
 
+        Not safe to retry: each call invites the candidate again, which
+        sends them another email.
+
         Args:
             test_id: The id of the test.
             email: Candidate email address.
@@ -1496,6 +1542,8 @@ class TestCandidatesNamespace(_Namespace):
     ) -> TestCandidate:
         """Update a candidate.
 
+        Safe to retry: the request replaces the candidate's fields.
+
         Args:
             test_id: The id of the test.
             candidate_id: The id of the candidate.
@@ -1547,6 +1595,8 @@ class TestCandidatesNamespace(_Namespace):
     ) -> None:
         """Cancel a candidate's invitation.
 
+        Safe to retry: the invite is gone either way.
+
         Args:
             test_id: The id of the test.
             candidate_id: The id of the candidate.
@@ -1569,6 +1619,8 @@ class TestCandidatesNamespace(_Namespace):
         candidate_id: str,
     ) -> None:
         """Delete the report for a candidate.
+
+        Safe to retry: the report is gone either way.
 
         Args:
             test_id: The id of the test.
@@ -1715,6 +1767,9 @@ class TestsNamespace(_Namespace):
     ) -> Test:
         """Create a test.
 
+        Not safe to retry: a lost response may still have created the
+        test, so a second attempt can leave a duplicate.
+
         Args:
             name: The name of the test.
             starttime: Test start time.
@@ -1842,6 +1897,8 @@ class TestsNamespace(_Namespace):
     ) -> None:
         """Update a test.
 
+        Safe to retry: the request replaces the test's fields.
+
         Args:
             test_id: The id of the test.
             body: The required update fields for a test.
@@ -1858,6 +1915,9 @@ class TestsNamespace(_Namespace):
     def delete(self, *, test_id: str) -> None:
         """Delete a test.
 
+        Safe to retry: the test is gone either way, though a repeat may
+        report that it was not found.
+
         Args:
             test_id: The id of the test.
         """
@@ -1873,6 +1933,8 @@ class TestsNamespace(_Namespace):
     def archive(self, *, test_id: str) -> None:
         """Archive a test.
 
+        Safe to retry: an archived test stays archived.
+
         Args:
             test_id: The id of the test.
         """
@@ -1882,7 +1944,7 @@ class TestsNamespace(_Namespace):
             params=None,
             json=None,
             files=None,
-            repeatable=False,
+            repeatable=True,
         )
 
     def list_inviters(
@@ -2114,6 +2176,9 @@ class UsersNamespace(_Namespace):
     ) -> User:
         """Create a user.
 
+        Not safe to retry: a lost response may still have created the
+        user, so a second attempt can leave a duplicate.
+
         Args:
             email: Email address.
             firstname: First name.
@@ -2196,6 +2261,8 @@ class UsersNamespace(_Namespace):
     ) -> None:
         """Update a user.
 
+        Safe to retry: the request replaces the user's fields.
+
         Args:
             user_id: The id of the user.
             body: The required update fields for a user.
@@ -2211,6 +2278,9 @@ class UsersNamespace(_Namespace):
 
     def delete(self, *, user_id: str) -> None:
         """Lock (deactivate) a user.
+
+        Safe to retry: the user is gone either way, though a repeat may
+        report that it was not found.
 
         Args:
             user_id: The id of the user.
@@ -2295,6 +2365,10 @@ class TeamMembershipsNamespace(_Namespace):
     ) -> UserTeamMembership:
         """Add a user to a team.
 
+        Not safe to retry: the API creates the membership rather than
+        setting it, so a repeat may be rejected instead of being
+        accepted as a no-op.
+
         Args:
             team_id: The id of the team.
             user_id: The id of the user.
@@ -2323,6 +2397,8 @@ class TeamMembershipsNamespace(_Namespace):
         user_id: str,
     ) -> None:
         """Remove a user from a team.
+
+        Safe to retry: the membership is gone either way.
 
         Args:
             team_id: The id of the team.
@@ -2412,6 +2488,9 @@ class TeamsNamespace(_Namespace):
     ) -> Team:
         """Create a team.
 
+        Not safe to retry: a lost response may still have created the
+        team, so a second attempt can leave a duplicate.
+
         Args:
             name: Team name.
             recruiter_cap: Recruiter seat cap.
@@ -2479,6 +2558,8 @@ class TeamsNamespace(_Namespace):
     ) -> None:
         """Update a team.
 
+        Safe to retry: the request replaces the team's fields.
+
         Args:
             team_id: The id of the team.
             name: New team name.
@@ -2507,6 +2588,9 @@ class TeamsNamespace(_Namespace):
 
     def delete(self, *, team_id: str) -> None:
         """Delete a team.
+
+        Safe to retry: the team is gone either way, though a repeat may
+        report that it was not found.
 
         Args:
             team_id: The id of the team.
@@ -2581,6 +2665,8 @@ class ATSCodePairNamespace(_Namespace):
     ) -> Interview:
         """Invite a candidate to an ATS Codepair interview.
 
+        Not safe to retry: each call sends another interview invite.
+
         Args:
             title: The interview title.
             requisition_id: The ATS requisition id.
@@ -2633,6 +2719,8 @@ class ATSCodeScreenNamespace(_Namespace):
         accommodations: Mapping[str, JSONValue] | None = None,
     ) -> CandidateInvite:
         """Invite a candidate to a CodeScreen test.
+
+        Not safe to retry: each call sends another test invite.
 
         Args:
             test_id: The test id.
@@ -2789,6 +2877,9 @@ class SCIMUsersNamespace(_Namespace):
     ) -> SCIMUser:
         """Create a SCIM user.
 
+        Not safe to retry: a lost response may still have created the
+        user, so a second attempt can leave a duplicate.
+
         Args:
             body: The SCIM user payload.
 
@@ -2832,6 +2923,8 @@ class SCIMUsersNamespace(_Namespace):
     ) -> SCIMUser:
         """Replace a SCIM user (PUT).
 
+        Safe to retry: the request replaces the whole user.
+
         Args:
             scim_user_id: The id of the SCIM user.
             body: The full SCIM user payload.
@@ -2857,6 +2950,9 @@ class SCIMUsersNamespace(_Namespace):
     ) -> SCIMMessage:
         """Patch a SCIM user.
 
+        Not safe to retry: an operation such as ``add`` on a
+        multi-valued attribute applies again on a second attempt.
+
         Args:
             scim_user_id: The id of the SCIM user.
             operations: The SCIM patch operations.
@@ -2879,6 +2975,9 @@ class SCIMUsersNamespace(_Namespace):
 
     def delete(self, *, scim_user_id: str) -> None:
         """Lock a SCIM user.
+
+        Safe to retry: the user is gone either way, though a repeat may
+        report that it was not found.
 
         Args:
             scim_user_id: The id of the SCIM user.
@@ -2928,6 +3027,9 @@ class SCIMGroupsNamespace(_Namespace):
     def create(self, *, body: Mapping[str, JSONValue]) -> SCIMTeam:
         """Create a SCIM group.
 
+        Not safe to retry: a lost response may still have created the
+        group, so a second attempt can leave a duplicate.
+
         Args:
             body: The SCIM group payload.
 
@@ -2971,6 +3073,9 @@ class SCIMGroupsNamespace(_Namespace):
     ) -> SCIMMessage:
         """Patch a SCIM group.
 
+        Not safe to retry: an operation such as ``add`` on a
+        multi-valued attribute applies again on a second attempt.
+
         Args:
             scim_group_id: The id of the SCIM group.
             operations: The SCIM patch operations.
@@ -2993,6 +3098,9 @@ class SCIMGroupsNamespace(_Namespace):
 
     def delete(self, *, scim_group_id: str) -> None:
         """Deprovision a SCIM group.
+
+        Safe to retry: the group is gone either way, though a repeat
+        may report that it was not found.
 
         Args:
             scim_group_id: The id of the SCIM group.
@@ -3083,8 +3191,9 @@ class HackerRank:
                 replace state rather than create it. Endpoints
                 which create a record are never repeated, because
                 a lost response does not mean that the record was
-                not created. Each retry is logged as a warning on
-                the ``hackerrank`` logger.
+                not created. Each method's own docstring says
+                whether it is safe to retry. Each retry is logged
+                as a warning on the ``hackerrank`` logger.
         """
         self.base_url: str = base_url.rstrip("/")
         self.scim_base_url: str = scim_base_url.rstrip("/")
