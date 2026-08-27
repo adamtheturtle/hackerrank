@@ -23,12 +23,16 @@ from hackerrank.exceptions import (
     UnprocessableEntityError,
 )
 from hackerrank.transports import (
+    DEFAULT_TIMEOUT_SECONDS,
     HTTPStatusError,
     HTTPXTransport,
     Transport,
     TransportResponse,
 )
 from hackerrank.types import JSONValue
+
+# The timeout ``httpx.Client()`` uses when none is given.
+_HTTPX_DEFAULT_TIMEOUT_SECONDS = 5.0
 
 
 class TestHackerRank:
@@ -207,6 +211,59 @@ class TestHTTPXTransport:
         """The transport can be closed."""
         transport = HTTPXTransport()
         transport.close()
+
+    @staticmethod
+    @pytest.mark.parametrize(
+        argnames=("timeout", "expected"),
+        argvalues=[
+            (None, httpx.Timeout(timeout=DEFAULT_TIMEOUT_SECONDS)),
+            (120.0, httpx.Timeout(timeout=120.0)),
+            (120, httpx.Timeout(timeout=120.0)),
+            (
+                httpx.Timeout(timeout=5.0, read=300.0),
+                httpx.Timeout(timeout=5.0, read=300.0),
+            ),
+        ],
+    )
+    def test_timeout(
+        timeout: httpx.Timeout | float | int | None,  # noqa: PYI041
+        expected: httpx.Timeout,
+    ) -> None:
+        """The configured timeout reaches the outgoing request.
+
+        Args:
+            timeout: The timeout to give to the transport, or
+                ``None`` to leave it at its default.
+            expected: The timeout expected on the request.
+        """
+        transport = (
+            HTTPXTransport()
+            if timeout is None
+            else HTTPXTransport(timeout=timeout)
+        )
+        url = "https://timeout.example.com/thing"
+        with respx.mock:
+            route = respx.get(url=url).mock(
+                return_value=httpx.Response(status_code=200, json={}),
+            )
+            try:
+                transport(
+                    method="GET",
+                    url=url,
+                    headers={},
+                    params=None,
+                    json=None,
+                    files=None,
+                )
+            finally:
+                transport.close()
+        request = route.calls.last.request
+        assert request.extensions["timeout"] == expected.as_dict()
+
+    @staticmethod
+    def test_default_timeout_is_not_the_httpx_default() -> None:
+        """The default timeout is not ``httpx``'s 5 second default."""
+        assert DEFAULT_TIMEOUT_SECONDS > _HTTPX_DEFAULT_TIMEOUT_SECONDS
 
 
 class TestListEndpoints:
