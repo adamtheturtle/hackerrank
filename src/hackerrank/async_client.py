@@ -341,7 +341,7 @@ class _AsyncNamespace:
                 delay=delay,
                 reason=reason,
             )
-            await asyncio.sleep(delay)
+            await asyncio.sleep(delay=delay)
 
 
 @beartype

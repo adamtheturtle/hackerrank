@@ -4,7 +4,7 @@ import asyncio
 import io
 import logging
 import time
-from collections.abc import Mapping, Sequence
+from collections.abc import Iterator, Mapping, Sequence
 from http import HTTPStatus
 from pathlib import Path
 from typing import Any
@@ -12,9 +12,7 @@ from typing import Any
 import httpx
 import pytest
 
-from hackerrank._retries import (
-    rewind_files,  # pyright: ignore[reportPrivateUsage]
-)
+from hackerrank._retries import rewind_files
 from hackerrank.async_client import AsyncHackerRank
 from hackerrank.client import HackerRank
 from hackerrank.exceptions import (
@@ -80,6 +78,22 @@ def _error(*, status_code: int) -> TransportResponse:
     return _response(status_code=status_code, headers={}, content=b"{}")
 
 
+def _file_parts(*, files: Mapping[str, Any] | None) -> Iterator[Any]:
+    """Yield each part of a multipart ``files`` mapping.
+
+    The client only ever sends the ``(filename, file, content_type)``
+    tuple which ``httpx`` expects, so that is all this handles.
+
+    Args:
+        files: Files sent as multipart form-data.
+
+    Yields:
+        Each element of each value.
+    """
+    for value in (files or {}).values():
+        yield from value
+
+
 class _ScriptedCalls:
     """Shared recording and scripting for the test transports.
 
@@ -126,12 +140,11 @@ class _ScriptedCalls:
         index = min(len(self.methods), len(self._script) - 1)
         self.methods.append(method)
         self.urls.append(url)
-        for value in (files or {}).values():
-            for part in value if isinstance(value, tuple) else (value,):
-                if isinstance(part, io.IOBase):
-                    self.file_contents.append(part.read())
-                elif isinstance(part, bytes):
-                    self.file_contents.append(part)
+        for part in _file_parts(files=files):
+            if isinstance(part, io.IOBase):
+                self.file_contents.append(part.read())
+            elif isinstance(part, bytes):
+                self.file_contents.append(part)
         result = self._script[index]
         if isinstance(result, Exception):
             raise result
@@ -366,7 +379,7 @@ class TestTransportErrors:
         """
         transport = _ScriptedTransport(
             script=[
-                httpx.ReadTimeout("The read operation timed out"),
+                httpx.ReadTimeout(message="The read operation timed out"),
                 _ok(content=_PAGE_BODY),
             ],
         )
@@ -379,7 +392,7 @@ class TestTransportErrors:
     def test_transport_error_is_raised_when_retries_run_out() -> None:
         """The transport error is raised once the retries run out."""
         transport = _ScriptedTransport(
-            script=[httpx.ConnectError("Connection refused")],
+            script=[httpx.ConnectError(message="Connection refused")],
         )
         client = HackerRank(api_key="key", transport=transport, retries=1)
         with pytest.raises(expected_exception=httpx.ConnectError):
@@ -400,7 +413,7 @@ class TestTransportErrors:
             sleeps: The recorded delays between attempts.
         """
         transport = _ScriptedTransport(
-            script=[httpx.ReadTimeout("The read operation timed out")],
+            script=[httpx.ReadTimeout(message="The read operation timed out")],
         )
         client = HackerRank(api_key="key", transport=transport, retries=5)
         with pytest.raises(expected_exception=httpx.ReadTimeout):
@@ -622,7 +635,7 @@ class TestLogging:
         """
         transport = _ScriptedTransport(
             script=[
-                httpx.ReadTimeout("The read operation timed out"),
+                httpx.ReadTimeout(message="The read operation timed out"),
                 _ok(content=_PAGE_BODY),
             ],
         )
@@ -672,7 +685,7 @@ class TestAsyncRetries:
         """
         transport = _AsyncScriptedTransport(
             script=[
-                httpx.ReadTimeout("The read operation timed out"),
+                httpx.ReadTimeout(message="The read operation timed out"),
                 _ok(content=_PAGE_BODY),
             ],
         )
@@ -703,7 +716,7 @@ class TestAsyncRetries:
     async def test_create_is_not_repeated() -> None:
         """An async create is sent once, however many retries."""
         transport = _AsyncScriptedTransport(
-            script=[httpx.ReadTimeout("The read operation timed out")],
+            script=[httpx.ReadTimeout(message="The read operation timed out")],
         )
         client = AsyncHackerRank(
             api_key="key",
