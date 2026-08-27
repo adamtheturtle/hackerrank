@@ -1,13 +1,21 @@
 """HackerRank for Work API client."""
 
 import builtins
+import time
 from collections.abc import Mapping, Sequence
 from http import HTTPStatus
 from types import TracebackType
 from typing import Any, BinaryIO, Self
 
+import httpx
 from beartype import beartype
 
+from hackerrank._retries import (
+    RETRY_STATUS_CODES,
+    delay_seconds,
+    log_retry,
+    rewind_files,
+)
 from hackerrank.exceptions import HackerRankError
 from hackerrank.transports import (
     HTTPXTransport,
@@ -69,6 +77,7 @@ class _Namespace:
         transport: Transport,
         base_url: str,
         headers: dict[str, str],
+        retries: int,
     ) -> None:
         """Create a new namespace.
 
@@ -76,10 +85,13 @@ class _Namespace:
             transport: The HTTP transport.
             base_url: The base URL for the API.
             headers: Headers to send with every request.
+            retries: The number of times to retry a request
+                which is safe to repeat.
         """
         self.transport = transport
         self.base_url = base_url
         self.headers = headers
+        self.retries = retries
 
     def _request(
         self,
@@ -89,6 +101,7 @@ class _Namespace:
         params: dict[str, str | int] | None,
         json: Mapping[str, JSONValue] | None,
         files: Mapping[str, Any] | None,
+        repeatable: bool,
     ) -> TransportResponse:
         """Make an HTTP request.
 
@@ -98,6 +111,12 @@ class _Namespace:
             params: Query parameters.
             json: JSON-serialisable body.
             files: Files to send as multipart form-data.
+            repeatable: Whether sending this request twice has
+                the same effect as sending it once. A request
+                which is not repeatable is sent exactly once,
+                however many retries are configured, because a
+                lost response does not mean that the write did
+                not happen.
 
         Returns:
             The transport response.
@@ -106,17 +125,45 @@ class _Namespace:
             HackerRankError: If the response has an error
                 or redirect status code.
         """
-        response = self.transport(
-            method=method,
-            url=self.base_url + url,
-            headers=self.headers,
-            params=params,
-            json=json,
-            files=files,
-        )
-        if response.status_code >= HTTPStatus.MULTIPLE_CHOICES:
-            raise HackerRankError.from_response(response=response)
-        return response
+        full_url = self.base_url + url
+        attempts = (1 + self.retries) if repeatable else 1
+        attempt = 0
+        while True:
+            attempt += 1
+            retriable = attempt < attempts
+            try:
+                response = self.transport(
+                    method=method,
+                    url=full_url,
+                    headers=self.headers,
+                    params=params,
+                    json=json,
+                    files=files,
+                )
+            except httpx.TransportError as exc:
+                if not (retriable and rewind_files(files=files)):
+                    raise
+                headers = None
+                reason = type(exc).__name__
+            else:
+                if response.status_code not in RETRY_STATUS_CODES or not (
+                    retriable and rewind_files(files=files)
+                ):
+                    if response.status_code >= HTTPStatus.MULTIPLE_CHOICES:
+                        raise HackerRankError.from_response(response=response)
+                    return response
+                headers = response.headers
+                reason = f"HTTP {response.status_code}"
+            delay = delay_seconds(attempt=attempt, headers=headers)
+            log_retry(
+                method=method,
+                url=full_url,
+                attempt=attempt,
+                attempts=attempts,
+                delay=delay,
+                reason=reason,
+            )
+            time.sleep(delay)
 
 
 def _coerce_int(value: object, /) -> int:
@@ -333,6 +380,7 @@ class InterviewsNamespace(_Namespace):
             ),
             json=None,
             files=None,
+            repeatable=True,
         )
         payload = response.json()
         raw_items = list(payload.get("data", []))
@@ -401,6 +449,7 @@ class InterviewsNamespace(_Namespace):
             json=body,
             params=None,
             files=None,
+            repeatable=False,
         )
         return Interview.from_dict(data=response.json())
 
@@ -419,6 +468,7 @@ class InterviewsNamespace(_Namespace):
             params=None,
             json=None,
             files=None,
+            repeatable=True,
         )
         return Interview.from_dict(data=response.json())
 
@@ -493,6 +543,7 @@ class InterviewsNamespace(_Namespace):
             json=body,
             params=None,
             files=None,
+            repeatable=True,
         )
         return Interview.from_dict(data=response.json())
 
@@ -508,6 +559,7 @@ class InterviewsNamespace(_Namespace):
             params=None,
             json=None,
             files=None,
+            repeatable=True,
         )
 
     def get_transcript(
@@ -529,6 +581,7 @@ class InterviewsNamespace(_Namespace):
             params=None,
             json=None,
             files=None,
+            repeatable=True,
         )
         return InterviewTranscript.from_dict(data=response.json())
 
@@ -562,6 +615,7 @@ class ExplicitSharingRolesNamespace(_Namespace):
             json={"explicit_roles": [dict(role) for role in explicit_roles]},
             params=None,
             files=None,
+            repeatable=True,
         )
 
     def remove_access(
@@ -588,6 +642,7 @@ class ExplicitSharingRolesNamespace(_Namespace):
             json={"explicit_roles": [dict(role) for role in explicit_roles]},
             params=None,
             files=None,
+            repeatable=True,
         )
 
 
@@ -601,6 +656,7 @@ class InterviewTemplatesNamespace(_Namespace):
         transport: Transport,
         base_url: str,
         headers: dict[str, str],
+        retries: int,
     ) -> None:
         """Create the namespace.
 
@@ -608,17 +664,21 @@ class InterviewTemplatesNamespace(_Namespace):
             transport: The HTTP transport.
             base_url: The base URL for the API.
             headers: Headers to send with every request.
+            retries: The number of times to retry a request
+                which is safe to repeat.
         """
         super().__init__(
             transport=transport,
             base_url=base_url,
             headers=headers,
+            retries=retries,
         )
         self.explicit_sharing_roles: ExplicitSharingRolesNamespace = (
             ExplicitSharingRolesNamespace(
                 transport=transport,
                 base_url=base_url,
                 headers=headers,
+                retries=retries,
             )
         )
 
@@ -653,6 +713,7 @@ class InterviewTemplatesNamespace(_Namespace):
             ),
             json=None,
             files=None,
+            repeatable=True,
         )
         payload = response.json()
         raw_items = list(payload.get("data", []))
@@ -693,6 +754,7 @@ class InterviewTemplatesNamespace(_Namespace):
             json=body,
             params=None,
             files=None,
+            repeatable=False,
         )
         return InterviewTemplate.from_dict(data=response.json())
 
@@ -711,6 +773,7 @@ class InterviewTemplatesNamespace(_Namespace):
             params=None,
             json=None,
             files=None,
+            repeatable=True,
         )
         return InterviewTemplate.from_dict(data=response.json())
 
@@ -746,6 +809,7 @@ class InterviewTemplatesNamespace(_Namespace):
             json=body,
             params=None,
             files=None,
+            repeatable=True,
         )
         return InterviewTemplate.from_dict(data=response.json())
 
@@ -761,6 +825,7 @@ class InterviewTemplatesNamespace(_Namespace):
             params=None,
             json=None,
             files=None,
+            repeatable=True,
         )
 
 
@@ -780,6 +845,7 @@ class EnvironmentsNamespace(_Namespace):
             params=None,
             json=None,
             files=None,
+            repeatable=True,
         )
         raw_items = list(response.json().get("environments", []))
         return [Environment.from_dict(data=item) for item in raw_items]
@@ -799,6 +865,7 @@ class EnvironmentsNamespace(_Namespace):
             params=None,
             json=None,
             files=None,
+            repeatable=True,
         )
         return Environment.from_dict(data=response.json()["environment"])
 
@@ -867,6 +934,7 @@ class QuestionsNamespace(_Namespace):
             ),
             json=None,
             files=None,
+            repeatable=True,
         )
         payload = response.json()
         raw_items = list(payload.get("data", []))
@@ -948,6 +1016,7 @@ class QuestionsNamespace(_Namespace):
             json=body,
             params=None,
             files=None,
+            repeatable=False,
         )
         return Question.from_dict(data=response.json())
 
@@ -966,6 +1035,7 @@ class QuestionsNamespace(_Namespace):
             params=None,
             json=None,
             files=None,
+            repeatable=True,
         )
         return Question.from_dict(data=response.json())
 
@@ -1046,6 +1116,7 @@ class QuestionsNamespace(_Namespace):
             json=body,
             params=None,
             files=None,
+            repeatable=True,
         )
         if response.content:
             return Question.from_dict(data=response.json())
@@ -1077,6 +1148,7 @@ class QuestionsNamespace(_Namespace):
             files={"file": (filename, file, content_type)},
             params=None,
             json=None,
+            repeatable=True,
         )
         result: dict[str, JSONValue] = dict(response.json())
         return result
@@ -1099,6 +1171,7 @@ class QuestionsNamespace(_Namespace):
             json=codestubs,
             params=None,
             files=None,
+            repeatable=True,
         )
 
     def generate_codestubs(
@@ -1122,6 +1195,7 @@ class QuestionsNamespace(_Namespace):
             json=body,
             params=None,
             files=None,
+            repeatable=True,
         )
         result: dict[str, JSONValue] = dict(response.json())
         return result
@@ -1147,6 +1221,7 @@ class QuestionsNamespace(_Namespace):
             json=body,
             params=None,
             files=None,
+            repeatable=False,
         )
         result: dict[str, JSONValue] = dict(response.json())
         return result
@@ -1171,6 +1246,7 @@ class QuestionsNamespace(_Namespace):
             json=body,
             params=None,
             files=None,
+            repeatable=True,
         )
 
     def delete_testcase(
@@ -1191,6 +1267,7 @@ class QuestionsNamespace(_Namespace):
             params=None,
             json=None,
             files=None,
+            repeatable=True,
         )
 
     def delete_all_testcases(self, *, question_id: str) -> None:
@@ -1205,6 +1282,7 @@ class QuestionsNamespace(_Namespace):
             params=None,
             json=None,
             files=None,
+            repeatable=True,
         )
 
 
@@ -1235,6 +1313,7 @@ class TestCandidatesNamespace(_Namespace):
             params=_list_params(limit=limit, offset=offset, extra=None),
             json=None,
             files=None,
+            repeatable=True,
         )
         payload = response.json()
         raw_items = list(payload.get("data", []))
@@ -1273,6 +1352,7 @@ class TestCandidatesNamespace(_Namespace):
             params=params,
             json=None,
             files=None,
+            repeatable=True,
         )
         payload = response.json()
         raw_items = list(payload.get("data", []))
@@ -1362,6 +1442,7 @@ class TestCandidatesNamespace(_Namespace):
             json=body,
             params=None,
             files=None,
+            repeatable=False,
         )
         return CandidateInvite.from_dict(data=response.json())
 
@@ -1391,6 +1472,7 @@ class TestCandidatesNamespace(_Namespace):
             params=params or None,
             json=None,
             files=None,
+            repeatable=True,
         )
         return TestCandidate.from_dict(data=response.json())
 
@@ -1453,6 +1535,7 @@ class TestCandidatesNamespace(_Namespace):
             json=body,
             params=None,
             files=None,
+            repeatable=True,
         )
         return TestCandidate.from_dict(data=response.json())
 
@@ -1476,6 +1559,7 @@ class TestCandidatesNamespace(_Namespace):
             params=None,
             json=None,
             files=None,
+            repeatable=True,
         )
 
     def delete_report(
@@ -1498,6 +1582,7 @@ class TestCandidatesNamespace(_Namespace):
             params=None,
             json=None,
             files=None,
+            repeatable=True,
         )
 
     def get_report_pdf(
@@ -1525,6 +1610,7 @@ class TestCandidatesNamespace(_Namespace):
             params={"format": format_},
             json=None,
             files=None,
+            repeatable=True,
         )
         result: dict[str, JSONValue] = dict(response.json())
         return result
@@ -1540,6 +1626,7 @@ class TestsNamespace(_Namespace):
         transport: Transport,
         base_url: str,
         headers: dict[str, str],
+        retries: int,
     ) -> None:
         """Create the namespace.
 
@@ -1547,16 +1634,20 @@ class TestsNamespace(_Namespace):
             transport: The HTTP transport.
             base_url: The base URL for the API.
             headers: Headers to send with every request.
+            retries: The number of times to retry a request
+                which is safe to repeat.
         """
         super().__init__(
             transport=transport,
             base_url=base_url,
             headers=headers,
+            retries=retries,
         )
         self.candidates: TestCandidatesNamespace = TestCandidatesNamespace(
             transport=transport,
             base_url=base_url,
             headers=headers,
+            retries=retries,
         )
 
     def list(
@@ -1580,6 +1671,7 @@ class TestsNamespace(_Namespace):
             params=_list_params(limit=limit, offset=offset, extra=None),
             json=None,
             files=None,
+            repeatable=True,
         )
         payload = response.json()
         raw_items = list(payload.get("data", []))
@@ -1710,6 +1802,7 @@ class TestsNamespace(_Namespace):
             json=body,
             params=None,
             files=None,
+            repeatable=False,
         )
         return Test.from_dict(data=response.json())
 
@@ -1737,6 +1830,7 @@ class TestsNamespace(_Namespace):
             params=params or None,
             json=None,
             files=None,
+            repeatable=True,
         )
         return Test.from_dict(data=response.json())
 
@@ -1758,6 +1852,7 @@ class TestsNamespace(_Namespace):
             json=body.to_dict(),
             params=None,
             files=None,
+            repeatable=True,
         )
 
     def delete(self, *, test_id: str) -> None:
@@ -1772,6 +1867,7 @@ class TestsNamespace(_Namespace):
             params=None,
             json=None,
             files=None,
+            repeatable=True,
         )
 
     def archive(self, *, test_id: str) -> None:
@@ -1786,6 +1882,7 @@ class TestsNamespace(_Namespace):
             params=None,
             json=None,
             files=None,
+            repeatable=False,
         )
 
     def list_inviters(
@@ -1811,6 +1908,7 @@ class TestsNamespace(_Namespace):
             params=_list_params(limit=limit, offset=offset, extra=None),
             json=None,
             files=None,
+            repeatable=True,
         )
         payload = response.json()
         raw_items = list(payload.get("data", []))
@@ -1854,6 +1952,7 @@ class TemplatesNamespace(_Namespace):
             ),
             json=None,
             files=None,
+            repeatable=True,
         )
         payload = response.json()
         raw_items = list(payload.get("data", []))
@@ -1877,6 +1976,7 @@ class TemplatesNamespace(_Namespace):
             params=None,
             json=None,
             files=None,
+            repeatable=True,
         )
         return Template.from_dict(data=response.json())
 
@@ -1913,6 +2013,7 @@ class CandidatesNamespace(_Namespace):
             params=params,
             json=None,
             files=None,
+            repeatable=True,
         )
         payload = response.json()
         raw_items = list(payload.get("data", []))
@@ -1947,6 +2048,7 @@ class UsersNamespace(_Namespace):
             params=_list_params(limit=limit, offset=offset, extra=None),
             json=None,
             files=None,
+            repeatable=True,
         )
         payload = response.json()
         raw_items = list(payload.get("data", []))
@@ -1981,6 +2083,7 @@ class UsersNamespace(_Namespace):
             params=params,
             json=None,
             files=None,
+            repeatable=True,
         )
         payload = response.json()
         raw_items = list(payload.get("data", []))
@@ -2062,6 +2165,7 @@ class UsersNamespace(_Namespace):
             json=body,
             params=None,
             files=None,
+            repeatable=False,
         )
         return User.from_dict(data=response.json())
 
@@ -2080,6 +2184,7 @@ class UsersNamespace(_Namespace):
             params=None,
             json=None,
             files=None,
+            repeatable=True,
         )
         return User.from_dict(data=response.json())
 
@@ -2101,6 +2206,7 @@ class UsersNamespace(_Namespace):
             json=body.to_dict(),
             params=None,
             files=None,
+            repeatable=True,
         )
 
     def delete(self, *, user_id: str) -> None:
@@ -2115,6 +2221,7 @@ class UsersNamespace(_Namespace):
             params=None,
             json=None,
             files=None,
+            repeatable=True,
         )
 
 
@@ -2145,6 +2252,7 @@ class TeamMembershipsNamespace(_Namespace):
             params=_list_params(limit=limit, offset=offset, extra=None),
             json=None,
             files=None,
+            repeatable=True,
         )
         payload = response.json()
         raw_items = list(payload.get("data", []))
@@ -2174,6 +2282,7 @@ class TeamMembershipsNamespace(_Namespace):
             params=None,
             json=None,
             files=None,
+            repeatable=True,
         )
         return UserTeamMembership.from_dict(data=response.json())
 
@@ -2203,6 +2312,7 @@ class TeamMembershipsNamespace(_Namespace):
             params=params or None,
             json=None,
             files=None,
+            repeatable=False,
         )
         return UserTeamMembership.from_dict(data=response.json())
 
@@ -2224,6 +2334,7 @@ class TeamMembershipsNamespace(_Namespace):
             params=None,
             json=None,
             files=None,
+            repeatable=True,
         )
 
 
@@ -2237,6 +2348,7 @@ class TeamsNamespace(_Namespace):
         transport: Transport,
         base_url: str,
         headers: dict[str, str],
+        retries: int,
     ) -> None:
         """Create the namespace.
 
@@ -2244,16 +2356,20 @@ class TeamsNamespace(_Namespace):
             transport: The HTTP transport.
             base_url: The base URL for the API.
             headers: Headers to send with every request.
+            retries: The number of times to retry a request
+                which is safe to repeat.
         """
         super().__init__(
             transport=transport,
             base_url=base_url,
             headers=headers,
+            retries=retries,
         )
         self.memberships: TeamMembershipsNamespace = TeamMembershipsNamespace(
             transport=transport,
             base_url=base_url,
             headers=headers,
+            retries=retries,
         )
 
     def list(
@@ -2277,6 +2393,7 @@ class TeamsNamespace(_Namespace):
             params=_list_params(limit=limit, offset=offset, extra=None),
             json=None,
             files=None,
+            repeatable=True,
         )
         payload = response.json()
         raw_items = list(payload.get("data", []))
@@ -2326,6 +2443,7 @@ class TeamsNamespace(_Namespace):
             json=body,
             params=None,
             files=None,
+            repeatable=False,
         )
         return Team.from_dict(data=response.json())
 
@@ -2344,6 +2462,7 @@ class TeamsNamespace(_Namespace):
             params=None,
             json=None,
             files=None,
+            repeatable=True,
         )
         return Team.from_dict(data=response.json())
 
@@ -2383,6 +2502,7 @@ class TeamsNamespace(_Namespace):
             json=body,
             params=None,
             files=None,
+            repeatable=True,
         )
 
     def delete(self, *, team_id: str) -> None:
@@ -2397,6 +2517,7 @@ class TeamsNamespace(_Namespace):
             params=None,
             json=None,
             files=None,
+            repeatable=True,
         )
 
 
@@ -2434,6 +2555,7 @@ class AuditLogsNamespace(_Namespace):
             ),
             json=None,
             files=None,
+            repeatable=True,
         )
         payload = response.json()
         raw_items = list(payload.get("data", []))
@@ -2486,6 +2608,7 @@ class ATSCodePairNamespace(_Namespace):
             json=body,
             params=None,
             files=None,
+            repeatable=False,
         )
         return Interview.from_dict(data=response.json())
 
@@ -2548,6 +2671,7 @@ class ATSCodeScreenNamespace(_Namespace):
             json=body,
             params=None,
             files=None,
+            repeatable=False,
         )
         return CandidateInvite.from_dict(data=response.json())
 
@@ -2562,6 +2686,7 @@ class ATSNamespace(_Namespace):
         transport: Transport,
         base_url: str,
         headers: dict[str, str],
+        retries: int,
     ) -> None:
         """Create the ATS namespace.
 
@@ -2569,21 +2694,26 @@ class ATSNamespace(_Namespace):
             transport: The HTTP transport.
             base_url: The base URL for the API.
             headers: Headers to send with every request.
+            retries: The number of times to retry a request
+                which is safe to repeat.
         """
         super().__init__(
             transport=transport,
             base_url=base_url,
             headers=headers,
+            retries=retries,
         )
         self.codepair: ATSCodePairNamespace = ATSCodePairNamespace(
             transport=transport,
             base_url=base_url,
             headers=headers,
+            retries=retries,
         )
         self.codescreen: ATSCodeScreenNamespace = ATSCodeScreenNamespace(
             transport=transport,
             base_url=base_url,
             headers=headers,
+            retries=retries,
         )
 
 
@@ -2645,6 +2775,7 @@ class SCIMUsersNamespace(_Namespace):
             params=_list_params(limit=limit, offset=offset, extra=None),
             json=None,
             files=None,
+            repeatable=True,
         )
         payload = response.json()
         raw = list(payload.get("Resources", []))
@@ -2670,6 +2801,7 @@ class SCIMUsersNamespace(_Namespace):
             json=body,
             params=None,
             files=None,
+            repeatable=False,
         )
         return SCIMUser.from_dict(data=response.json())
 
@@ -2688,6 +2820,7 @@ class SCIMUsersNamespace(_Namespace):
             params=None,
             json=None,
             files=None,
+            repeatable=True,
         )
         return SCIMUser.from_dict(data=response.json())
 
@@ -2712,6 +2845,7 @@ class SCIMUsersNamespace(_Namespace):
             json=body,
             params=None,
             files=None,
+            repeatable=True,
         )
         return SCIMUser.from_dict(data=response.json())
 
@@ -2739,6 +2873,7 @@ class SCIMUsersNamespace(_Namespace):
             json=body,
             params=None,
             files=None,
+            repeatable=False,
         )
         return SCIMMessage.from_dict(data=response.json())
 
@@ -2754,6 +2889,7 @@ class SCIMUsersNamespace(_Namespace):
             params=None,
             json=None,
             files=None,
+            repeatable=True,
         )
 
 
@@ -2782,6 +2918,7 @@ class SCIMGroupsNamespace(_Namespace):
             params=_list_params(limit=limit, offset=offset, extra=None),
             json=None,
             files=None,
+            repeatable=True,
         )
         payload = response.json()
         raw = list(payload.get("Resources", []))
@@ -2803,6 +2940,7 @@ class SCIMGroupsNamespace(_Namespace):
             json=body,
             params=None,
             files=None,
+            repeatable=False,
         )
         return SCIMTeam.from_dict(data=response.json())
 
@@ -2821,6 +2959,7 @@ class SCIMGroupsNamespace(_Namespace):
             params=None,
             json=None,
             files=None,
+            repeatable=True,
         )
         return SCIMTeam.from_dict(data=response.json())
 
@@ -2848,6 +2987,7 @@ class SCIMGroupsNamespace(_Namespace):
             json=body,
             params=None,
             files=None,
+            repeatable=False,
         )
         return SCIMMessage.from_dict(data=response.json())
 
@@ -2863,6 +3003,7 @@ class SCIMGroupsNamespace(_Namespace):
             params=None,
             json=None,
             files=None,
+            repeatable=True,
         )
 
 
@@ -2876,6 +3017,7 @@ class SCIMNamespace(_Namespace):
         transport: Transport,
         base_url: str,
         headers: dict[str, str],
+        retries: int,
     ) -> None:
         """Create the SCIM namespace.
 
@@ -2883,21 +3025,26 @@ class SCIMNamespace(_Namespace):
             transport: The HTTP transport.
             base_url: The base URL for the API.
             headers: Headers to send with every request.
+            retries: The number of times to retry a request
+                which is safe to repeat.
         """
         super().__init__(
             transport=transport,
             base_url=base_url,
             headers=headers,
+            retries=retries,
         )
         self.users: SCIMUsersNamespace = SCIMUsersNamespace(
             transport=transport,
             base_url=base_url,
             headers=headers,
+            retries=retries,
         )
         self.groups: SCIMGroupsNamespace = SCIMGroupsNamespace(
             transport=transport,
             base_url=base_url,
             headers=headers,
+            retries=retries,
         )
 
 
@@ -2915,6 +3062,7 @@ class HackerRank:
         base_url: str = "https://www.hackerrank.com",
         scim_base_url: str = _SCIM_BASE_URL,
         transport: Transport | None = None,
+        retries: int = 0,
     ) -> None:
         """Create a new HackerRank client.
 
@@ -2926,6 +3074,17 @@ class HackerRank:
                 cannot share a base URL.
             transport: The HTTP transport. Defaults to
                 ``HTTPXTransport()``.
+            retries: The number of times to retry a request which
+                is safe to repeat, after a transport error or a
+                ``429``, ``500``, ``502``, ``503`` or ``504``
+                response. Defaults to ``0``, which never retries.
+                ``GET``, ``PUT`` and ``DELETE`` requests are safe
+                to repeat, as are the ``POST`` endpoints which
+                replace state rather than create it. Endpoints
+                which create a record are never repeated, because
+                a lost response does not mean that the record was
+                not created. Each retry is logged as a warning on
+                the ``hackerrank`` logger.
         """
         self.base_url: str = base_url.rstrip("/")
         self.scim_base_url: str = scim_base_url.rstrip("/")
@@ -2940,63 +3099,75 @@ class HackerRank:
             transport=resolved_transport,
             base_url=self.base_url,
             headers=headers,
+            retries=retries,
         )
         self.interview_templates: InterviewTemplatesNamespace = (
             InterviewTemplatesNamespace(
                 transport=resolved_transport,
                 base_url=self.base_url,
                 headers=headers,
+                retries=retries,
             )
         )
         self.environments: EnvironmentsNamespace = EnvironmentsNamespace(
             transport=resolved_transport,
             base_url=self.base_url,
             headers=headers,
+            retries=retries,
         )
         self.questions: QuestionsNamespace = QuestionsNamespace(
             transport=resolved_transport,
             base_url=self.base_url,
             headers=headers,
+            retries=retries,
         )
         self.tests: TestsNamespace = TestsNamespace(
             transport=resolved_transport,
             base_url=self.base_url,
             headers=headers,
+            retries=retries,
         )
         self.templates: TemplatesNamespace = TemplatesNamespace(
             transport=resolved_transport,
             base_url=self.base_url,
             headers=headers,
+            retries=retries,
         )
         self.candidates: CandidatesNamespace = CandidatesNamespace(
             transport=resolved_transport,
             base_url=self.base_url,
             headers=headers,
+            retries=retries,
         )
         self.users: UsersNamespace = UsersNamespace(
             transport=resolved_transport,
             base_url=self.base_url,
             headers=headers,
+            retries=retries,
         )
         self.teams: TeamsNamespace = TeamsNamespace(
             transport=resolved_transport,
             base_url=self.base_url,
             headers=headers,
+            retries=retries,
         )
         self.audit_logs: AuditLogsNamespace = AuditLogsNamespace(
             transport=resolved_transport,
             base_url=self.base_url,
             headers=headers,
+            retries=retries,
         )
         self.ats: ATSNamespace = ATSNamespace(
             transport=resolved_transport,
             base_url=self.base_url,
             headers=headers,
+            retries=retries,
         )
         self.scim: SCIMNamespace = SCIMNamespace(
             transport=resolved_transport,
             base_url=self.scim_base_url,
             headers=headers,
+            retries=retries,
         )
         if isinstance(resolved_transport, HTTPXTransport):
             self._close = resolved_transport.close
