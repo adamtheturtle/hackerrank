@@ -12,6 +12,13 @@ from beartype import beartype
 
 from hackerrank.types import JSONValue
 
+DEFAULT_TIMEOUT_SECONDS = 60.0
+"""The default timeout, in seconds, for the built-in transports.
+
+``httpx`` defaults to 5 seconds, which is too short for endpoints
+which carry large payloads, such as project zip uploads.
+"""
+
 
 class HTTPStatusError(Exception):
     """Raised when an HTTP response has an error status code."""
@@ -109,9 +116,20 @@ class HTTPXTransport:
     ``httpx.Client`` for connection pooling.
     """
 
-    def __init__(self) -> None:
-        """Create a new HTTPX transport."""
-        self._client = httpx.Client()
+    def __init__(
+        self,
+        *,
+        timeout: httpx.Timeout | float = DEFAULT_TIMEOUT_SECONDS,
+    ) -> None:
+        """Create a new HTTPX transport.
+
+        Args:
+            timeout: The timeout to use for every request, either
+                a number of seconds or an ``httpx.Timeout``.
+                Defaults to
+                :data:`DEFAULT_TIMEOUT_SECONDS` seconds.
+        """
+        self._client = httpx.Client(timeout=timeout)
 
     def close(self) -> None:
         """Close the underlying HTTP client."""
@@ -208,9 +226,20 @@ class AsyncTransport(Protocol):
 class AsyncHTTPXTransport:
     """Async HTTP transport using the ``httpx`` library."""
 
-    def __init__(self) -> None:
-        """Create a new async HTTPX transport."""
-        self._client = httpx.AsyncClient()
+    def __init__(
+        self,
+        *,
+        timeout: httpx.Timeout | float = DEFAULT_TIMEOUT_SECONDS,
+    ) -> None:
+        """Create a new async HTTPX transport.
+
+        Args:
+            timeout: The timeout to use for every request, either
+                a number of seconds or an ``httpx.Timeout``.
+                Defaults to
+                :data:`DEFAULT_TIMEOUT_SECONDS` seconds.
+        """
+        self._client = httpx.AsyncClient(timeout=timeout)
 
     async def aclose(self) -> None:
         """Close the underlying async HTTP client."""
