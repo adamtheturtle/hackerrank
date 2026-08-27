@@ -3,11 +3,17 @@
 from collections.abc import Mapping
 from typing import Any
 
+import httpx
 import pytest
+import respx
 
 import hackerrank.async_client as async_client_module
 from hackerrank.async_client import AsyncHackerRank
-from hackerrank.transports import TransportResponse
+from hackerrank.transports import (
+    DEFAULT_TIMEOUT_SECONDS,
+    AsyncHTTPXTransport,
+    TransportResponse,
+)
 from hackerrank.types import JSONValue
 
 
@@ -193,3 +199,56 @@ class TestAsyncListEndpoints:
         finally:
             await async_hackerrank_client.aclose()
         assert result.total >= 0
+
+
+class TestAsyncHTTPXTransport:
+    """Tests for ``AsyncHTTPXTransport``."""
+
+    @staticmethod
+    @pytest.mark.asyncio
+    @pytest.mark.parametrize(
+        argnames=("configured_timeout", "expected"),
+        argvalues=[
+            (None, httpx.Timeout(timeout=DEFAULT_TIMEOUT_SECONDS)),
+            (120.0, httpx.Timeout(timeout=120.0)),
+            (120, httpx.Timeout(timeout=120.0)),
+            (
+                httpx.Timeout(timeout=5.0, read=300.0),
+                httpx.Timeout(timeout=5.0, read=300.0),
+            ),
+        ],
+    )
+    async def test_timeout(
+        configured_timeout: httpx.Timeout | float | int | None,  # noqa: PYI041
+        expected: httpx.Timeout,
+    ) -> None:
+        """The configured timeout reaches the outgoing request.
+
+        Args:
+            configured_timeout: The timeout to give to the
+                transport, or ``None`` to leave it at its default.
+            expected: The timeout expected on the request.
+        """
+        transport = (
+            AsyncHTTPXTransport()
+            if configured_timeout is None
+            else AsyncHTTPXTransport(timeout=configured_timeout)
+        )
+        url = "https://timeout.example.com/thing"
+        with respx.mock:
+            route = respx.get(url=url).mock(
+                return_value=httpx.Response(status_code=200, json={}),
+            )
+            try:
+                await transport(
+                    method="GET",
+                    url=url,
+                    headers={},
+                    params=None,
+                    json=None,
+                    files=None,
+                )
+            finally:
+                await transport.aclose()
+        request = route.calls.last.request
+        assert request.extensions["timeout"] == expected.as_dict()

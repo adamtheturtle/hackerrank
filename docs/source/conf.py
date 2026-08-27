@@ -77,7 +77,12 @@ intersphinx_mapping = {
     "python": (f"https://docs.python.org/{minimum_python_version}", None),
 }
 nitpicky = True
-nitpick_ignore: list[tuple[str, str]] = [("py:class", "T")]
+nitpick_ignore: list[tuple[str, str]] = [
+    ("py:class", "T"),
+    # ``httpx`` does not publish a Sphinx object inventory, so its
+    # types cannot be cross-referenced.
+    ("py:class", "httpx.Timeout"),
+]
 nitpick_ignore_regex = [
     (r"py:class", r"hackerrank\._dict_types\..*"),
 ]
