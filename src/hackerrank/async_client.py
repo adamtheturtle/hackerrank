@@ -1,13 +1,21 @@
 """Async HackerRank for Work API client."""
 
+import asyncio
 import builtins
 from collections.abc import Mapping, Sequence
 from http import HTTPStatus
 from types import TracebackType
 from typing import Any, BinaryIO, Self
 
+import httpx
 from beartype import beartype
 
+from hackerrank._retries import (
+    RETRY_STATUS_CODES,
+    delay_seconds,
+    log_retry,
+    rewind_files,
+)
 from hackerrank.exceptions import HackerRankError
 from hackerrank.transports import (
     AsyncHTTPXTransport,
@@ -247,6 +255,7 @@ class _AsyncNamespace:
         transport: AsyncTransport,
         base_url: str,
         headers: dict[str, str],
+        retries: int,
     ) -> None:
         """Create a new async namespace.
 
@@ -254,10 +263,13 @@ class _AsyncNamespace:
             transport: The async HTTP transport.
             base_url: The base URL for the API.
             headers: Headers to send with every request.
+            retries: The number of times to retry a request
+                which is safe to repeat.
         """
         self.transport = transport
         self.base_url = base_url
         self.headers = headers
+        self.retries = retries
 
     async def _request(
         self,
@@ -267,6 +279,7 @@ class _AsyncNamespace:
         params: dict[str, str | int] | None,
         json: Mapping[str, JSONValue] | None,
         files: Mapping[str, Any] | None,
+        repeatable: bool,
     ) -> TransportResponse:
         """Make an async HTTP request.
 
@@ -276,6 +289,12 @@ class _AsyncNamespace:
             params: Query parameters.
             json: JSON-serialisable body.
             files: Files to send as multipart form-data.
+            repeatable: Whether sending this request twice has
+                the same effect as sending it once. A request
+                which is not repeatable is sent exactly once,
+                however many retries are configured, because a
+                lost response does not mean that the write did
+                not happen.
 
         Returns:
             The transport response.
@@ -284,17 +303,45 @@ class _AsyncNamespace:
             HackerRankError: If the response has an error
                 or redirect status code.
         """
-        response = await self.transport(
-            method=method,
-            url=self.base_url + url,
-            headers=self.headers,
-            params=params,
-            json=json,
-            files=files,
-        )
-        if response.status_code >= HTTPStatus.MULTIPLE_CHOICES:
-            raise HackerRankError.from_response(response=response)
-        return response
+        full_url = self.base_url + url
+        attempts = (1 + self.retries) if repeatable else 1
+        attempt = 0
+        while True:
+            attempt += 1
+            retriable = attempt < attempts
+            try:
+                response = await self.transport(
+                    method=method,
+                    url=full_url,
+                    headers=self.headers,
+                    params=params,
+                    json=json,
+                    files=files,
+                )
+            except httpx.TransportError as exc:
+                if not (retriable and rewind_files(files=files)):
+                    raise
+                headers = None
+                reason = type(exc).__name__
+            else:
+                if response.status_code not in RETRY_STATUS_CODES or not (
+                    retriable and rewind_files(files=files)
+                ):
+                    if response.status_code >= HTTPStatus.MULTIPLE_CHOICES:
+                        raise HackerRankError.from_response(response=response)
+                    return response
+                headers = response.headers
+                reason = f"HTTP {response.status_code}"
+            delay = delay_seconds(attempt=attempt, headers=headers)
+            log_retry(
+                method=method,
+                url=full_url,
+                attempt=attempt,
+                attempts=attempts,
+                delay=delay,
+                reason=reason,
+            )
+            await asyncio.sleep(delay)
 
 
 @beartype
@@ -366,6 +413,7 @@ class AsyncInterviewsNamespace(_AsyncNamespace):
             ),
             json=None,
             files=None,
+            repeatable=True,
         )
         payload = response.json()
         raw_items = list(payload.get("data", []))
@@ -434,6 +482,7 @@ class AsyncInterviewsNamespace(_AsyncNamespace):
             json=body,
             params=None,
             files=None,
+            repeatable=False,
         )
         return Interview.from_dict(data=response.json())
 
@@ -452,6 +501,7 @@ class AsyncInterviewsNamespace(_AsyncNamespace):
             params=None,
             json=None,
             files=None,
+            repeatable=True,
         )
         return Interview.from_dict(data=response.json())
 
@@ -526,6 +576,7 @@ class AsyncInterviewsNamespace(_AsyncNamespace):
             json=body,
             params=None,
             files=None,
+            repeatable=True,
         )
         return Interview.from_dict(data=response.json())
 
@@ -541,6 +592,7 @@ class AsyncInterviewsNamespace(_AsyncNamespace):
             params=None,
             json=None,
             files=None,
+            repeatable=True,
         )
 
     async def get_transcript(
@@ -562,6 +614,7 @@ class AsyncInterviewsNamespace(_AsyncNamespace):
             params=None,
             json=None,
             files=None,
+            repeatable=True,
         )
         return InterviewTranscript.from_dict(data=response.json())
 
@@ -595,6 +648,7 @@ class AsyncExplicitSharingRolesNamespace(_AsyncNamespace):
             json={"explicit_roles": [dict(role) for role in explicit_roles]},
             params=None,
             files=None,
+            repeatable=True,
         )
 
     async def remove_access(
@@ -621,6 +675,7 @@ class AsyncExplicitSharingRolesNamespace(_AsyncNamespace):
             json={"explicit_roles": [dict(role) for role in explicit_roles]},
             params=None,
             files=None,
+            repeatable=True,
         )
 
 
@@ -634,6 +689,7 @@ class AsyncInterviewTemplatesNamespace(_AsyncNamespace):
         transport: AsyncTransport,
         base_url: str,
         headers: dict[str, str],
+        retries: int,
     ) -> None:
         """Create the namespace.
 
@@ -641,17 +697,21 @@ class AsyncInterviewTemplatesNamespace(_AsyncNamespace):
             transport: The HTTP transport.
             base_url: The base URL for the API.
             headers: Headers to send with every request.
+            retries: The number of times to retry a request
+                which is safe to repeat.
         """
         super().__init__(
             transport=transport,
             base_url=base_url,
             headers=headers,
+            retries=retries,
         )
         self.explicit_sharing_roles: AsyncExplicitSharingRolesNamespace = (
             AsyncExplicitSharingRolesNamespace(
                 transport=transport,
                 base_url=base_url,
                 headers=headers,
+                retries=retries,
             )
         )
 
@@ -686,6 +746,7 @@ class AsyncInterviewTemplatesNamespace(_AsyncNamespace):
             ),
             json=None,
             files=None,
+            repeatable=True,
         )
         payload = response.json()
         raw_items = list(payload.get("data", []))
@@ -726,6 +787,7 @@ class AsyncInterviewTemplatesNamespace(_AsyncNamespace):
             json=body,
             params=None,
             files=None,
+            repeatable=False,
         )
         return InterviewTemplate.from_dict(data=response.json())
 
@@ -748,6 +810,7 @@ class AsyncInterviewTemplatesNamespace(_AsyncNamespace):
             params=None,
             json=None,
             files=None,
+            repeatable=True,
         )
         return InterviewTemplate.from_dict(data=response.json())
 
@@ -783,6 +846,7 @@ class AsyncInterviewTemplatesNamespace(_AsyncNamespace):
             json=body,
             params=None,
             files=None,
+            repeatable=True,
         )
         return InterviewTemplate.from_dict(data=response.json())
 
@@ -798,6 +862,7 @@ class AsyncInterviewTemplatesNamespace(_AsyncNamespace):
             params=None,
             json=None,
             files=None,
+            repeatable=True,
         )
 
 
@@ -817,6 +882,7 @@ class AsyncEnvironmentsNamespace(_AsyncNamespace):
             params=None,
             json=None,
             files=None,
+            repeatable=True,
         )
         raw_items = list(response.json().get("environments", []))
         return [Environment.from_dict(data=item) for item in raw_items]
@@ -836,6 +902,7 @@ class AsyncEnvironmentsNamespace(_AsyncNamespace):
             params=None,
             json=None,
             files=None,
+            repeatable=True,
         )
         return Environment.from_dict(data=response.json()["environment"])
 
@@ -904,6 +971,7 @@ class AsyncQuestionsNamespace(_AsyncNamespace):
             ),
             json=None,
             files=None,
+            repeatable=True,
         )
         payload = response.json()
         raw_items = list(payload.get("data", []))
@@ -927,6 +995,7 @@ class AsyncQuestionsNamespace(_AsyncNamespace):
             params=None,
             json=None,
             files=None,
+            repeatable=True,
         )
         return Question.from_dict(data=response.json())
 
@@ -1002,6 +1071,7 @@ class AsyncQuestionsNamespace(_AsyncNamespace):
             ),
             params=None,
             files=None,
+            repeatable=False,
         )
         return Question.from_dict(data=response.json())
 
@@ -1081,6 +1151,7 @@ class AsyncQuestionsNamespace(_AsyncNamespace):
             ),
             params=None,
             files=None,
+            repeatable=True,
         )
         if response.content:
             return Question.from_dict(data=response.json())
@@ -1112,6 +1183,7 @@ class AsyncQuestionsNamespace(_AsyncNamespace):
             files={"file": (filename, file, content_type)},
             params=None,
             json=None,
+            repeatable=True,
         )
         result: dict[str, JSONValue] = dict(response.json())
         return result
@@ -1134,6 +1206,7 @@ class AsyncQuestionsNamespace(_AsyncNamespace):
             json=codestubs,
             params=None,
             files=None,
+            repeatable=True,
         )
 
     async def generate_codestubs(
@@ -1157,6 +1230,7 @@ class AsyncQuestionsNamespace(_AsyncNamespace):
             json=body,
             params=None,
             files=None,
+            repeatable=True,
         )
         result: dict[str, JSONValue] = dict(response.json())
         return result
@@ -1182,6 +1256,7 @@ class AsyncQuestionsNamespace(_AsyncNamespace):
             json=body,
             params=None,
             files=None,
+            repeatable=False,
         )
         result: dict[str, JSONValue] = dict(response.json())
         return result
@@ -1206,6 +1281,7 @@ class AsyncQuestionsNamespace(_AsyncNamespace):
             json=body,
             params=None,
             files=None,
+            repeatable=True,
         )
 
     async def delete_testcase(
@@ -1226,6 +1302,7 @@ class AsyncQuestionsNamespace(_AsyncNamespace):
             params=None,
             json=None,
             files=None,
+            repeatable=True,
         )
 
     async def delete_all_testcases(self, *, question_id: str) -> None:
@@ -1240,6 +1317,7 @@ class AsyncQuestionsNamespace(_AsyncNamespace):
             params=None,
             json=None,
             files=None,
+            repeatable=True,
         )
 
 
@@ -1270,6 +1348,7 @@ class AsyncTestCandidatesNamespace(_AsyncNamespace):
             params=_list_params(limit=limit, offset=offset, extra=None),
             json=None,
             files=None,
+            repeatable=True,
         )
         payload = response.json()
         raw_items = list(payload.get("data", []))
@@ -1308,6 +1387,7 @@ class AsyncTestCandidatesNamespace(_AsyncNamespace):
             params=params,
             json=None,
             files=None,
+            repeatable=True,
         )
         payload = response.json()
         raw_items = list(payload.get("data", []))
@@ -1397,6 +1477,7 @@ class AsyncTestCandidatesNamespace(_AsyncNamespace):
             json=body,
             params=None,
             files=None,
+            repeatable=False,
         )
         return CandidateInvite.from_dict(data=response.json())
 
@@ -1426,6 +1507,7 @@ class AsyncTestCandidatesNamespace(_AsyncNamespace):
             params=params or None,
             json=None,
             files=None,
+            repeatable=True,
         )
         return TestCandidate.from_dict(data=response.json())
 
@@ -1488,6 +1570,7 @@ class AsyncTestCandidatesNamespace(_AsyncNamespace):
             json=body,
             params=None,
             files=None,
+            repeatable=True,
         )
         return TestCandidate.from_dict(data=response.json())
 
@@ -1511,6 +1594,7 @@ class AsyncTestCandidatesNamespace(_AsyncNamespace):
             params=None,
             json=None,
             files=None,
+            repeatable=True,
         )
 
     async def delete_report(
@@ -1533,6 +1617,7 @@ class AsyncTestCandidatesNamespace(_AsyncNamespace):
             params=None,
             json=None,
             files=None,
+            repeatable=True,
         )
 
     async def get_report_pdf(
@@ -1560,6 +1645,7 @@ class AsyncTestCandidatesNamespace(_AsyncNamespace):
             params={"format": format_},
             json=None,
             files=None,
+            repeatable=True,
         )
         result: dict[str, JSONValue] = dict(response.json())
         return result
@@ -1575,6 +1661,7 @@ class AsyncTestsNamespace(_AsyncNamespace):
         transport: AsyncTransport,
         base_url: str,
         headers: dict[str, str],
+        retries: int,
     ) -> None:
         """Create the namespace.
 
@@ -1582,17 +1669,21 @@ class AsyncTestsNamespace(_AsyncNamespace):
             transport: The HTTP transport.
             base_url: The base URL for the API.
             headers: Headers to send with every request.
+            retries: The number of times to retry a request
+                which is safe to repeat.
         """
         super().__init__(
             transport=transport,
             base_url=base_url,
             headers=headers,
+            retries=retries,
         )
         self.candidates: AsyncTestCandidatesNamespace = (
             AsyncTestCandidatesNamespace(
                 transport=transport,
                 base_url=base_url,
                 headers=headers,
+                retries=retries,
             )
         )
 
@@ -1617,6 +1708,7 @@ class AsyncTestsNamespace(_AsyncNamespace):
             params=_list_params(limit=limit, offset=offset, extra=None),
             json=None,
             files=None,
+            repeatable=True,
         )
         payload = response.json()
         raw_items = list(payload.get("data", []))
@@ -1747,6 +1839,7 @@ class AsyncTestsNamespace(_AsyncNamespace):
             json=body,
             params=None,
             files=None,
+            repeatable=False,
         )
         return Test.from_dict(data=response.json())
 
@@ -1774,6 +1867,7 @@ class AsyncTestsNamespace(_AsyncNamespace):
             params=params or None,
             json=None,
             files=None,
+            repeatable=True,
         )
         return Test.from_dict(data=response.json())
 
@@ -1795,6 +1889,7 @@ class AsyncTestsNamespace(_AsyncNamespace):
             json=body.to_dict(),
             params=None,
             files=None,
+            repeatable=True,
         )
 
     async def delete(self, *, test_id: str) -> None:
@@ -1809,6 +1904,7 @@ class AsyncTestsNamespace(_AsyncNamespace):
             params=None,
             json=None,
             files=None,
+            repeatable=True,
         )
 
     async def archive(self, *, test_id: str) -> None:
@@ -1823,6 +1919,7 @@ class AsyncTestsNamespace(_AsyncNamespace):
             params=None,
             json=None,
             files=None,
+            repeatable=False,
         )
 
     async def list_inviters(
@@ -1848,6 +1945,7 @@ class AsyncTestsNamespace(_AsyncNamespace):
             params=_list_params(limit=limit, offset=offset, extra=None),
             json=None,
             files=None,
+            repeatable=True,
         )
         payload = response.json()
         raw_items = list(payload.get("data", []))
@@ -1891,6 +1989,7 @@ class AsyncTemplatesNamespace(_AsyncNamespace):
             ),
             json=None,
             files=None,
+            repeatable=True,
         )
         payload = response.json()
         raw_items = list(payload.get("data", []))
@@ -1914,6 +2013,7 @@ class AsyncTemplatesNamespace(_AsyncNamespace):
             params=None,
             json=None,
             files=None,
+            repeatable=True,
         )
         return Template.from_dict(data=response.json())
 
@@ -1950,6 +2050,7 @@ class AsyncCandidatesNamespace(_AsyncNamespace):
             params=params,
             json=None,
             files=None,
+            repeatable=True,
         )
         payload = response.json()
         raw_items = list(payload.get("data", []))
@@ -1984,6 +2085,7 @@ class AsyncUsersNamespace(_AsyncNamespace):
             params=_list_params(limit=limit, offset=offset, extra=None),
             json=None,
             files=None,
+            repeatable=True,
         )
         payload = response.json()
         raw_items = list(payload.get("data", []))
@@ -2018,6 +2120,7 @@ class AsyncUsersNamespace(_AsyncNamespace):
             params=params,
             json=None,
             files=None,
+            repeatable=True,
         )
         payload = response.json()
         raw_items = list(payload.get("data", []))
@@ -2099,6 +2202,7 @@ class AsyncUsersNamespace(_AsyncNamespace):
             json=body,
             params=None,
             files=None,
+            repeatable=False,
         )
         return User.from_dict(data=response.json())
 
@@ -2117,6 +2221,7 @@ class AsyncUsersNamespace(_AsyncNamespace):
             params=None,
             json=None,
             files=None,
+            repeatable=True,
         )
         return User.from_dict(data=response.json())
 
@@ -2138,6 +2243,7 @@ class AsyncUsersNamespace(_AsyncNamespace):
             json=body.to_dict(),
             params=None,
             files=None,
+            repeatable=True,
         )
 
     async def delete(self, *, user_id: str) -> None:
@@ -2152,6 +2258,7 @@ class AsyncUsersNamespace(_AsyncNamespace):
             params=None,
             json=None,
             files=None,
+            repeatable=True,
         )
 
 
@@ -2182,6 +2289,7 @@ class AsyncTeamMembershipsNamespace(_AsyncNamespace):
             params=_list_params(limit=limit, offset=offset, extra=None),
             json=None,
             files=None,
+            repeatable=True,
         )
         payload = response.json()
         raw_items = list(payload.get("data", []))
@@ -2211,6 +2319,7 @@ class AsyncTeamMembershipsNamespace(_AsyncNamespace):
             params=None,
             json=None,
             files=None,
+            repeatable=True,
         )
         return UserTeamMembership.from_dict(data=response.json())
 
@@ -2240,6 +2349,7 @@ class AsyncTeamMembershipsNamespace(_AsyncNamespace):
             params=params or None,
             json=None,
             files=None,
+            repeatable=False,
         )
         return UserTeamMembership.from_dict(data=response.json())
 
@@ -2261,6 +2371,7 @@ class AsyncTeamMembershipsNamespace(_AsyncNamespace):
             params=None,
             json=None,
             files=None,
+            repeatable=True,
         )
 
 
@@ -2274,6 +2385,7 @@ class AsyncTeamsNamespace(_AsyncNamespace):
         transport: AsyncTransport,
         base_url: str,
         headers: dict[str, str],
+        retries: int,
     ) -> None:
         """Create the namespace.
 
@@ -2281,17 +2393,21 @@ class AsyncTeamsNamespace(_AsyncNamespace):
             transport: The HTTP transport.
             base_url: The base URL for the API.
             headers: Headers to send with every request.
+            retries: The number of times to retry a request
+                which is safe to repeat.
         """
         super().__init__(
             transport=transport,
             base_url=base_url,
             headers=headers,
+            retries=retries,
         )
         self.memberships: AsyncTeamMembershipsNamespace = (
             AsyncTeamMembershipsNamespace(
                 transport=transport,
                 base_url=base_url,
                 headers=headers,
+                retries=retries,
             )
         )
 
@@ -2316,6 +2432,7 @@ class AsyncTeamsNamespace(_AsyncNamespace):
             params=_list_params(limit=limit, offset=offset, extra=None),
             json=None,
             files=None,
+            repeatable=True,
         )
         payload = response.json()
         raw_items = list(payload.get("data", []))
@@ -2365,6 +2482,7 @@ class AsyncTeamsNamespace(_AsyncNamespace):
             json=body,
             params=None,
             files=None,
+            repeatable=False,
         )
         return Team.from_dict(data=response.json())
 
@@ -2383,6 +2501,7 @@ class AsyncTeamsNamespace(_AsyncNamespace):
             params=None,
             json=None,
             files=None,
+            repeatable=True,
         )
         return Team.from_dict(data=response.json())
 
@@ -2422,6 +2541,7 @@ class AsyncTeamsNamespace(_AsyncNamespace):
             json=body,
             params=None,
             files=None,
+            repeatable=True,
         )
 
     async def delete(self, *, team_id: str) -> None:
@@ -2436,6 +2556,7 @@ class AsyncTeamsNamespace(_AsyncNamespace):
             params=None,
             json=None,
             files=None,
+            repeatable=True,
         )
 
 
@@ -2473,6 +2594,7 @@ class AsyncAuditLogsNamespace(_AsyncNamespace):
             ),
             json=None,
             files=None,
+            repeatable=True,
         )
         payload = response.json()
         raw_items = list(payload.get("data", []))
@@ -2525,6 +2647,7 @@ class AsyncATSCodePairNamespace(_AsyncNamespace):
             json=body,
             params=None,
             files=None,
+            repeatable=False,
         )
         return Interview.from_dict(data=response.json())
 
@@ -2587,6 +2710,7 @@ class AsyncATSCodeScreenNamespace(_AsyncNamespace):
             json=body,
             params=None,
             files=None,
+            repeatable=False,
         )
         return CandidateInvite.from_dict(data=response.json())
 
@@ -2601,6 +2725,7 @@ class AsyncATSNamespace(_AsyncNamespace):
         transport: AsyncTransport,
         base_url: str,
         headers: dict[str, str],
+        retries: int,
     ) -> None:
         """Create the ATS namespace.
 
@@ -2608,22 +2733,27 @@ class AsyncATSNamespace(_AsyncNamespace):
             transport: The HTTP transport.
             base_url: The base URL for the API.
             headers: Headers to send with every request.
+            retries: The number of times to retry a request
+                which is safe to repeat.
         """
         super().__init__(
             transport=transport,
             base_url=base_url,
             headers=headers,
+            retries=retries,
         )
         self.codepair: AsyncATSCodePairNamespace = AsyncATSCodePairNamespace(
             transport=transport,
             base_url=base_url,
             headers=headers,
+            retries=retries,
         )
         self.codescreen: AsyncATSCodeScreenNamespace = (
             AsyncATSCodeScreenNamespace(
                 transport=transport,
                 base_url=base_url,
                 headers=headers,
+                retries=retries,
             )
         )
 
@@ -2653,6 +2783,7 @@ class AsyncSCIMUsersNamespace(_AsyncNamespace):
             params=_list_params(limit=limit, offset=offset, extra=None),
             json=None,
             files=None,
+            repeatable=True,
         )
         payload = response.json()
         raw = list(payload.get("Resources", []))
@@ -2678,6 +2809,7 @@ class AsyncSCIMUsersNamespace(_AsyncNamespace):
             json=body,
             params=None,
             files=None,
+            repeatable=False,
         )
         return SCIMUser.from_dict(data=response.json())
 
@@ -2696,6 +2828,7 @@ class AsyncSCIMUsersNamespace(_AsyncNamespace):
             params=None,
             json=None,
             files=None,
+            repeatable=True,
         )
         return SCIMUser.from_dict(data=response.json())
 
@@ -2720,6 +2853,7 @@ class AsyncSCIMUsersNamespace(_AsyncNamespace):
             json=body,
             params=None,
             files=None,
+            repeatable=True,
         )
         return SCIMUser.from_dict(data=response.json())
 
@@ -2747,6 +2881,7 @@ class AsyncSCIMUsersNamespace(_AsyncNamespace):
             json=body,
             params=None,
             files=None,
+            repeatable=False,
         )
         return SCIMMessage.from_dict(data=response.json())
 
@@ -2762,6 +2897,7 @@ class AsyncSCIMUsersNamespace(_AsyncNamespace):
             params=None,
             json=None,
             files=None,
+            repeatable=True,
         )
 
 
@@ -2790,6 +2926,7 @@ class AsyncSCIMGroupsNamespace(_AsyncNamespace):
             params=_list_params(limit=limit, offset=offset, extra=None),
             json=None,
             files=None,
+            repeatable=True,
         )
         payload = response.json()
         raw = list(payload.get("Resources", []))
@@ -2811,6 +2948,7 @@ class AsyncSCIMGroupsNamespace(_AsyncNamespace):
             json=body,
             params=None,
             files=None,
+            repeatable=False,
         )
         return SCIMTeam.from_dict(data=response.json())
 
@@ -2829,6 +2967,7 @@ class AsyncSCIMGroupsNamespace(_AsyncNamespace):
             params=None,
             json=None,
             files=None,
+            repeatable=True,
         )
         return SCIMTeam.from_dict(data=response.json())
 
@@ -2856,6 +2995,7 @@ class AsyncSCIMGroupsNamespace(_AsyncNamespace):
             json=body,
             params=None,
             files=None,
+            repeatable=False,
         )
         return SCIMMessage.from_dict(data=response.json())
 
@@ -2871,6 +3011,7 @@ class AsyncSCIMGroupsNamespace(_AsyncNamespace):
             params=None,
             json=None,
             files=None,
+            repeatable=True,
         )
 
 
@@ -2884,6 +3025,7 @@ class AsyncSCIMNamespace(_AsyncNamespace):
         transport: AsyncTransport,
         base_url: str,
         headers: dict[str, str],
+        retries: int,
     ) -> None:
         """Create the SCIM namespace.
 
@@ -2891,21 +3033,26 @@ class AsyncSCIMNamespace(_AsyncNamespace):
             transport: The HTTP transport.
             base_url: The base URL for the API.
             headers: Headers to send with every request.
+            retries: The number of times to retry a request
+                which is safe to repeat.
         """
         super().__init__(
             transport=transport,
             base_url=base_url,
             headers=headers,
+            retries=retries,
         )
         self.users: AsyncSCIMUsersNamespace = AsyncSCIMUsersNamespace(
             transport=transport,
             base_url=base_url,
             headers=headers,
+            retries=retries,
         )
         self.groups: AsyncSCIMGroupsNamespace = AsyncSCIMGroupsNamespace(
             transport=transport,
             base_url=base_url,
             headers=headers,
+            retries=retries,
         )
 
 
@@ -2923,6 +3070,7 @@ class AsyncHackerRank:
         base_url: str = "https://www.hackerrank.com",
         scim_base_url: str = _SCIM_BASE_URL,
         transport: AsyncTransport | None = None,
+        retries: int = 0,
     ) -> None:
         """Create a new async HackerRank client.
 
@@ -2934,6 +3082,17 @@ class AsyncHackerRank:
                 cannot share a base URL.
             transport: The HTTP transport. Defaults to
                 ``AsyncHTTPXTransport()``.
+            retries: The number of times to retry a request which
+                is safe to repeat, after a transport error or a
+                ``429``, ``500``, ``502``, ``503`` or ``504``
+                response. Defaults to ``0``, which never retries.
+                ``GET``, ``PUT`` and ``DELETE`` requests are safe
+                to repeat, as are the ``POST`` endpoints which
+                replace state rather than create it. Endpoints
+                which create a record are never repeated, because
+                a lost response does not mean that the record was
+                not created. Each retry is logged as a warning on
+                the ``hackerrank`` logger.
         """
         self.base_url: str = base_url.rstrip("/")
         self.scim_base_url: str = scim_base_url.rstrip("/")
@@ -2948,12 +3107,14 @@ class AsyncHackerRank:
             transport=resolved_transport,
             base_url=self.base_url,
             headers=headers,
+            retries=retries,
         )
         self.interview_templates: AsyncInterviewTemplatesNamespace = (
             AsyncInterviewTemplatesNamespace(
                 transport=resolved_transport,
                 base_url=self.base_url,
                 headers=headers,
+                retries=retries,
             )
         )
         self.environments: AsyncEnvironmentsNamespace = (
@@ -2961,52 +3122,62 @@ class AsyncHackerRank:
                 transport=resolved_transport,
                 base_url=self.base_url,
                 headers=headers,
+                retries=retries,
             )
         )
         self.questions: AsyncQuestionsNamespace = AsyncQuestionsNamespace(
             transport=resolved_transport,
             base_url=self.base_url,
             headers=headers,
+            retries=retries,
         )
         self.tests: AsyncTestsNamespace = AsyncTestsNamespace(
             transport=resolved_transport,
             base_url=self.base_url,
             headers=headers,
+            retries=retries,
         )
         self.templates: AsyncTemplatesNamespace = AsyncTemplatesNamespace(
             transport=resolved_transport,
             base_url=self.base_url,
             headers=headers,
+            retries=retries,
         )
         self.candidates: AsyncCandidatesNamespace = AsyncCandidatesNamespace(
             transport=resolved_transport,
             base_url=self.base_url,
             headers=headers,
+            retries=retries,
         )
         self.users: AsyncUsersNamespace = AsyncUsersNamespace(
             transport=resolved_transport,
             base_url=self.base_url,
             headers=headers,
+            retries=retries,
         )
         self.teams: AsyncTeamsNamespace = AsyncTeamsNamespace(
             transport=resolved_transport,
             base_url=self.base_url,
             headers=headers,
+            retries=retries,
         )
         self.audit_logs: AsyncAuditLogsNamespace = AsyncAuditLogsNamespace(
             transport=resolved_transport,
             base_url=self.base_url,
             headers=headers,
+            retries=retries,
         )
         self.ats: AsyncATSNamespace = AsyncATSNamespace(
             transport=resolved_transport,
             base_url=self.base_url,
             headers=headers,
+            retries=retries,
         )
         self.scim: AsyncSCIMNamespace = AsyncSCIMNamespace(
             transport=resolved_transport,
             base_url=self.scim_base_url,
             headers=headers,
+            retries=retries,
         )
         self._owned_transport = (
             resolved_transport

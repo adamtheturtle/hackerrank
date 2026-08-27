@@ -13,9 +13,13 @@ asc
 async
 asyncio
 auth
+autouse
+backoff
 beartype
+behaviour
 bool
 callables
+caplog
 changelog
 codestubs
 config
@@ -48,6 +52,7 @@ linting
 macOS
 metadata
 missing-argument
+monkeypatch
 namespace
 namespaces
 noqa
@@ -59,6 +64,7 @@ py
 pyright
 pytest
 readme
+recognised
 refactoring
 regex
 repo
@@ -69,6 +75,7 @@ reportUnknownMemberType
 reportUnknownVariableType
 respx
 schemas
+seekable
 starttime
 str
 subclasses
@@ -78,6 +85,8 @@ txt
 ty
 typecheck
 unmapped
+unparsable
+unseekable
 untyped
 url
 webhook
