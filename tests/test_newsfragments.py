@@ -11,7 +11,7 @@ _NEWSFRAGMENTS = _ROOT / "newsfragments"
 # of its type, then ``.rst``.  A fragment which does not match is
 # silently ignored at release time, so its entry never reaches the
 # changelog.
-_FRAGMENT_NAME = re.compile(r"^\d+\.change\.rst$")
+_FRAGMENT_NAME = re.compile(pattern=r"^\d+\.change\.rst$")
 
 
 class TestNewsfragmentNames:
