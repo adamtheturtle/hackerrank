@@ -211,6 +211,7 @@ class TestAsyncHTTPXTransport:
         argvalues=[
             (None, httpx.Timeout(timeout=DEFAULT_TIMEOUT_SECONDS)),
             (120.0, httpx.Timeout(timeout=120.0)),
+            (120, httpx.Timeout(timeout=120.0)),
             (
                 httpx.Timeout(timeout=5.0, read=300.0),
                 httpx.Timeout(timeout=5.0, read=300.0),
@@ -218,7 +219,7 @@ class TestAsyncHTTPXTransport:
         ],
     )
     async def test_timeout(
-        configured_timeout: httpx.Timeout | float | None,
+        configured_timeout: httpx.Timeout | float | int | None,  # noqa: PYI041
         expected: httpx.Timeout,
     ) -> None:
         """The configured timeout reaches the outgoing request.

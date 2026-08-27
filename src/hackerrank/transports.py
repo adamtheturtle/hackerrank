@@ -119,7 +119,10 @@ class HTTPXTransport:
     def __init__(
         self,
         *,
-        timeout: httpx.Timeout | float = DEFAULT_TIMEOUT_SECONDS,
+        # ``int`` is redundant to a type checker, which reads ``float``
+        # as "int or float", but ``beartype`` checks the annotation
+        # literally at runtime and would reject ``timeout=60``.
+        timeout: httpx.Timeout | float | int = DEFAULT_TIMEOUT_SECONDS,  # noqa: PYI041
     ) -> None:
         """Create a new HTTPX transport.
 
@@ -229,7 +232,10 @@ class AsyncHTTPXTransport:
     def __init__(
         self,
         *,
-        timeout: httpx.Timeout | float = DEFAULT_TIMEOUT_SECONDS,
+        # ``int`` is redundant to a type checker, which reads ``float``
+        # as "int or float", but ``beartype`` checks the annotation
+        # literally at runtime and would reject ``timeout=60``.
+        timeout: httpx.Timeout | float | int = DEFAULT_TIMEOUT_SECONDS,  # noqa: PYI041
     ) -> None:
         """Create a new async HTTPX transport.
 
