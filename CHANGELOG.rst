@@ -6,7 +6,9 @@ Changelog
 2026.08.27
 ----------
 
-No significant changes.
+- The built-in ``HTTPXTransport`` and ``AsyncHTTPXTransport`` now default to a 60 second timeout instead of inheriting ``httpx``'s 5 second default, and accept a ``timeout`` argument so callers can choose their own.
+
+- ``HackerRank`` and ``AsyncHackerRank`` accept a ``retries`` argument, defaulting to ``0``, which retries transport errors and ``429``, ``500``, ``502``, ``503`` and ``504`` responses for the requests which are safe to repeat.
 
 2026.08.22
 ----------
@@ -36,6 +38,20 @@ No significant changes.
   Remove the ``team_share`` argument from interview-template ``create`` and
   ``update``. HackerRank ignores the parameter and has removed it from the API
   documentation; use ``explicit_sharing_roles`` instead.
+
+- SCIM user and group PATCH methods now parse the documented message acknowledgement instead of treating the response as a full resource.
+
+- SCIM group PATCH methods now parse the documented message acknowledgement instead of treating the response as a full group.
+
+- SCIM pagination preserves an explicit ``startIndex`` of ``0`` instead of rewriting it to ``1``.
+
+- ``generate_codestubs`` now requires a request body, matching the API contract.
+
+- Custom transports are only replaced by the default when ``transport`` is ``None``, so falsy callables are preserved.
+
+- Unexpected HTTP 3xx redirect responses now raise ``RedirectError`` instead of being treated as successful API responses.
+
+- Trailing slashes on custom ``base_url`` and ``scim_base_url`` values are stripped so request paths are not double-slashed.
 
 2026.08.16
 ----------

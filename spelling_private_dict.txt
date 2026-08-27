@@ -79,8 +79,11 @@ seekable
 starttime
 str
 subclasses
+subdirectories
+subdirectory
 testcases
 todo
+towncrier
 txt
 ty
 typecheck

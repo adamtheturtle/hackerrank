@@ -55,6 +55,17 @@ Run ``pytest``:
 
    $ pytest
 
+Changelog entries
+-----------------
+
+Add one news fragment per user-facing change, as
+:file:`newsfragments/<issue-number>.change.rst`, containing a single
+sentence in the past or present tense.
+
+The name matters. ``towncrier`` collects fragments by that exact
+pattern at release time, and silently ignores anything else, including
+a fragment filed in a subdirectory. A test guards this.
+
 Documentation
 -------------
 

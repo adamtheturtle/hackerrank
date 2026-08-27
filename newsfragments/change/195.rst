@@ -1,1 +1,0 @@
-``generate_codestubs`` now requires a request body, matching the API contract.

@@ -1,1 +1,0 @@
-Custom transports are only replaced by the default when ``transport`` is ``None``, so falsy callables are preserved.
