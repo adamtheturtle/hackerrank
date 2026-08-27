@@ -8,7 +8,7 @@ from typing import Any
 
 from beartype import beartype
 
-_LOGGER = logging.getLogger("hackerrank")
+_LOGGER = logging.getLogger(name="hackerrank")
 
 BACKOFF_BASE_SECONDS = 0.5
 """The delay before the first retry, doubled for each retry after it."""
