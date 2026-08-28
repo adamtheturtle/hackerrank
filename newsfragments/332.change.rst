@@ -1,0 +1,1 @@
+Every method which changes state now documents whether it is safe to retry, and why. ``tests.archive`` is now treated as safe to repeat, so it is retried when ``retries`` is set.
