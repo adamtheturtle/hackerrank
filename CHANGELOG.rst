@@ -3,6 +3,11 @@ Changelog
 
 .. towncrier release notes start
 
+2026.08.28
+----------
+
+- Every method which changes state now documents whether it is safe to retry, and why. ``tests.archive`` is now treated as safe to repeat, so it is retried when ``retries`` is set.
+
 2026.08.27
 ----------
 
