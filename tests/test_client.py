@@ -5,6 +5,7 @@ from http import HTTPStatus
 from typing import Any
 
 import httpx
+import httpx2
 import pytest
 import respx
 
@@ -25,6 +26,7 @@ from hackerrank.exceptions import (
 from hackerrank.transports import (
     DEFAULT_TIMEOUT_SECONDS,
     HTTPStatusError,
+    HTTPX2Transport,
     HTTPXTransport,
     Transport,
     TransportResponse,
@@ -264,6 +266,69 @@ class TestHTTPXTransport:
     def test_default_timeout_is_not_the_httpx_default() -> None:
         """The default timeout is not ``httpx``'s 5 second default."""
         assert DEFAULT_TIMEOUT_SECONDS > _HTTPX_DEFAULT_TIMEOUT_SECONDS
+
+
+class TestHTTPX2Transport:
+    """Tests for ``HTTPX2Transport``."""
+
+    @staticmethod
+    def test_is_transport() -> None:
+        """HTTPX2Transport satisfies the Transport protocol."""
+        with HTTPX2Transport() as transport:
+            assert isinstance(transport, Transport)
+
+    @staticmethod
+    def test_timeout_and_response(httpx2_mock: respx.Router) -> None:
+        """A native HTTPX2 request produces a transport response."""
+        timeout = httpx2.Timeout(timeout=12.5)
+        url = "https://api.example/x/api/v3/tests"
+        route = httpx2_mock.get(url=url).respond(
+            status_code=HTTPStatus.OK,
+            headers={"X-Family": "httpx2"},
+            content=b'{"data": []}',
+        )
+
+        with HTTPX2Transport(timeout=timeout) as transport:
+            response = transport(
+                method="GET",
+                url=url,
+                headers={},
+                params=None,
+                json=None,
+                files=None,
+            )
+
+        assert response.status_code == HTTPStatus.OK
+        assert response.headers["x-family"] == "httpx2"
+        assert response.json() == {"data": []}
+        assert route.calls.last.request.extensions["timeout"] == (
+            timeout.as_dict()
+        )
+
+    @staticmethod
+    def test_hackerrank_uses_httpx2(httpx2_mock: respx.Router) -> None:
+        """HackerRank parses a successful response sent through HTTPX2."""
+        httpx2_mock.get(
+            url="https://www.hackerrank.com/x/api/v3/tests"
+        ).respond(
+            status_code=HTTPStatus.OK,
+            json={
+                "data": [],
+                "page_total": 0,
+                "offset": 0,
+                "previous": "",
+                "next": "",
+                "first": "",
+                "last": "",
+                "total": 0,
+            },
+        )
+
+        with HackerRank(
+            api_key="test-key",
+            transport=HTTPX2Transport(),
+        ) as client:
+            assert client.tests.list().total == 0
 
 
 class TestListEndpoints:

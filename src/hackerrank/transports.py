@@ -8,6 +8,7 @@ from types import TracebackType
 from typing import Any, Protocol, Self, runtime_checkable
 
 import httpx
+import httpx2
 from beartype import beartype
 
 from hackerrank.types import JSONValue
@@ -15,8 +16,8 @@ from hackerrank.types import JSONValue
 DEFAULT_TIMEOUT_SECONDS = 60.0
 """The default timeout, in seconds, for the built-in transports.
 
-``httpx`` defaults to 5 seconds, which is too short for endpoints
-which carry large payloads, such as project zip uploads.
+The HTTP client libraries default to 5 seconds, which is too short for
+endpoints which carry large payloads, such as project zip uploads.
 """
 
 
@@ -194,6 +195,92 @@ class HTTPXTransport:
         )
 
 
+@beartype
+class HTTPX2Transport:
+    """HTTP transport using the ``httpx2`` library.
+
+    This opt-in transport uses a shared ``httpx2.Client`` for connection
+    pooling. Configuration objects must come from ``httpx2``, not ``httpx``.
+    """
+
+    def __init__(
+        self,
+        *,
+        # ``int`` is redundant to a type checker, which reads ``float``
+        # as "int or float", but ``beartype`` checks the annotation
+        # literally at runtime and would reject ``timeout=60``.
+        timeout: httpx2.Timeout | float | int = DEFAULT_TIMEOUT_SECONDS,  # noqa: PYI041
+    ) -> None:
+        """Create a new HTTPX2 transport.
+
+        Args:
+            timeout: The timeout to use for every request, either
+                a number of seconds or an ``httpx2.Timeout``.
+                Defaults to
+                :data:`DEFAULT_TIMEOUT_SECONDS` seconds.
+        """
+        self._client = httpx2.Client(timeout=timeout)
+
+    def close(self) -> None:
+        """Close the underlying HTTP client."""
+        self._client.close()
+
+    def __enter__(self) -> Self:
+        """Enter the context manager.
+
+        Returns:
+            This transport instance.
+        """
+        return self
+
+    def __exit__(
+        self,
+        _exc_type: type[BaseException] | None,
+        _exc_val: BaseException | None,
+        _exc_tb: TracebackType | None,
+    ) -> None:
+        """Exit the context manager and close the client."""
+        self.close()
+
+    def __call__(
+        self,
+        *,
+        method: str,
+        url: str,
+        headers: dict[str, str],
+        params: dict[str, str | int] | None,
+        json: Mapping[str, JSONValue] | None,
+        files: Mapping[str, Any] | None,
+    ) -> TransportResponse:
+        """Make an HTTP request using ``httpx2``.
+
+        Args:
+            method: The HTTP method.
+            url: The full URL.
+            headers: Request headers.
+            params: Query parameters.
+            json: A JSON-serialisable body.
+            files: Files to send as multipart form-data.
+
+        Returns:
+            A ``TransportResponse`` populated from the httpx2
+            response.
+        """
+        response = self._client.request(
+            method=method,
+            url=url,
+            headers=headers,
+            params=params,
+            json=json,
+            files=files,
+        )
+        return TransportResponse(
+            status_code=response.status_code,
+            headers=dict(response.headers),
+            content=response.content,
+        )
+
+
 @runtime_checkable
 class AsyncTransport(Protocol):
     """Protocol for async HTTP transports."""
@@ -291,6 +378,89 @@ class AsyncHTTPXTransport:
 
         Returns:
             A ``TransportResponse`` populated from the httpx
+            response.
+        """
+        response = await self._client.request(
+            method=method,
+            url=url,
+            headers=headers,
+            params=params,
+            json=json,
+            files=files,
+        )
+        return TransportResponse(
+            status_code=response.status_code,
+            headers=dict(response.headers),
+            content=response.content,
+        )
+
+
+@beartype
+class AsyncHTTPX2Transport:
+    """Async HTTP transport using the ``httpx2`` library."""
+
+    def __init__(
+        self,
+        *,
+        # ``int`` is redundant to a type checker, which reads ``float``
+        # as "int or float", but ``beartype`` checks the annotation
+        # literally at runtime and would reject ``timeout=60``.
+        timeout: httpx2.Timeout | float | int = DEFAULT_TIMEOUT_SECONDS,  # noqa: PYI041
+    ) -> None:
+        """Create a new async HTTPX2 transport.
+
+        Args:
+            timeout: The timeout to use for every request, either
+                a number of seconds or an ``httpx2.Timeout``.
+                Defaults to
+                :data:`DEFAULT_TIMEOUT_SECONDS` seconds.
+        """
+        self._client = httpx2.AsyncClient(timeout=timeout)
+
+    async def aclose(self) -> None:
+        """Close the underlying async HTTP client."""
+        await self._client.aclose()
+
+    async def __aenter__(self) -> Self:
+        """Enter the async context manager.
+
+        Returns:
+            This transport instance.
+        """
+        return self
+
+    async def __aexit__(
+        self,
+        _exc_type: type[BaseException] | None,
+        _exc_val: BaseException | None,
+        _exc_tb: TracebackType | None,
+        /,
+    ) -> None:
+        """Exit the async context manager and close."""
+        await self.aclose()
+
+    async def __call__(
+        self,
+        *,
+        method: str,
+        url: str,
+        headers: dict[str, str],
+        params: dict[str, str | int] | None,
+        json: Mapping[str, JSONValue] | None,
+        files: Mapping[str, Any] | None,
+    ) -> TransportResponse:
+        """Make an async HTTP request using ``httpx2``.
+
+        Args:
+            method: The HTTP method.
+            url: The full URL.
+            headers: Request headers.
+            params: Query parameters.
+            json: A JSON-serialisable body.
+            files: Files to send as multipart form-data.
+
+        Returns:
+            A ``TransportResponse`` populated from the httpx2
             response.
         """
         response = await self._client.request(

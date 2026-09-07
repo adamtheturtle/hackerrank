@@ -40,6 +40,7 @@ html
 http
 https
 httpx
+httpx2
 invariance
 inviters
 io

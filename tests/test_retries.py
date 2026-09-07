@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 
 import httpx
+import httpx2
 import pytest
 
 from hackerrank._retries import rewind_files
@@ -421,6 +422,26 @@ class TestTransportErrors:
         assert transport.methods == ["POST"]
         assert sleeps == []
 
+    @staticmethod
+    def test_httpx2_transport_error_is_retried(
+        sleeps: list[float],
+    ) -> None:
+        """A native HTTPX2 transport error is retried.
+
+        Args:
+            sleeps: The recorded delays between attempts.
+        """
+        transport = _ScriptedTransport(
+            script=[
+                httpx2.ReadTimeout(message="The read operation timed out"),
+                _ok(content=_PAGE_BODY),
+            ],
+        )
+        client = HackerRank(api_key="key", transport=transport, retries=1)
+        assert client.tests.list().total == 0
+        assert transport.methods == ["GET", "GET"]
+        assert sleeps == [0.5]
+
 
 class TestDelays:
     """Tests for how long the client waits between attempts."""
@@ -686,6 +707,32 @@ class TestAsyncRetries:
         transport = _AsyncScriptedTransport(
             script=[
                 httpx.ReadTimeout(message="The read operation timed out"),
+                _ok(content=_PAGE_BODY),
+            ],
+        )
+        client = AsyncHackerRank(
+            api_key="key",
+            transport=transport,
+            retries=1,
+        )
+        result = await client.tests.list()
+        assert result.total == 0
+        assert transport.methods == ["GET", "GET"]
+        assert sleeps == [0.5]
+
+    @staticmethod
+    @pytest.mark.asyncio
+    async def test_httpx2_transport_error_is_retried(
+        sleeps: list[float],
+    ) -> None:
+        """A native async HTTPX2 transport error is retried.
+
+        Args:
+            sleeps: The recorded delays between attempts.
+        """
+        transport = _AsyncScriptedTransport(
+            script=[
+                httpx2.ReadTimeout(message="The read operation timed out"),
                 _ok(content=_PAGE_BODY),
             ],
         )
