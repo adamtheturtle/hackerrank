@@ -543,6 +543,7 @@ plugins = [
 [tool.pyrefly]
 search-path = [ "." ]
 errors.non-exhaustive-match = "error"
+preset = "strict"
 
 [tool.pyright]
 typeCheckingMode = "strict"
