@@ -7,7 +7,7 @@ import time
 from collections.abc import Iterator, Mapping, Sequence
 from http import HTTPStatus
 from pathlib import Path
-from typing import Any
+from typing import Any, override
 
 import httpx
 import httpx2
@@ -606,6 +606,7 @@ class TestRewindFiles:
         class _Unseekable(io.RawIOBase):
             """A stream which cannot be rewound."""
 
+            @override
             def seekable(self) -> bool:
                 """Report as unseekable.
 
