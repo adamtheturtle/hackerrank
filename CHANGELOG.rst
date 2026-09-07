@@ -3,6 +3,12 @@ Changelog
 
 .. towncrier release notes start
 
+2026.09.07
+----------
+
+- Add synchronous and asynchronous HTTPX2 transports while retaining HTTPX as
+  the default client family.
+
 2026.08.28
 ----------
 
