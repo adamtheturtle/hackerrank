@@ -8,6 +8,7 @@ from types import TracebackType
 from typing import Any, BinaryIO, Self
 
 import httpx
+import httpx2
 from beartype import beartype
 
 from hackerrank._retries import (
@@ -18,6 +19,7 @@ from hackerrank._retries import (
 )
 from hackerrank.exceptions import HackerRankError
 from hackerrank.transports import (
+    HTTPX2Transport,
     HTTPXTransport,
     Transport,
     TransportResponse,
@@ -140,7 +142,7 @@ class _Namespace:
                     json=json,
                     files=files,
                 )
-            except httpx.TransportError as exc:
+            except (httpx.TransportError, httpx2.TransportError) as exc:
                 if not (retriable and rewind_files(files=files)):
                     raise
                 headers = None
@@ -3278,7 +3280,7 @@ class HackerRank:
             headers=headers,
             retries=retries,
         )
-        if isinstance(resolved_transport, HTTPXTransport):
+        if isinstance(resolved_transport, (HTTPXTransport, HTTPX2Transport)):
             self._close = resolved_transport.close
         else:
             self._close = lambda: None

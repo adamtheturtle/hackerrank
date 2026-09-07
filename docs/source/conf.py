@@ -82,6 +82,8 @@ nitpick_ignore: list[tuple[str, str]] = [
     # ``httpx`` does not publish a Sphinx object inventory, so its
     # types cannot be cross-referenced.
     ("py:class", "httpx.Timeout"),
+    # ``httpx2`` does not expose this class in its Sphinx inventory.
+    ("py:class", "httpx2.Timeout"),
 ]
 nitpick_ignore_regex = [
     (r"py:class", r"hackerrank\._dict_types\..*"),
