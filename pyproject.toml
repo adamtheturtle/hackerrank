@@ -539,6 +539,7 @@ plugins = [
 [tool.pyrefly]
 search-path = [ "." ]
 errors.non-exhaustive-match = "error"
+enabled-ignores = [ "pyrefly" ]
 preset = "all"
 
 [tool.pyright]
