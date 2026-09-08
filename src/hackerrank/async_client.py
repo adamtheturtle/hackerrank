@@ -55,9 +55,9 @@ _SCIM_BASE_URL = "https://services.hackerrank.com/scim/v2"
 
 
 def _drop_none(
-    data: Mapping[str, JSONValue],
+    data: Mapping[str, JSONValue],  # pyrefly: ignore [explicit-any]
     /,
-) -> dict[str, JSONValue]:
+) -> dict[str, JSONValue]:  # pyrefly: ignore [explicit-any]
     """Return a copy of ``data`` with ``None`` values removed.
 
     Args:
@@ -84,7 +84,7 @@ def _coerce_int(value: object, /) -> int:
         return int(value)
     if isinstance(value, int):
         return value
-    if isinstance(value, str) and value:
+    if isinstance(value, str) and len(value) > 0:
         try:
             return int(value)
         except ValueError:
@@ -108,7 +108,7 @@ def _coerce_str(value: object, /) -> str:
 
 def _make_page[T](
     items: list[T],
-    metadata: Mapping[str, JSONValue],
+    metadata: Mapping[str, JSONValue],  # pyrefly: ignore [explicit-any]
     /,
 ) -> Page[T]:
     """Wrap ``items`` and ``metadata`` into a ``Page``.
@@ -134,7 +134,7 @@ def _make_page[T](
 
 def _make_scim_page[T](
     items: list[T],
-    payload: Mapping[str, JSONValue],
+    payload: Mapping[str, JSONValue],  # pyrefly: ignore [explicit-any]
     /,
 ) -> SCIMPage[T]:
     """Wrap items and a SCIM payload into a ``SCIMPage``.
@@ -186,7 +186,7 @@ def _list_params(
         params["limit"] = limit
     if offset is not None:
         params["offset"] = offset
-    if extra:
+    if extra is not None and len(extra) > 0:
         params.update(extra)
     return params
 
@@ -209,9 +209,9 @@ def _question_body(
     scoring_files: builtins.list[str] | None,
     readonly_paths: builtins.list[str] | None,
     default_files: builtins.list[str] | None,
-    configuration: Mapping[str, JSONValue] | None,
-    testcases: Sequence[Mapping[str, JSONValue]] | None,
-) -> dict[str, JSONValue]:
+    configuration: Mapping[str, JSONValue] | None,  # pyrefly: ignore [explicit-any]
+    testcases: Sequence[Mapping[str, JSONValue]] | None,  # pyrefly: ignore [explicit-any]
+) -> dict[str, JSONValue]:  # pyrefly: ignore [explicit-any]
     """Build a JSON body for question create/update calls."""
     return _drop_none(
         {
@@ -279,8 +279,8 @@ class _AsyncNamespace:
         method: str,
         url: str,
         params: dict[str, str | int] | None,
-        json: Mapping[str, JSONValue] | None,
-        files: Mapping[str, Any] | None,
+        json: Mapping[str, JSONValue] | None,  # pyrefly: ignore [explicit-any]
+        files: Mapping[str, Any] | None,  # pyrefly: ignore [explicit-any]
         repeatable: bool,
     ) -> TransportResponse:
         """Make an async HTTP request.
@@ -411,16 +411,17 @@ class AsyncInterviewsNamespace(_AsyncNamespace):
             params=_list_params(
                 limit=limit,
                 offset=offset,
-                extra=extra or None,
+                extra=extra if len(extra) > 0 else None,
             ),
             json=None,
             files=None,
             repeatable=True,
         )
         payload = response.json()
-        raw_items = list(payload.get("data", []))
+        raw_items = list(payload.get("data", []))  # pyrefly: ignore [unknown-argument-type]
         items: list[Interview] = [
-            Interview.from_dict(data=item) for item in raw_items
+            Interview.from_dict(data=item)  # pyrefly: ignore [unknown-argument-type]
+            for item in raw_items
         ]
         return _make_page(items, payload)
 
@@ -434,9 +435,9 @@ class AsyncInterviewsNamespace(_AsyncNamespace):
         resume_url: str | None = None,
         interviewers: builtins.list[str | Mapping[str, str]] | None = None,
         result_url: str | None = None,
-        candidate: Mapping[str, JSONValue] | None = None,
+        candidate: Mapping[str, JSONValue] | None = None,  # pyrefly: ignore [explicit-any]
         send_email: bool | None = None,
-        metadata: Mapping[str, JSONValue] | None = None,
+        metadata: Mapping[str, JSONValue] | None = None,  # pyrefly: ignore [explicit-any]
         interview_template_id: int | None = None,
         ai_assistant_available: bool | None = None,
     ) -> Interview:
@@ -520,12 +521,12 @@ class AsyncInterviewsNamespace(_AsyncNamespace):
         notes: str,
         resume_url: str,
         result_url: str,
-        candidate: Mapping[str, JSONValue],
+        candidate: Mapping[str, JSONValue],  # pyrefly: ignore [explicit-any]
         send_email: bool,
-        metadata: Mapping[str, JSONValue],
+        metadata: Mapping[str, JSONValue],  # pyrefly: ignore [explicit-any]
         interview_template_id: int,
         interviewers: (
-            builtins.list[str] | builtins.list[Mapping[str, JSONValue]] | None
+            builtins.list[str] | builtins.list[Mapping[str, JSONValue]] | None  # pyrefly: ignore [explicit-any]
         ) = None,
         replace_interviewers: bool | None = None,
         ai_assistant_available: bool | None = None,
@@ -638,7 +639,7 @@ class AsyncExplicitSharingRolesNamespace(_AsyncNamespace):
         self,
         *,
         template_id: int | str,
-        explicit_roles: Sequence[Mapping[str, JSONValue]],
+        explicit_roles: Sequence[Mapping[str, JSONValue]],  # pyrefly: ignore [explicit-any]
     ) -> None:
         """Grant or change access to a template.
 
@@ -669,7 +670,7 @@ class AsyncExplicitSharingRolesNamespace(_AsyncNamespace):
         self,
         *,
         template_id: int | str,
-        explicit_roles: Sequence[Mapping[str, JSONValue]],
+        explicit_roles: Sequence[Mapping[str, JSONValue]],  # pyrefly: ignore [explicit-any]
     ) -> None:
         """Revoke access to a template.
 
@@ -758,16 +759,17 @@ class AsyncInterviewTemplatesNamespace(_AsyncNamespace):
             params=_list_params(
                 limit=limit,
                 offset=offset,
-                extra=extra or None,
+                extra=extra if len(extra) > 0 else None,
             ),
             json=None,
             files=None,
             repeatable=True,
         )
         payload = response.json()
-        raw_items = list(payload.get("data", []))
+        raw_items = list(payload.get("data", []))  # pyrefly: ignore [unknown-argument-type]
         items: list[InterviewTemplate] = [
-            InterviewTemplate.from_dict(data=item) for item in raw_items
+            InterviewTemplate.from_dict(data=item)  # pyrefly: ignore [unknown-argument-type]
+            for item in raw_items
         ]
         return _make_page(items, payload)
 
@@ -908,8 +910,8 @@ class AsyncEnvironmentsNamespace(_AsyncNamespace):
             files=None,
             repeatable=True,
         )
-        raw_items = list(response.json().get("environments", []))
-        return [Environment.from_dict(data=item) for item in raw_items]
+        raw_items = list(response.json().get("environments", []))  # pyrefly: ignore [unknown-argument-type]
+        return [Environment.from_dict(data=item) for item in raw_items]  # pyrefly: ignore [unknown-argument-type]
 
     async def get(self, *, environment_id: int) -> Environment:
         """Retrieve a project-question environment.
@@ -928,7 +930,7 @@ class AsyncEnvironmentsNamespace(_AsyncNamespace):
             files=None,
             repeatable=True,
         )
-        return Environment.from_dict(data=response.json()["environment"])
+        return Environment.from_dict(data=response.json()["environment"])  # pyrefly: ignore [unknown-argument-type]
 
 
 @beartype
@@ -991,16 +993,17 @@ class AsyncQuestionsNamespace(_AsyncNamespace):
             params=_list_params(
                 limit=limit,
                 offset=offset,
-                extra=extra or None,
+                extra=extra if len(extra) > 0 else None,
             ),
             json=None,
             files=None,
             repeatable=True,
         )
         payload = response.json()
-        raw_items = list(payload.get("data", []))
+        raw_items = list(payload.get("data", []))  # pyrefly: ignore [unknown-argument-type]
         items: list[Question] = [
-            Question.from_dict(data=item) for item in raw_items
+            Question.from_dict(data=item)  # pyrefly: ignore [unknown-argument-type]
+            for item in raw_items
         ]
         return _make_page(items, payload)
 
@@ -1042,8 +1045,8 @@ class AsyncQuestionsNamespace(_AsyncNamespace):
         scoring_files: builtins.list[str] | None = None,
         readonly_paths: builtins.list[str] | None = None,
         default_files: builtins.list[str] | None = None,
-        configuration: Mapping[str, JSONValue] | None = None,
-        testcases: builtins.list[Mapping[str, JSONValue]] | None = None,
+        configuration: Mapping[str, JSONValue] | None = None,  # pyrefly: ignore [explicit-any]
+        testcases: builtins.list[Mapping[str, JSONValue]] | None = None,  # pyrefly: ignore [explicit-any]
     ) -> Question:
         """Create a question.
 
@@ -1124,8 +1127,8 @@ class AsyncQuestionsNamespace(_AsyncNamespace):
         scoring_files: builtins.list[str] | None = None,
         readonly_paths: builtins.list[str] | None = None,
         default_files: builtins.list[str] | None = None,
-        configuration: Mapping[str, JSONValue] | None = None,
-        testcases: builtins.list[Mapping[str, JSONValue]] | None = None,
+        configuration: Mapping[str, JSONValue] | None = None,  # pyrefly: ignore [explicit-any]
+        testcases: builtins.list[Mapping[str, JSONValue]] | None = None,  # pyrefly: ignore [explicit-any]
     ) -> Question | None:
         """Update a question.
 
@@ -1183,7 +1186,7 @@ class AsyncQuestionsNamespace(_AsyncNamespace):
             files=None,
             repeatable=True,
         )
-        if response.content:
+        if bool(response.content):
             return Question.from_dict(data=response.json())
         return None
 
@@ -1194,7 +1197,7 @@ class AsyncQuestionsNamespace(_AsyncNamespace):
         file: bytes | BinaryIO,
         filename: str = "project.zip",
         content_type: str = "application/zip",
-    ) -> dict[str, JSONValue]:
+    ) -> dict[str, JSONValue]:  # pyrefly: ignore [explicit-any]
         """Upload a project zip for a fullstack question.
 
         Safe to retry: uploading again replaces the project archive.
@@ -1217,14 +1220,14 @@ class AsyncQuestionsNamespace(_AsyncNamespace):
             json=None,
             repeatable=True,
         )
-        result: dict[str, JSONValue] = dict(response.json())
+        result: dict[str, JSONValue] = dict(response.json())  # pyrefly: ignore [explicit-any]
         return result
 
     async def update_codestubs(
         self,
         *,
         question_id: str,
-        codestubs: Mapping[str, JSONValue],
+        codestubs: Mapping[str, JSONValue],  # pyrefly: ignore [explicit-any]
     ) -> None:
         """Update custom code-stubs for a question.
 
@@ -1247,8 +1250,8 @@ class AsyncQuestionsNamespace(_AsyncNamespace):
         self,
         *,
         question_id: str,
-        body: Mapping[str, JSONValue],
-    ) -> dict[str, JSONValue]:
+        body: Mapping[str, JSONValue],  # pyrefly: ignore [explicit-any]
+    ) -> dict[str, JSONValue]:  # pyrefly: ignore [explicit-any]
         """Generate code-stubs for a question.
 
         Safe to retry: the request replaces the generated code stubs.
@@ -1268,15 +1271,15 @@ class AsyncQuestionsNamespace(_AsyncNamespace):
             files=None,
             repeatable=True,
         )
-        result: dict[str, JSONValue] = dict(response.json())
+        result: dict[str, JSONValue] = dict(response.json())  # pyrefly: ignore [explicit-any]
         return result
 
     async def add_testcase(
         self,
         *,
         question_id: str,
-        body: Mapping[str, JSONValue],
-    ) -> dict[str, JSONValue]:
+        body: Mapping[str, JSONValue],  # pyrefly: ignore [explicit-any]
+    ) -> dict[str, JSONValue]:  # pyrefly: ignore [explicit-any]
         """Add a test case to a question.
 
         Not safe to retry: each call appends another test case.
@@ -1296,7 +1299,7 @@ class AsyncQuestionsNamespace(_AsyncNamespace):
             files=None,
             repeatable=False,
         )
-        result: dict[str, JSONValue] = dict(response.json())
+        result: dict[str, JSONValue] = dict(response.json())  # pyrefly: ignore [explicit-any]
         return result
 
     async def update_testcase(
@@ -1304,7 +1307,7 @@ class AsyncQuestionsNamespace(_AsyncNamespace):
         *,
         question_id: str,
         testcase_id: str,
-        body: Mapping[str, JSONValue],
+        body: Mapping[str, JSONValue],  # pyrefly: ignore [explicit-any]
     ) -> None:
         """Update an existing test case.
 
@@ -1396,9 +1399,10 @@ class AsyncTestCandidatesNamespace(_AsyncNamespace):
             repeatable=True,
         )
         payload = response.json()
-        raw_items = list(payload.get("data", []))
+        raw_items = list(payload.get("data", []))  # pyrefly: ignore [unknown-argument-type]
         items: list[TestCandidate] = [
-            TestCandidate.from_dict(data=item) for item in raw_items
+            TestCandidate.from_dict(data=item)  # pyrefly: ignore [unknown-argument-type]
+            for item in raw_items
         ]
         return _make_page(items, payload)
 
@@ -1435,9 +1439,10 @@ class AsyncTestCandidatesNamespace(_AsyncNamespace):
             repeatable=True,
         )
         payload = response.json()
-        raw_items = list(payload.get("data", []))
+        raw_items = list(payload.get("data", []))  # pyrefly: ignore [unknown-argument-type]
         items: list[TestCandidate] = [
-            TestCandidate.from_dict(data=item) for item in raw_items
+            TestCandidate.from_dict(data=item)  # pyrefly: ignore [unknown-argument-type]
+            for item in raw_items
         ]
         return _make_page(items, payload)
 
@@ -1457,9 +1462,9 @@ class AsyncTestCandidatesNamespace(_AsyncNamespace):
         invite_valid_to: str | None = None,
         force: bool | None = None,
         force_reattempt: bool | None = None,
-        accommodations: Mapping[str, JSONValue] | None = None,
-        invite_metadata: Mapping[str, JSONValue] | None = None,
-        webhook_authentication: Mapping[str, JSONValue] | None = None,
+        accommodations: Mapping[str, JSONValue] | None = None,  # pyrefly: ignore [explicit-any]
+        invite_metadata: Mapping[str, JSONValue] | None = None,  # pyrefly: ignore [explicit-any]
+        webhook_authentication: Mapping[str, JSONValue] | None = None,  # pyrefly: ignore [explicit-any]
         accept_result_updates: bool | None = None,
         subject: str | None = None,
         message: str | None = None,
@@ -1552,7 +1557,7 @@ class AsyncTestCandidatesNamespace(_AsyncNamespace):
         response = await self._request(
             method="GET",
             url=(f"{_API_V3}/tests/{test_id}/candidates/{candidate_id}"),
-            params=params or None,
+            params=params if len(params) > 0 else None,
             json=None,
             files=None,
             repeatable=True,
@@ -1568,14 +1573,14 @@ class AsyncTestCandidatesNamespace(_AsyncNamespace):
         ats_state: int,
         invite_valid_from: str,
         invite_valid_to: str,
-        invite_metadata: Mapping[str, JSONValue],
+        invite_metadata: Mapping[str, JSONValue],  # pyrefly: ignore [explicit-any]
         evaluator_email: str,
         test_finish_url: str,
         test_result_url: str,
-        webhook_authentication: Mapping[str, JSONValue],
+        webhook_authentication: Mapping[str, JSONValue],  # pyrefly: ignore [explicit-any]
         accept_result_updates: bool,
         tags: builtins.list[str],
-        accommodations: Mapping[str, JSONValue],
+        accommodations: Mapping[str, JSONValue],  # pyrefly: ignore [explicit-any]
     ) -> TestCandidate:
         """Update a candidate.
 
@@ -1600,7 +1605,7 @@ class AsyncTestCandidatesNamespace(_AsyncNamespace):
         Returns:
             The updated candidate.
         """
-        body: dict[str, JSONValue] = {
+        body: dict[str, JSONValue] = {  # pyrefly: ignore [explicit-any]
             "full_name": full_name,
             "ats_state": ats_state,
             "invite_valid_from": invite_valid_from,
@@ -1680,7 +1685,7 @@ class AsyncTestCandidatesNamespace(_AsyncNamespace):
         test_id: str,
         candidate_id: str,
         format_: str = "url",
-    ) -> dict[str, JSONValue]:
+    ) -> dict[str, JSONValue]:  # pyrefly: ignore [explicit-any]
         """Retrieve the PDF report for a candidate.
 
         Args:
@@ -1701,7 +1706,7 @@ class AsyncTestCandidatesNamespace(_AsyncNamespace):
             files=None,
             repeatable=True,
         )
-        result: dict[str, JSONValue] = dict(response.json())
+        result: dict[str, JSONValue] = dict(response.json())  # pyrefly: ignore [explicit-any]
         return result
 
 
@@ -1765,8 +1770,8 @@ class AsyncTestsNamespace(_AsyncNamespace):
             repeatable=True,
         )
         payload = response.json()
-        raw_items = list(payload.get("data", []))
-        items: list[Test] = [Test.from_dict(data=item) for item in raw_items]
+        raw_items = list(payload.get("data", []))  # pyrefly: ignore [unknown-argument-type]
+        items: list[Test] = [Test.from_dict(data=item) for item in raw_items]  # pyrefly: ignore [unknown-argument-type]
         return _make_page(items, payload)
 
     async def create(
@@ -1783,7 +1788,7 @@ class AsyncTestsNamespace(_AsyncNamespace):
         draft: bool | None = None,
         languages: builtins.list[str] | None = None,
         candidate_details: (
-            builtins.list[str | Mapping[str, JSONValue]] | None
+            builtins.list[str | Mapping[str, JSONValue]] | None  # pyrefly: ignore [explicit-any]
         ) = None,
         custom_acknowledge_text: str | None = None,
         cutoff_score: int | None = None,
@@ -1921,7 +1926,7 @@ class AsyncTestsNamespace(_AsyncNamespace):
         response = await self._request(
             method="GET",
             url=f"{_API_V3}/tests/{test_id}",
-            params=params or None,
+            params=params if len(params) > 0 else None,
             json=None,
             files=None,
             repeatable=True,
@@ -2012,9 +2017,10 @@ class AsyncTestsNamespace(_AsyncNamespace):
             repeatable=True,
         )
         payload = response.json()
-        raw_items = list(payload.get("data", []))
+        raw_items = list(payload.get("data", []))  # pyrefly: ignore [unknown-argument-type]
         items: list[Inviter] = [
-            Inviter.from_dict(data=item) for item in raw_items
+            Inviter.from_dict(data=item)  # pyrefly: ignore [unknown-argument-type]
+            for item in raw_items
         ]
         return _make_page(items, payload)
 
@@ -2049,16 +2055,17 @@ class AsyncTemplatesNamespace(_AsyncNamespace):
             params=_list_params(
                 limit=limit,
                 offset=offset,
-                extra=extra or None,
+                extra=extra if len(extra) > 0 else None,
             ),
             json=None,
             files=None,
             repeatable=True,
         )
         payload = response.json()
-        raw_items = list(payload.get("data", []))
+        raw_items = list(payload.get("data", []))  # pyrefly: ignore [unknown-argument-type]
         items: list[Template] = [
-            Template.from_dict(data=item) for item in raw_items
+            Template.from_dict(data=item)  # pyrefly: ignore [unknown-argument-type]
+            for item in raw_items
         ]
         return _make_page(items, payload)
 
@@ -2117,9 +2124,10 @@ class AsyncCandidatesNamespace(_AsyncNamespace):
             repeatable=True,
         )
         payload = response.json()
-        raw_items = list(payload.get("data", []))
+        raw_items = list(payload.get("data", []))  # pyrefly: ignore [unknown-argument-type]
         items: list[CandidateSearchResult] = [
-            CandidateSearchResult.from_dict(data=item) for item in raw_items
+            CandidateSearchResult.from_dict(data=item)  # pyrefly: ignore [unknown-argument-type]
+            for item in raw_items
         ]
         return _make_page(items, payload)
 
@@ -2152,8 +2160,8 @@ class AsyncUsersNamespace(_AsyncNamespace):
             repeatable=True,
         )
         payload = response.json()
-        raw_items = list(payload.get("data", []))
-        items: list[User] = [User.from_dict(data=item) for item in raw_items]
+        raw_items = list(payload.get("data", []))  # pyrefly: ignore [unknown-argument-type]
+        items: list[User] = [User.from_dict(data=item) for item in raw_items]  # pyrefly: ignore [unknown-argument-type]
         return _make_page(items, payload)
 
     async def search(
@@ -2187,8 +2195,8 @@ class AsyncUsersNamespace(_AsyncNamespace):
             repeatable=True,
         )
         payload = response.json()
-        raw_items = list(payload.get("data", []))
-        items: list[User] = [User.from_dict(data=item) for item in raw_items]
+        raw_items = list(payload.get("data", []))  # pyrefly: ignore [unknown-argument-type]
+        items: list[User] = [User.from_dict(data=item) for item in raw_items]  # pyrefly: ignore [unknown-argument-type]
         return _make_page(items, payload)
 
     async def create(
@@ -2364,9 +2372,10 @@ class AsyncTeamMembershipsNamespace(_AsyncNamespace):
             repeatable=True,
         )
         payload = response.json()
-        raw_items = list(payload.get("data", []))
+        raw_items = list(payload.get("data", []))  # pyrefly: ignore [unknown-argument-type]
         items: list[UserTeamMembership] = [
-            UserTeamMembership.from_dict(data=item) for item in raw_items
+            UserTeamMembership.from_dict(data=item)  # pyrefly: ignore [unknown-argument-type]
+            for item in raw_items
         ]
         return _make_page(items, payload)
 
@@ -2422,7 +2431,7 @@ class AsyncTeamMembershipsNamespace(_AsyncNamespace):
         response = await self._request(
             method="POST",
             url=f"{_API_V3}/teams/{team_id}/users/{user_id}",
-            params=params or None,
+            params=params if len(params) > 0 else None,
             json=None,
             files=None,
             repeatable=False,
@@ -2513,8 +2522,8 @@ class AsyncTeamsNamespace(_AsyncNamespace):
             repeatable=True,
         )
         payload = response.json()
-        raw_items = list(payload.get("data", []))
-        items: list[Team] = [Team.from_dict(data=item) for item in raw_items]
+        raw_items = list(payload.get("data", []))  # pyrefly: ignore [unknown-argument-type]
+        items: list[Team] = [Team.from_dict(data=item) for item in raw_items]  # pyrefly: ignore [unknown-argument-type]
         return _make_page(items, payload)
 
     async def create(
@@ -2610,7 +2619,7 @@ class AsyncTeamsNamespace(_AsyncNamespace):
             locations: New allowed locations.
             departments: New allowed departments.
         """
-        body: dict[str, JSONValue] = {
+        body: dict[str, JSONValue] = {  # pyrefly: ignore [explicit-any]
             "name": name,
             "recruiter_cap": recruiter_cap,
             "developer_cap": developer_cap,
@@ -2683,9 +2692,10 @@ class AsyncAuditLogsNamespace(_AsyncNamespace):
             repeatable=True,
         )
         payload = response.json()
-        raw_items = list(payload.get("data", []))
+        raw_items = list(payload.get("data", []))  # pyrefly: ignore [unknown-argument-type]
         items: list[AuditLog] = [
-            AuditLog.from_dict(data=item) for item in raw_items
+            AuditLog.from_dict(data=item)  # pyrefly: ignore [unknown-argument-type]
+            for item in raw_items
         ]
         return _make_page(items, payload)
 
@@ -2700,9 +2710,9 @@ class AsyncATSCodePairNamespace(_AsyncNamespace):
         title: str,
         requisition_id: str,
         candidate_id: str,
-        candidate: Mapping[str, JSONValue] | None = None,
+        candidate: Mapping[str, JSONValue] | None = None,  # pyrefly: ignore [explicit-any]
         send_email: bool | None = None,
-        interview_metadata: Mapping[str, JSONValue] | None = None,
+        interview_metadata: Mapping[str, JSONValue] | None = None,  # pyrefly: ignore [explicit-any]
     ) -> Interview:
         """Invite a candidate to an ATS Codepair interview.
 
@@ -2753,11 +2763,11 @@ class AsyncATSCodeScreenNamespace(_AsyncNamespace):
         candidate_id: str,
         send_email: bool | None = None,
         test_result_url: str | None = None,
-        webhook_authentication: Mapping[str, JSONValue] | None = None,
+        webhook_authentication: Mapping[str, JSONValue] | None = None,  # pyrefly: ignore [explicit-any]
         accept_result_updates: bool | None = None,
         force: bool | None = None,
         force_reattempt_after: int | None = None,
-        accommodations: Mapping[str, JSONValue] | None = None,
+        accommodations: Mapping[str, JSONValue] | None = None,  # pyrefly: ignore [explicit-any]
     ) -> CandidateInvite:
         """Invite a candidate to a CodeScreen test.
 
@@ -2876,14 +2886,14 @@ class AsyncSCIMUsersNamespace(_AsyncNamespace):
             repeatable=True,
         )
         payload = response.json()
-        raw = list(payload.get("Resources", []))
-        items: list[SCIMUser] = [SCIMUser.from_dict(data=item) for item in raw]
+        raw = list(payload.get("Resources", []))  # pyrefly: ignore [unknown-argument-type]
+        items: list[SCIMUser] = [SCIMUser.from_dict(data=item) for item in raw]  # pyrefly: ignore [unknown-argument-type]
         return _make_scim_page(items, payload)
 
     async def create(
         self,
         *,
-        body: Mapping[str, JSONValue],
+        body: Mapping[str, JSONValue],  # pyrefly: ignore [explicit-any]
     ) -> SCIMUser:
         """Create a SCIM user.
 
@@ -2929,7 +2939,7 @@ class AsyncSCIMUsersNamespace(_AsyncNamespace):
         self,
         *,
         scim_user_id: str,
-        body: Mapping[str, JSONValue],
+        body: Mapping[str, JSONValue],  # pyrefly: ignore [explicit-any]
     ) -> SCIMUser:
         """Replace a SCIM user (PUT).
 
@@ -2956,7 +2966,7 @@ class AsyncSCIMUsersNamespace(_AsyncNamespace):
         self,
         *,
         scim_user_id: str,
-        operations: Sequence[Mapping[str, JSONValue]],
+        operations: Sequence[Mapping[str, JSONValue]],  # pyrefly: ignore [explicit-any]
     ) -> SCIMMessage:
         """Patch a SCIM user.
 
@@ -2970,7 +2980,7 @@ class AsyncSCIMUsersNamespace(_AsyncNamespace):
         Returns:
             The SCIM patch acknowledgement message.
         """
-        body: dict[str, JSONValue] = {
+        body: dict[str, JSONValue] = {  # pyrefly: ignore [explicit-any]
             "operations": [dict(op) for op in operations],
         }
         response = await self._request(
@@ -3030,11 +3040,11 @@ class AsyncSCIMGroupsNamespace(_AsyncNamespace):
             repeatable=True,
         )
         payload = response.json()
-        raw = list(payload.get("Resources", []))
-        items: list[SCIMTeam] = [SCIMTeam.from_dict(data=item) for item in raw]
+        raw = list(payload.get("Resources", []))  # pyrefly: ignore [unknown-argument-type]
+        items: list[SCIMTeam] = [SCIMTeam.from_dict(data=item) for item in raw]  # pyrefly: ignore [unknown-argument-type]
         return _make_scim_page(items, payload)
 
-    async def create(self, *, body: Mapping[str, JSONValue]) -> SCIMTeam:
+    async def create(self, *, body: Mapping[str, JSONValue]) -> SCIMTeam:  # pyrefly: ignore [explicit-any]
         """Create a SCIM group.
 
         Not safe to retry: a lost response may still have created the
@@ -3079,7 +3089,7 @@ class AsyncSCIMGroupsNamespace(_AsyncNamespace):
         self,
         *,
         scim_group_id: str,
-        operations: Sequence[Mapping[str, JSONValue]],
+        operations: Sequence[Mapping[str, JSONValue]],  # pyrefly: ignore [explicit-any]
     ) -> SCIMMessage:
         """Patch a SCIM group.
 
@@ -3093,7 +3103,7 @@ class AsyncSCIMGroupsNamespace(_AsyncNamespace):
         Returns:
             The SCIM patch acknowledgement message.
         """
-        body: dict[str, JSONValue] = {
+        body: dict[str, JSONValue] = {  # pyrefly: ignore [explicit-any]
             "operations": [dict(op) for op in operations],
         }
         response = await self._request(

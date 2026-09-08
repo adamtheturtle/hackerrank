@@ -90,12 +90,13 @@ def _side_effecting(*, module: Path) -> dict[str, tuple[bool, str | None]]:
                 for verb, flag in _requests_of(method=method)
                 if verb != "GET"
             ]
-            if not repeatable:
+            if not bool(repeatable):
                 continue
             key = f"{class_node.name.removeprefix('Async')}.{method.name}"
+            docstring = ast.get_docstring(node=method)
             found[key] = (
                 all(repeatable),
-                _note_of(docstring=ast.get_docstring(node=method) or ""),
+                _note_of(docstring=docstring if docstring is not None else ""),
             )
     return found
 
@@ -150,7 +151,8 @@ class TestRetrySafetyIsDocumented:
             for key, (repeatable, note) in _side_effecting(
                 module=module,
             ).items():
-                said[f"{module.stem}:{key}"] = not (note or "").startswith(
+                note_text = note if note is not None else ""
+                said[f"{module.stem}:{key}"] = not note_text.startswith(
                     _UNSAFE,
                 )
                 marked[f"{module.stem}:{key}"] = repeatable

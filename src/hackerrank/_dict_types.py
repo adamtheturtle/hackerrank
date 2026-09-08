@@ -23,8 +23,8 @@ InterviewDict = TypedDict(
         "resume_url": NotRequired[str],
         "interviewers": NotRequired[list[str | InterviewerDict]],
         "result_url": NotRequired[str],
-        "candidate": NotRequired[dict[str, Any]],
-        "metadata": NotRequired[dict[str, Any]],
+        "candidate": NotRequired[dict[str, Any]],  # pyrefly: ignore [explicit-any]
+        "metadata": NotRequired[dict[str, Any]],  # pyrefly: ignore [explicit-any]
         "report_url": NotRequired[str],
         "ended_at": NotRequired[str],
         "interview_template_id": NotRequired[int],
@@ -115,7 +115,7 @@ class QuestionDict(TypedDict):
     file_url: NotRequired[str]
     file_path: NotRequired[str]
     has_valid_stacks: NotRequired[bool]
-    fullstack_project_details: NotRequired[dict[str, Any]]
+    fullstack_project_details: NotRequired[dict[str, Any]]  # pyrefly: ignore [explicit-any]
 
 
 class TestCandidateDetailFieldDict(TypedDict, total=False):
@@ -154,7 +154,7 @@ class TestDict(TypedDict):
     role_ids: NotRequired[list[str]]
     experience: NotRequired[list[str]]
     questions: NotRequired[list[str]]
-    sections: NotRequired[dict[str, Any]]
+    sections: NotRequired[dict[str, Any]]  # pyrefly: ignore [explicit-any]
     mcq_incorrect_score: NotRequired[int]
     mcq_correct_score: NotRequired[int]
     locked_by: NotRequired[str]
@@ -225,7 +225,7 @@ class TestCandidateDict(TypedDict):
     invite_valid_from: NotRequired[str]
     invite_valid_to: NotRequired[str]
     invite_link: NotRequired[str]
-    invite_metadata: NotRequired[dict[str, Any]]
+    invite_metadata: NotRequired[dict[str, Any]]  # pyrefly: ignore [explicit-any]
     evaluator_email: NotRequired[str]
     test_finish_url: NotRequired[str]
     test_result_url: NotRequired[str]
@@ -234,17 +234,17 @@ class TestCandidateDict(TypedDict):
     report_url: NotRequired[str]
     authenticated_report_url: NotRequired[str]
     pdf_url: NotRequired[str]
-    scores_tags_split: NotRequired[dict[str, Any]]
-    scores_skills_split: NotRequired[dict[str, Any]]
+    scores_tags_split: NotRequired[dict[str, Any]]  # pyrefly: ignore [explicit-any]
+    scores_skills_split: NotRequired[dict[str, Any]]  # pyrefly: ignore [explicit-any]
     added_time: NotRequired[str | int]
     unclaimed_added_time: NotRequired[int]
-    comments: NotRequired[dict[str, Any]]
+    comments: NotRequired[dict[str, Any]]  # pyrefly: ignore [explicit-any]
     performance_summary: NotRequired[str]
     ip_address: NotRequired[str]
-    questions: NotRequired[dict[str, Any]]
-    plagiarism: NotRequired[dict[str, Any]]
+    questions: NotRequired[dict[str, Any]]  # pyrefly: ignore [explicit-any]
+    plagiarism: NotRequired[dict[str, Any]]  # pyrefly: ignore [explicit-any]
     plagiarism_status: NotRequired[bool]
-    max_code_similarity: NotRequired[dict[str, Any]]
+    max_code_similarity: NotRequired[dict[str, Any]]  # pyrefly: ignore [explicit-any]
     feedback: NotRequired[str]
     percentage_score: NotRequired[float]
     candidate_details: NotRequired[list[CandidateDetailDict]]
@@ -345,7 +345,7 @@ class AuditLogDict(TypedDict):
     user: NotRequired[str]
     action: str
     modified_fields: NotRequired[list[str]]
-    modified_values: NotRequired[dict[str, Any]]
+    modified_values: NotRequired[dict[str, Any]]  # pyrefly: ignore [explicit-any]
     ip_address: NotRequired[str]
     created_at: NotRequired[str]
 
@@ -364,9 +364,9 @@ class ATSCodePairDict(TypedDict):
     title: NotRequired[str]
     requisition_id: NotRequired[str]
     candidate_id: NotRequired[str]
-    candidate: NotRequired[dict[str, Any]]
+    candidate: NotRequired[dict[str, Any]]  # pyrefly: ignore [explicit-any]
     send_email: NotRequired[bool]
-    interview_metadata: NotRequired[dict[str, Any]]
+    interview_metadata: NotRequired[dict[str, Any]]  # pyrefly: ignore [explicit-any]
 
 
 class ATSCodeScreenDict(TypedDict):
@@ -385,12 +385,12 @@ class SCIMUserDict(TypedDict):
 
     id: str
     userName: str
-    name: NotRequired[dict[str, Any]]
+    name: NotRequired[dict[str, Any]]  # pyrefly: ignore [explicit-any]
     active: NotRequired[bool]
     role: NotRequired[str]
     team_admin: NotRequired[bool]
     company_admin: NotRequired[bool]
-    emails: NotRequired[list[dict[str, Any]]]
+    emails: NotRequired[list[dict[str, Any]]]  # pyrefly: ignore [explicit-any]
     schemas: NotRequired[list[str]]
 
 

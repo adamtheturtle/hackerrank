@@ -26,9 +26,9 @@ it to :class:`hackerrank.client.HackerRank`:
 
    client = HackerRank(api_key="your-api-key")
    for test in client.tests.list().data:
-       sys.stdout.write(test.name)
+       _ = sys.stdout.write(test.name)
    interview = client.interviews.create(title="My Interview")
-   sys.stdout.write(interview.url or "")
+   _ = sys.stdout.write(interview.url)
 
 HTTPX2 transports
 -----------------

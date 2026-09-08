@@ -80,14 +80,14 @@ class TestAsyncHackerRank:
                 url: str,
                 headers: dict[str, str],
                 params: dict[str, str | int] | None,
-                json: Mapping[str, JSONValue] | None,
-                files: Mapping[str, Any] | None,
+                json: Mapping[str, JSONValue] | None,  # pyrefly: ignore [explicit-any]
+                files: Mapping[str, Any] | None,  # pyrefly: ignore [explicit-any]
             ) -> TransportResponse:  # pragma: no cover
                 """Make a request."""
                 del method, url, headers, params, json, files
                 raise NotImplementedError
 
-        transport: Any = _FalsyTransport()
+        transport: Any = _FalsyTransport()  # pyrefly: ignore [explicit-any]
         client = AsyncHackerRank(api_key="test-key", transport=transport)
         assert client.users.transport is transport
 
@@ -303,7 +303,7 @@ class TestAsyncHTTPX2Transport:
         httpx2_mock: respx.Router,
     ) -> None:
         """AsyncHackerRank parses a response sent through HTTPX2."""
-        httpx2_mock.get(
+        _ = httpx2_mock.get(
             url="https://www.hackerrank.com/x/api/v3/tests"
         ).respond(
             status_code=HTTPStatus.OK,

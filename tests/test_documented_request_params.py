@@ -70,7 +70,7 @@ def _as_str_keyed_dict(*, value: object) -> dict[str, object]:
     result: dict[str, object] = {}
     for key_obj, item in value.items():  # pyright: ignore[reportUnknownVariableType]
         assert isinstance(key_obj, str)
-        result[key_obj] = item
+        result[key_obj] = item  # pyrefly: ignore [unknown-argument-type]
     return result
 
 
@@ -103,7 +103,7 @@ class TestInterviewListParams:
                 json=_PAGE,
             )
             with HackerRank(api_key="test-key") as client:
-                client.interviews.list(
+                _ = client.interviews.list(
                     user=42,
                     interviewers=7,
                     access="owned",
@@ -170,7 +170,7 @@ class TestQuestionListParams:
                 json=_PAGE,
             )
             with HackerRank(api_key="test-key") as client:
-                client.questions.list(
+                _ = client.questions.list(
                     status="active",
                     access=["owned", "shared"],
                     difficulty=["easy", "hard"],
@@ -232,8 +232,8 @@ class TestTemplateListParams:
                 url=f"{_BASE}/interview_templates",
             ).respond(status_code=200, json=_PAGE)
             with HackerRank(api_key="test-key") as client:
-                client.interview_templates.list(filter="owned")
-                client.interview_templates.list(filter="shared")
+                _ = client.interview_templates.list(filter="owned")
+                _ = client.interview_templates.list(filter="shared")
         first = _query(
             request=_indexed_route_request(route=route, index=0),
         )
@@ -252,9 +252,9 @@ class TestTemplateListParams:
                 json=_PAGE,
             )
             with HackerRank(api_key="test-key") as client:
-                client.templates.list(access="owned")
-                client.templates.list(access="shared")
-                client.templates.list()
+                _ = client.templates.list(access="owned")
+                _ = client.templates.list(access="shared")
+                _ = client.templates.list()
         first = _query(
             request=_indexed_route_request(route=route, index=0),
         )
@@ -319,7 +319,7 @@ class TestInterviewBodyFields:
                 json=_INTERVIEW,
             )
             with HackerRank(api_key="test-key") as client:
-                client.interviews.update(
+                _ = client.interviews.update(
                     interview_id="iv1",
                     title="t",
                     from_="2024",
@@ -335,10 +335,10 @@ class TestInterviewBodyFields:
                     replace_interviewers=True,
                     ai_assistant_available=False,
                 )
-                object_interviewers: list[Mapping[str, JSONValue]] = [
+                object_interviewers: list[Mapping[str, JSONValue]] = [  # pyrefly: ignore [explicit-any]
                     {"email": "a@b.com", "name": "Ada"},
                 ]
-                client.interviews.update(
+                _ = client.interviews.update(
                     interview_id="iv1",
                     title="t",
                     from_="2024",
@@ -419,12 +419,12 @@ class TestCandidateInviteAtsState:
             first_ats_state = 0
             second_ats_state = 22
             with HackerRank(api_key="test-key") as client:
-                client.tests.candidates.invite(
+                _ = client.tests.candidates.invite(
                     test_id="t1",
                     email="c@x.com",
                     ats_state=first_ats_state,
                 )
-                client.tests.candidates.invite(
+                _ = client.tests.candidates.invite(
                     test_id="t1",
                     email="c@x.com",
                     ats_state=second_ats_state,

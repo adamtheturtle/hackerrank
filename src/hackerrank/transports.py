@@ -51,7 +51,7 @@ class TransportResponse:
     headers: dict[str, str]
     content: bytes
 
-    def json(self) -> Any:  # noqa: ANN401
+    def json(self) -> Any:  # noqa: ANN401  # pyrefly: ignore [explicit-any]
         """Parse the response body as JSON.
 
         Returns:
@@ -87,8 +87,8 @@ class Transport(Protocol):
         url: str,
         headers: dict[str, str],
         params: dict[str, str | int] | None,
-        json: Mapping[str, JSONValue] | None,
-        files: Mapping[str, Any] | None,
+        json: Mapping[str, JSONValue] | None,  # pyrefly: ignore [explicit-any]
+        files: Mapping[str, Any] | None,  # pyrefly: ignore [explicit-any]
     ) -> TransportResponse:
         """Make an HTTP request.
 
@@ -163,8 +163,8 @@ class HTTPXTransport:
         url: str,
         headers: dict[str, str],
         params: dict[str, str | int] | None,
-        json: Mapping[str, JSONValue] | None,
-        files: Mapping[str, Any] | None,
+        json: Mapping[str, JSONValue] | None,  # pyrefly: ignore [explicit-any]
+        files: Mapping[str, Any] | None,  # pyrefly: ignore [explicit-any]
     ) -> TransportResponse:
         """Make an HTTP request using ``httpx``.
 
@@ -249,8 +249,8 @@ class HTTPX2Transport:
         url: str,
         headers: dict[str, str],
         params: dict[str, str | int] | None,
-        json: Mapping[str, JSONValue] | None,
-        files: Mapping[str, Any] | None,
+        json: Mapping[str, JSONValue] | None,  # pyrefly: ignore [explicit-any]
+        files: Mapping[str, Any] | None,  # pyrefly: ignore [explicit-any]
     ) -> TransportResponse:
         """Make an HTTP request using ``httpx2``.
 
@@ -292,8 +292,8 @@ class AsyncTransport(Protocol):
         url: str,
         headers: dict[str, str],
         params: dict[str, str | int] | None,
-        json: Mapping[str, JSONValue] | None,
-        files: Mapping[str, Any] | None,
+        json: Mapping[str, JSONValue] | None,  # pyrefly: ignore [explicit-any]
+        files: Mapping[str, Any] | None,  # pyrefly: ignore [explicit-any]
     ) -> TransportResponse:
         """Make an async HTTP request.
 
@@ -363,8 +363,8 @@ class AsyncHTTPXTransport:
         url: str,
         headers: dict[str, str],
         params: dict[str, str | int] | None,
-        json: Mapping[str, JSONValue] | None,
-        files: Mapping[str, Any] | None,
+        json: Mapping[str, JSONValue] | None,  # pyrefly: ignore [explicit-any]
+        files: Mapping[str, Any] | None,  # pyrefly: ignore [explicit-any]
     ) -> TransportResponse:
         """Make an async HTTP request using ``httpx``.
 
@@ -446,8 +446,8 @@ class AsyncHTTPX2Transport:
         url: str,
         headers: dict[str, str],
         params: dict[str, str | int] | None,
-        json: Mapping[str, JSONValue] | None,
-        files: Mapping[str, Any] | None,
+        json: Mapping[str, JSONValue] | None,  # pyrefly: ignore [explicit-any]
+        files: Mapping[str, Any] | None,  # pyrefly: ignore [explicit-any]
     ) -> TransportResponse:
         """Make an async HTTP request using ``httpx2``.
 

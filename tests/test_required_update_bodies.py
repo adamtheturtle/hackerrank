@@ -14,7 +14,7 @@ from hackerrank.async_client import AsyncHackerRank
 from hackerrank.client import HackerRank
 from hackerrank.types import TestsUpdate, UserUpdate
 
-_BAD_BODY: Any = {}
+_BAD_BODY: Any = {}  # pyrefly: ignore [explicit-any]
 
 
 def _user_update() -> UserUpdate:
@@ -79,7 +79,7 @@ class TestUserUpdateBody:
     @staticmethod
     def test_omission_rejected_by_constructor() -> None:
         """Missing required fields raise ``TypeError`` at construction."""
-        user_update_ctor: Any = UserUpdate
+        user_update_ctor: Any = UserUpdate  # pyrefly: ignore [explicit-any]
         with pytest.raises(expected_exception=TypeError):
             # Intentionally incomplete to assert required kwargs.
             user_update_ctor(firstname="Alice")  # pylint: disable=no-value-for-parameter
@@ -128,7 +128,7 @@ class TestUserUpdateBody:
             return httpx.Response(status_code=200, json={})
 
         with respx.mock(assert_all_called=True) as router:
-            router.put(
+            _ = router.put(
                 url="https://www.hackerrank.com/x/api/v3/users/u1",
             ).mock(side_effect=capture)
             with HackerRank(api_key="test-key") as client:
@@ -148,7 +148,7 @@ class TestUserUpdateBody:
             return httpx.Response(status_code=200, json={})
 
         with respx.mock(assert_all_called=True) as router:
-            router.put(
+            _ = router.put(
                 url="https://www.hackerrank.com/x/api/v3/users/u1",
             ).mock(side_effect=capture)
             async with AsyncHackerRank(api_key="test-key") as client:
@@ -177,7 +177,7 @@ class TestTestsUpdateBody:
     @staticmethod
     def test_omission_rejected_by_constructor() -> None:
         """Missing required fields raise ``TypeError`` at construction."""
-        tests_update_ctor: Any = TestsUpdate
+        tests_update_ctor: Any = TestsUpdate  # pyrefly: ignore [explicit-any]
         with pytest.raises(expected_exception=TypeError):
             # Intentionally incomplete to assert required kwargs.
             tests_update_ctor(name="T")  # pylint: disable=no-value-for-parameter
@@ -242,7 +242,7 @@ class TestTestsUpdateBody:
             return httpx.Response(status_code=200, json={})
 
         with respx.mock(assert_all_called=True) as router:
-            router.put(
+            _ = router.put(
                 url="https://www.hackerrank.com/x/api/v3/tests/t1",
             ).mock(side_effect=capture)
             with HackerRank(api_key="test-key") as client:
@@ -262,7 +262,7 @@ class TestTestsUpdateBody:
             return httpx.Response(status_code=200, json={})
 
         with respx.mock(assert_all_called=True) as router:
-            router.put(
+            _ = router.put(
                 url="https://www.hackerrank.com/x/api/v3/tests/t1",
             ).mock(side_effect=capture)
             async with AsyncHackerRank(api_key="test-key") as client:

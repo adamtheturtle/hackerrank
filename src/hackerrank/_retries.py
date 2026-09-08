@@ -30,7 +30,7 @@ which a second identical request would hit again.
 
 
 @beartype
-def _file_parts(*, files: Mapping[str, Any] | None) -> Iterator[Any]:
+def _file_parts(*, files: Mapping[str, Any] | None) -> Iterator[Any]:  # pyrefly: ignore [explicit-any]
     """Yield each part of a multipart ``files`` mapping.
 
     Args:
@@ -39,7 +39,8 @@ def _file_parts(*, files: Mapping[str, Any] | None) -> Iterator[Any]:
     Yields:
         Each value, and each element of each tuple value.
     """
-    for value in (files or {}).values():
+    file_mapping: Mapping[str, Any] = {} if files is None else files  # pyrefly: ignore [explicit-any]
+    for value in file_mapping.values():
         if isinstance(value, tuple):
             yield from value
         else:
@@ -47,7 +48,7 @@ def _file_parts(*, files: Mapping[str, Any] | None) -> Iterator[Any]:
 
 
 @beartype
-def _part_is_repeatable(*, part: Any) -> bool:  # noqa: ANN401
+def _part_is_repeatable(*, part: Any) -> bool:  # noqa: ANN401  # pyrefly: ignore [explicit-any]
     """Whether a single multipart part can be sent more than once.
 
     Args:
@@ -62,7 +63,7 @@ def _part_is_repeatable(*, part: Any) -> bool:  # noqa: ANN401
 
 
 @beartype
-def rewind_files(*, files: Mapping[str, Any] | None) -> bool:
+def rewind_files(*, files: Mapping[str, Any] | None) -> bool:  # pyrefly: ignore [explicit-any]
     """Rewind the file objects in ``files`` ready for another attempt.
 
     A file object which has already been read is at its end, so a
@@ -82,7 +83,7 @@ def rewind_files(*, files: Mapping[str, Any] | None) -> bool:
         return False
     for part in parts:
         if isinstance(part, io.IOBase):
-            part.seek(0)
+            _ = part.seek(0)
     return True
 
 

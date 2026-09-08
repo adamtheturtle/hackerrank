@@ -61,7 +61,7 @@ class TestSyncResponseShapes:
             return httpx.Response(status_code=201, json=_INTERVIEW_PAYLOAD)
 
         with respx.mock(assert_all_called=True) as router:
-            router.post(
+            _ = router.post(
                 url="https://www.hackerrank.com/x/api/v3/interviews",
             ).mock(side_effect=interview_response)
             with HackerRank(api_key="test-key") as client:
@@ -86,7 +86,7 @@ class TestSyncResponseShapes:
     def test_interview_update_returns_interview() -> None:
         """Interview update returns the documented InterviewShow body."""
         with respx.mock(assert_all_called=True) as router:
-            router.put(
+            _ = router.put(
                 url="https://www.hackerrank.com/x/api/v3/interviews/i",
             ).mock(
                 return_value=httpx.Response(
@@ -124,7 +124,7 @@ class TestSyncResponseShapes:
             return httpx.Response(status_code=201, json=_TEST_PAYLOAD)
 
         with respx.mock(assert_all_called=True) as router:
-            router.post(
+            _ = router.post(
                 url="https://www.hackerrank.com/x/api/v3/tests",
             ).mock(side_effect=test_response)
             with HackerRank(api_key="test-key") as client:
@@ -148,7 +148,7 @@ class TestSyncResponseShapes:
     def test_candidate_invite_keeps_test_link_and_integer_id() -> None:
         """Candidate invite returns test_link and integer id."""
         with respx.mock(assert_all_called=True) as router:
-            router.post(
+            _ = router.post(
                 url=("https://www.hackerrank.com/x/api/v3/tests/t/candidates"),
             ).mock(
                 return_value=httpx.Response(
@@ -173,7 +173,7 @@ class TestSyncResponseShapes:
         body.
         """
         with respx.mock(assert_all_called=True) as router:
-            router.put(
+            _ = router.put(
                 url=(
                     "https://www.hackerrank.com/x/api/v3/tests/t/candidates/c"
                 ),
@@ -208,7 +208,7 @@ class TestSyncResponseShapes:
     def test_ats_invites_use_correct_response_models() -> None:
         """ATS CodePair returns Interview; CodeScreen returns invite."""
         with respx.mock(assert_all_called=True) as router:
-            router.post(
+            _ = router.post(
                 url="https://www.hackerrank.com/x/api/v3/ats/codepair",
             ).mock(
                 return_value=httpx.Response(
@@ -216,7 +216,7 @@ class TestSyncResponseShapes:
                     json=_INTERVIEW_PAYLOAD,
                 ),
             )
-            router.post(
+            _ = router.post(
                 url="https://www.hackerrank.com/x/api/v3/ats/codescreen",
             ).mock(
                 return_value=httpx.Response(
@@ -252,7 +252,7 @@ class TestAsyncResponseShapes:
     async def test_async_interview_and_invite_shapes() -> None:
         """Async create/update/invite paths match sync response models."""
         with respx.mock(assert_all_called=True) as router:
-            router.post(
+            _ = router.post(
                 url="https://www.hackerrank.com/x/api/v3/interviews",
             ).mock(
                 return_value=httpx.Response(
@@ -260,7 +260,7 @@ class TestAsyncResponseShapes:
                     json=_INTERVIEW_PAYLOAD,
                 ),
             )
-            router.put(
+            _ = router.put(
                 url="https://www.hackerrank.com/x/api/v3/interviews/i",
             ).mock(
                 return_value=httpx.Response(
@@ -268,7 +268,7 @@ class TestAsyncResponseShapes:
                     json=_INTERVIEW_PAYLOAD,
                 ),
             )
-            router.post(
+            _ = router.post(
                 url=("https://www.hackerrank.com/x/api/v3/tests/t/candidates"),
             ).mock(
                 return_value=httpx.Response(
@@ -276,7 +276,7 @@ class TestAsyncResponseShapes:
                     json=_INVITE_PAYLOAD,
                 ),
             )
-            router.put(
+            _ = router.put(
                 url=(
                     "https://www.hackerrank.com/x/api/v3/tests/t/candidates/c"
                 ),
@@ -286,7 +286,7 @@ class TestAsyncResponseShapes:
                     json=_CANDIDATE_PAYLOAD,
                 ),
             )
-            router.post(
+            _ = router.post(
                 url="https://www.hackerrank.com/x/api/v3/tests",
             ).mock(
                 return_value=httpx.Response(
@@ -294,7 +294,7 @@ class TestAsyncResponseShapes:
                     json=_TEST_PAYLOAD,
                 ),
             )
-            router.post(
+            _ = router.post(
                 url="https://www.hackerrank.com/x/api/v3/ats/codepair",
             ).mock(
                 return_value=httpx.Response(
@@ -302,7 +302,7 @@ class TestAsyncResponseShapes:
                     json=_INTERVIEW_PAYLOAD,
                 ),
             )
-            router.post(
+            _ = router.post(
                 url="https://www.hackerrank.com/x/api/v3/ats/codescreen",
             ).mock(
                 return_value=httpx.Response(

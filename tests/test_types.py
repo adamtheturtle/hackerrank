@@ -47,7 +47,7 @@ class TestPage:
             total=0,
         )
         assert page.total == 0
-        assert not page.data
+        assert not bool(page.data)
 
     @staticmethod
     def test_construct_with_items() -> None:

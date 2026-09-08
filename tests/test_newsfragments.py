@@ -28,9 +28,9 @@ class TestNewsfragmentNames:
         misnamed = [
             path.name
             for path in fragments
-            if not _FRAGMENT_NAME.match(string=path.name)
+            if not bool(_FRAGMENT_NAME.match(string=path.name))
         ]
-        assert not misnamed
+        assert not bool(misnamed)
 
     @staticmethod
     def test_no_subdirectories() -> None:
@@ -42,4 +42,4 @@ class TestNewsfragmentNames:
         subdirectories = [
             path.name for path in _NEWSFRAGMENTS.iterdir() if path.is_dir()
         ]
-        assert not subdirectories
+        assert not bool(subdirectories)

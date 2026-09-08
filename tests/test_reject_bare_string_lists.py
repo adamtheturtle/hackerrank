@@ -19,7 +19,7 @@ from hackerrank.client import HackerRank
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
 
-_BARE: Any = "not-a-list"
+_BARE: Any = "not-a-list"  # pyrefly: ignore [explicit-any]
 
 
 def _sync_calls(
@@ -192,7 +192,7 @@ def _sync_calls(
 
 def _async_calls(
     client: AsyncHackerRank,
-) -> list[tuple[str, Callable[[], Awaitable[Any]]]]:
+) -> list[tuple[str, Callable[[], Awaitable[Any]]]]:  # pyrefly: ignore [explicit-any]
     """Build async callables that pass a bare string for each field."""
     return [
         (
@@ -370,7 +370,7 @@ class TestSyncRejectBareStringLists:
                 with pytest.raises(
                     expected_exception=BeartypeCallHintParamViolation
                 ):
-                    call()
+                    _ = call()
         finally:
             client.close()
 

@@ -126,7 +126,7 @@ class TestAsyncErrorPath:
             base_url=_BASE_URL,
             assert_all_called=False,
         ) as router:
-            router.get(url__regex=r".*/x/api/v3/tests.*").mock(
+            _ = router.get(url__regex=r".*/x/api/v3/tests.*").mock(
                 return_value=httpx.Response(
                     status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
                 ),
@@ -257,7 +257,7 @@ class TestSCIMPagingEdgeCases:
         Covers the False branch of ``isinstance(schemas_raw, list)``.
         """
         with respx.mock(assert_all_called=False) as router:
-            router.get(url__regex=r".*/Users.*").mock(
+            _ = router.get(url__regex=r".*/Users.*").mock(
                 return_value=httpx.Response(
                     status_code=200,
                     json={
@@ -280,7 +280,7 @@ class TestSCIMPagingEdgeCases:
     async def test_async_scim_groups_with_missing_schemas() -> None:
         """Async SCIM groups list handles a missing ``schemas`` key."""
         with respx.mock(assert_all_called=False) as router:
-            router.get(url__regex=r".*/Groups.*").mock(
+            _ = router.get(url__regex=r".*/Groups.*").mock(
                 return_value=httpx.Response(
                     status_code=200,
                     json={
@@ -306,7 +306,7 @@ class TestSCIMStartIndex:
     def test_sync_preserves_zero_start_index() -> None:
         """A server ``startIndex`` of ``0`` is kept as ``0``."""
         with respx.mock(assert_all_called=False) as router:
-            router.get(url__regex=r".*/Users.*").mock(
+            _ = router.get(url__regex=r".*/Users.*").mock(
                 return_value=httpx.Response(
                     status_code=200,
                     json={
@@ -329,7 +329,7 @@ class TestSCIMStartIndex:
     async def test_async_preserves_zero_start_index() -> None:
         """Async list keeps a server ``startIndex`` of ``0``."""
         with respx.mock(assert_all_called=False) as router:
-            router.get(url__regex=r".*/Groups.*").mock(
+            _ = router.get(url__regex=r".*/Groups.*").mock(
                 return_value=httpx.Response(
                     status_code=200,
                     json={
@@ -387,7 +387,7 @@ class TestBaseURLJoining:
             base_url="https://example.test/",
             transport=_SpyTransport(),
         )
-        client.users.list()
+        _ = client.users.list()
         assert captured == ["https://example.test/x/api/v3/users"]
 
 
@@ -421,7 +421,7 @@ class TestSCIMPatchMessage:
     def test_sync_user_patch_returns_message() -> None:
         """User PATCH parses the documented message payload."""
         with respx.mock(assert_all_called=False) as router:
-            router.patch(url__regex=r".*/Users/.*").mock(
+            _ = router.patch(url__regex=r".*/Users/.*").mock(
                 return_value=httpx.Response(
                     status_code=200,
                     json={
@@ -446,7 +446,7 @@ class TestSCIMPatchMessage:
     def test_sync_group_patch_returns_message() -> None:
         """Group PATCH parses the documented message payload."""
         with respx.mock(assert_all_called=False) as router:
-            router.patch(url__regex=r".*/Groups/.*").mock(
+            _ = router.patch(url__regex=r".*/Groups/.*").mock(
                 return_value=httpx.Response(
                     status_code=200,
                     json={
@@ -472,7 +472,7 @@ class TestSCIMPatchMessage:
     async def test_async_user_patch_returns_message() -> None:
         """Async user PATCH parses the documented message payload."""
         with respx.mock(assert_all_called=False) as router:
-            router.patch(url__regex=r".*/Users/.*").mock(
+            _ = router.patch(url__regex=r".*/Users/.*").mock(
                 return_value=httpx.Response(
                     status_code=200,
                     json={
@@ -498,7 +498,7 @@ class TestSCIMPatchMessage:
     async def test_async_group_patch_returns_message() -> None:
         """Async group PATCH parses the documented message payload."""
         with respx.mock(assert_all_called=False) as router:
-            router.patch(url__regex=r".*/Groups/.*").mock(
+            _ = router.patch(url__regex=r".*/Groups/.*").mock(
                 return_value=httpx.Response(
                     status_code=200,
                     json={
