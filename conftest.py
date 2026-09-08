@@ -36,7 +36,7 @@ def _as_object_list(*, value: object) -> list[object] | None:
     if not isinstance(value, list):
         return None
     decoded: Any = json.loads(s=json.dumps(obj=value))  # pyrefly: ignore [explicit-any]
-    typed: list[object] = decoded
+    typed: list[object] = decoded  # ty: ignore[unsound-assignment]
     return typed
 
 
@@ -195,7 +195,7 @@ def fixture_mock_hackerrank_api(
     """
     openapi_spec_path = request.config.rootpath / "openapi.json"
     spec_text = openapi_spec_path.read_text(encoding="utf-8")
-    openapi_spec: dict[str, object] = json.loads(s=spec_text)
+    openapi_spec: dict[str, object] = json.loads(s=spec_text)  # ty: ignore[unsound-assignment]
     openapi_spec = _prepare_openapi_spec(spec=openapi_spec)
     with respx.mock(
         base_url=_BASE_URL,

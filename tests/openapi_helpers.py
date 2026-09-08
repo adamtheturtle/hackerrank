@@ -39,7 +39,7 @@ def _as_object_list(*, value: object) -> list[object] | None:
     if not isinstance(value, list):
         return None
     decoded: Any = json.loads(s=json.dumps(obj=value))  # pyrefly: ignore [explicit-any]
-    typed: list[object] = decoded
+    typed: list[object] = decoded  # ty: ignore[unsound-assignment]
     return typed
 
 
