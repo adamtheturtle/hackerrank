@@ -132,7 +132,7 @@ def delay_seconds(*, attempt: int, headers: Mapping[str, str] | None) -> float:
         if retry_after is not None:
             return retry_after
     # ``mypy`` infers ``Any`` for ``**``, so name the type here.
-    backoff: float = BACKOFF_BASE_SECONDS * 2 ** (attempt - 1)
+    backoff: float = BACKOFF_BASE_SECONDS * 2 ** (attempt - 1)  # ty: ignore[unsound-assignment]
     return backoff
 
 
