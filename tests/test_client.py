@@ -86,14 +86,14 @@ class TestHackerRank:
                 url: str,
                 headers: dict[str, str],
                 params: dict[str, str | int] | None,
-                json: Mapping[str, JSONValue] | None,
-                files: Mapping[str, Any] | None,
+                json: Mapping[str, JSONValue] | None,  # pyrefly: ignore [explicit-any]
+                files: Mapping[str, Any] | None,  # pyrefly: ignore [explicit-any]
             ) -> TransportResponse:  # pragma: no cover
                 """Make a request."""
                 del method, url, headers, params, json, files
                 raise NotImplementedError
 
-        transport: Any = _FalsyTransport()
+        transport: Any = _FalsyTransport()  # pyrefly: ignore [explicit-any]
         client = HackerRank(api_key="test-key", transport=transport)
         assert client.users.transport is transport
 
@@ -249,7 +249,7 @@ class TestHTTPXTransport:
                 return_value=httpx.Response(status_code=200, json={}),
             )
             try:
-                transport(
+                _ = transport(
                     method="GET",
                     url=url,
                     headers={},
@@ -308,7 +308,7 @@ class TestHTTPX2Transport:
     @staticmethod
     def test_hackerrank_uses_httpx2(httpx2_mock: respx.Router) -> None:
         """HackerRank parses a successful response sent through HTTPX2."""
-        httpx2_mock.get(
+        _ = httpx2_mock.get(
             url="https://www.hackerrank.com/x/api/v3/tests"
         ).respond(
             status_code=HTTPStatus.OK,
@@ -436,7 +436,7 @@ class TestErrorHandling:
             base_url="https://www.hackerrank.com",
             assert_all_called=False,
         ) as router:
-            router.get(
+            _ = router.get(
                 url__regex=r".*/x/api/v3/tests.*",
             ).mock(
                 return_value=httpx.Response(
@@ -446,7 +446,7 @@ class TestErrorHandling:
             client = HackerRank(api_key="test-key")
             try:
                 with pytest.raises(expected_exception=expected):
-                    client.tests.list()
+                    _ = client.tests.list()
             finally:
                 client.close()
 
@@ -457,7 +457,7 @@ class TestErrorHandling:
             base_url="https://www.hackerrank.com",
             assert_all_called=False,
         ) as router:
-            router.get(
+            _ = router.get(
                 url__regex=r".*/x/api/v3/tests.*",
             ).mock(
                 return_value=httpx.Response(status_code=418),
@@ -465,7 +465,7 @@ class TestErrorHandling:
             client = HackerRank(api_key="test-key")
             try:
                 with pytest.raises(expected_exception=HackerRankError):
-                    client.tests.list()
+                    _ = client.tests.list()
             finally:
                 client.close()
 
@@ -476,7 +476,7 @@ class TestErrorHandling:
             base_url="https://www.hackerrank.com",
             assert_all_called=False,
         ) as router:
-            router.get(
+            _ = router.get(
                 url__regex=r".*/x/api/v3/users.*",
             ).mock(
                 return_value=httpx.Response(
@@ -487,7 +487,7 @@ class TestErrorHandling:
             client = HackerRank(api_key="test-key")
             try:
                 with pytest.raises(expected_exception=RedirectError):
-                    client.users.list()
+                    _ = client.users.list()
             finally:
                 client.close()
 

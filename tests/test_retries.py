@@ -79,7 +79,7 @@ def _error(*, status_code: int) -> TransportResponse:
     return _response(status_code=status_code, headers={}, content=b"{}")
 
 
-def _file_parts(*, files: Mapping[str, Any] | None) -> Iterator[Any]:
+def _file_parts(*, files: Mapping[str, Any] | None) -> Iterator[Any]:  # pyrefly: ignore [explicit-any]
     """Yield each part of a multipart ``files`` mapping.
 
     The client only ever sends the ``(filename, file, content_type)``
@@ -91,7 +91,8 @@ def _file_parts(*, files: Mapping[str, Any] | None) -> Iterator[Any]:
     Yields:
         Each element of each value.
     """
-    for value in (files or {}).values():
+    file_mapping: Mapping[str, Any] = {} if files is None else files  # pyrefly: ignore [explicit-any]
+    for value in file_mapping.values():
         yield from value
 
 
@@ -123,7 +124,7 @@ class _ScriptedCalls:
         *,
         method: str,
         url: str,
-        files: Mapping[str, Any] | None,
+        files: Mapping[str, Any] | None,  # pyrefly: ignore [explicit-any]
     ) -> TransportResponse:
         """Record a call and return its scripted result.
 
@@ -162,8 +163,8 @@ class _ScriptedTransport(_ScriptedCalls):
         url: str,
         headers: dict[str, str],
         params: dict[str, str | int] | None,
-        json: Mapping[str, JSONValue] | None,
-        files: Mapping[str, Any] | None,
+        json: Mapping[str, JSONValue] | None,  # pyrefly: ignore [explicit-any]
+        files: Mapping[str, Any] | None,  # pyrefly: ignore [explicit-any]
     ) -> TransportResponse:
         """Make a scripted request.
 
@@ -192,8 +193,8 @@ class _AsyncScriptedTransport(_ScriptedCalls):
         url: str,
         headers: dict[str, str],
         params: dict[str, str | int] | None,
-        json: Mapping[str, JSONValue] | None,
-        files: Mapping[str, Any] | None,
+        json: Mapping[str, JSONValue] | None,  # pyrefly: ignore [explicit-any]
+        files: Mapping[str, Any] | None,  # pyrefly: ignore [explicit-any]
     ) -> TransportResponse:
         """Make a scripted async request.
 
@@ -218,7 +219,7 @@ def _create_question(*, client: HackerRank) -> None:
     Args:
         client: The client to create the question with.
     """
-    client.questions.create(
+    _ = client.questions.create(
         name="Q",
         type="code",
         problem_statement="Do the thing.",
@@ -267,7 +268,7 @@ class TestRetriesAreOptIn:
         )
         client = HackerRank(api_key="key", transport=transport)
         with pytest.raises(expected_exception=HackerRankError):
-            client.tests.list()
+            _ = client.tests.list()
         assert transport.methods == ["GET"]
 
     @staticmethod
@@ -296,7 +297,7 @@ class TestRetriesAreOptIn:
         )
         client = HackerRank(api_key="key", transport=transport, retries=2)
         with pytest.raises(expected_exception=HackerRankError):
-            client.tests.list()
+            _ = client.tests.list()
         assert transport.methods == ["GET", "GET", "GET"]
         assert sleeps == [0.5, 1.0]
 
@@ -363,7 +364,7 @@ class TestWhichRequestsAreRepeated:
         )
         client = HackerRank(api_key="key", transport=transport, retries=3)
         with pytest.raises(expected_exception=expected_error):
-            client.tests.list()
+            _ = client.tests.list()
         assert transport.methods == ["GET"]
         assert sleeps == []
 
@@ -397,7 +398,7 @@ class TestTransportErrors:
         )
         client = HackerRank(api_key="key", transport=transport, retries=1)
         with pytest.raises(expected_exception=httpx.ConnectError):
-            client.tests.list()
+            _ = client.tests.list()
         assert transport.methods == ["GET", "GET"]
 
     @staticmethod
@@ -458,7 +459,7 @@ class TestDelays:
         )
         client = HackerRank(api_key="key", transport=transport, retries=4)
         with pytest.raises(expected_exception=HackerRankError):
-            client.tests.list()
+            _ = client.tests.list()
         assert sleeps == [0.5, 1.0, 2.0, 4.0]
 
     @staticmethod
@@ -502,7 +503,7 @@ class TestDelays:
         )
         client = HackerRank(api_key="key", transport=transport, retries=1)
         with pytest.raises(expected_exception=RateLimitError):
-            client.tests.list()
+            _ = client.tests.list()
         assert sleeps == [0.5]
 
     @staticmethod
@@ -525,7 +526,7 @@ class TestDelays:
         )
         client = HackerRank(api_key="key", transport=transport, retries=1)
         with pytest.raises(expected_exception=RateLimitError):
-            client.tests.list()
+            _ = client.tests.list()
         assert sleeps == [0.0]
 
 
@@ -547,9 +548,9 @@ class TestUploads:
         )
         client = HackerRank(api_key="key", transport=transport, retries=1)
         zip_path = tmp_path / "project.zip"
-        zip_path.write_bytes(data=b"zip-bytes")
+        _ = zip_path.write_bytes(data=b"zip-bytes")
         with zip_path.open(mode="rb") as handle:
-            client.questions.upload_project_zip(
+            _ = client.questions.upload_project_zip(
                 question_id="q1",
                 file=handle,
             )
@@ -565,7 +566,7 @@ class TestUploads:
             ],
         )
         client = HackerRank(api_key="key", transport=transport, retries=1)
-        client.questions.upload_project_zip(question_id="q1", file=b"zip")
+        _ = client.questions.upload_project_zip(question_id="q1", file=b"zip")
         assert transport.file_contents == [b"zip", b"zip"]
 
 
@@ -592,7 +593,7 @@ class TestRewindFiles:
             tmp_path: A temporary directory to hold the file.
         """
         path = tmp_path / "project.zip"
-        path.write_bytes(data=b"data")
+        _ = path.write_bytes(data=b"data")
         with path.open(mode="rb") as handle:
             assert handle.read() == b"data"
             files = {"file": ("p.zip", handle, "application/zip")}
@@ -641,7 +642,7 @@ class TestLogging:
         )
         client = HackerRank(api_key="key", transport=transport, retries=1)
         with caplog.at_level(level=logging.WARNING, logger="hackerrank"):
-            client.tests.list()
+            _ = client.tests.list()
         (record,) = caplog.records
         assert "HTTP 502" in record.getMessage()
         assert "attempt 1 of 2" in record.getMessage()
@@ -663,7 +664,7 @@ class TestLogging:
         )
         client = HackerRank(api_key="key", transport=transport, retries=1)
         with caplog.at_level(level=logging.WARNING, logger="hackerrank"):
-            client.tests.list()
+            _ = client.tests.list()
         (record,) = caplog.records
         assert "ReadTimeout" in record.getMessage()
 
@@ -802,7 +803,7 @@ class TestAsyncRetries:
             retries=1,
         )
         zip_path = tmp_path / "project.zip"
-        zip_path.write_bytes(data=b"zip-bytes")
+        _ = zip_path.write_bytes(data=b"zip-bytes")
         with zip_path.open(mode="rb") as handle:
             await client.questions.upload_project_zip(
                 question_id="q1",

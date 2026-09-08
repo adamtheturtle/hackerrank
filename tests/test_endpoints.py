@@ -25,8 +25,8 @@ class TestSyncEndpoints:
     @staticmethod
     def test_interviews(sync_client: HackerRank) -> None:
         """Exercise the ``interviews`` namespace."""
-        sync_client.interviews.list()
-        sync_client.interviews.list(
+        _ = sync_client.interviews.list()
+        _ = sync_client.interviews.list(
             limit=1,
             offset=0,
             created_at="2024-01-01..2024-01-02",
@@ -39,8 +39,8 @@ class TestSyncEndpoints:
             order_by="created_at",
             order_dir="asc",
         )
-        sync_client.interviews.create(title="t")
-        sync_client.interviews.create(
+        _ = sync_client.interviews.create(title="t")
+        _ = sync_client.interviews.create(
             title="t",
             from_="2024",
             to="2024",
@@ -54,8 +54,8 @@ class TestSyncEndpoints:
             interview_template_id=1,
             ai_assistant_available=True,
         )
-        sync_client.interviews.get(interview_id="iv1")
-        sync_client.interviews.update(
+        _ = sync_client.interviews.get(interview_id="iv1")
+        _ = sync_client.interviews.update(
             interview_id="iv1",
             title="t",
             from_="2024",
@@ -72,26 +72,26 @@ class TestSyncEndpoints:
             ai_assistant_available=False,
         )
         sync_client.interviews.delete(interview_id="iv1")
-        sync_client.interviews.get_transcript(interview_id="iv1")
+        _ = sync_client.interviews.get_transcript(interview_id="iv1")
 
     @staticmethod
     def test_interview_templates(sync_client: HackerRank) -> None:
         """Exercise the ``interview_templates`` namespace."""
-        sync_client.interview_templates.list()
-        sync_client.interview_templates.list(
+        _ = sync_client.interview_templates.list()
+        _ = sync_client.interview_templates.list(
             limit=1,
             offset=0,
             filter="owned",
         )
-        sync_client.interview_templates.create(name="t")
-        sync_client.interview_templates.create(
+        _ = sync_client.interview_templates.create(name="t")
+        _ = sync_client.interview_templates.create(
             name="t",
             role_id="dev",
             question_ids=[2687118],
         )
-        sync_client.interview_templates.get(template_id="template-1")
-        sync_client.interview_templates.update(template_id="template-1")
-        sync_client.interview_templates.update(
+        _ = sync_client.interview_templates.get(template_id="template-1")
+        _ = sync_client.interview_templates.update(template_id="template-1")
+        _ = sync_client.interview_templates.update(
             template_id="template-1",
             name="t",
             role_id="dev",
@@ -142,10 +142,10 @@ class TestSyncEndpoints:
             "/template-1/explicit_sharing_roles"
         )
         with respx.mock(assert_all_called=True) as router:
-            router.post(url=f"{base}/update_access").mock(
+            _ = router.post(url=f"{base}/update_access").mock(
                 side_effect=sharing_response,
             )
-            router.delete(url=f"{base}/remove_access").mock(
+            _ = router.delete(url=f"{base}/remove_access").mock(
                 side_effect=sharing_response,
             )
             with HackerRank(api_key="test-key") as client:
@@ -196,12 +196,12 @@ class TestSyncEndpoints:
             )
 
         with respx.mock(assert_all_called=True) as router:
-            router.post(
+            _ = router.post(
                 url=(
                     "https://www.hackerrank.com/x/api/v3/interview_templates"
                 ),
             ).mock(side_effect=template_response)
-            router.put(
+            _ = router.put(
                 url=(
                     "https://www.hackerrank.com/x/api/v3/"
                     "interview_templates/template-1"
@@ -241,8 +241,8 @@ class TestSyncEndpoints:
     @staticmethod
     def test_questions(sync_client: HackerRank) -> None:
         """Exercise the ``questions`` namespace."""
-        sync_client.questions.list()
-        sync_client.questions.list(
+        _ = sync_client.questions.list()
+        _ = sync_client.questions.list(
             limit=1,
             offset=0,
             status="active",
@@ -254,13 +254,13 @@ class TestSyncEndpoints:
             skills=["python"],
             languages=["python3"],
         )
-        sync_client.questions.create(
+        _ = sync_client.questions.create(
             name="Q",
             type="code",
             problem_statement="ps",
             recommended_duration=10,
         )
-        sync_client.questions.create(
+        _ = sync_client.questions.create(
             name="Q",
             type="mcq",
             internal_notes="n",
@@ -271,7 +271,7 @@ class TestSyncEndpoints:
             options=["a", "b"],
             answer=[1, 2],
         )
-        sync_client.questions.create(
+        _ = sync_client.questions.create(
             name="Build a TODO app",
             type="fullstack",
             problem_statement="<p>Build it.</p>",
@@ -288,15 +288,15 @@ class TestSyncEndpoints:
             configuration={"menu": {"run": "npm start"}},
             testcases=[{"name": "creates a todo", "weight": 1}],
         )
-        sync_client.questions.create(
+        _ = sync_client.questions.create(
             name="Q",
             type="mcq",
             problem_statement="ps",
             recommended_duration=10,
             answer=1,
         )
-        sync_client.questions.get(question_id="q1")
-        sync_client.questions.update(
+        _ = sync_client.questions.get(question_id="q1")
+        _ = sync_client.questions.update(
             question_id="q1",
             name="Q",
             type="code",
@@ -308,7 +308,7 @@ class TestSyncEndpoints:
             options=["a"],
             answer=1,
         )
-        sync_client.questions.update(
+        _ = sync_client.questions.update(
             question_id="q1",
             name="Q",
             type="code",
@@ -329,7 +329,7 @@ class TestSyncEndpoints:
             configuration={"menu": {"run": "npm run dev"}},
             testcases=[{"name": "creates a todo", "weight": 1}],
         )
-        sync_client.questions.update(
+        _ = sync_client.questions.update(
             question_id="q1",
             name="Q",
             type="mcq",
@@ -341,7 +341,7 @@ class TestSyncEndpoints:
             options=["a", "b"],
             answer=[1, 2],
         )
-        sync_client.questions.update(
+        _ = sync_client.questions.update(
             question_id="q-with-body",
             name="Q",
             type="code",
@@ -354,7 +354,7 @@ class TestSyncEndpoints:
             answer=1,
             scoring_command="npm run grade",
         )
-        sync_client.questions.upload_project_zip(
+        _ = sync_client.questions.upload_project_zip(
             question_id="q1",
             file=b"zip",
         )
@@ -362,15 +362,15 @@ class TestSyncEndpoints:
             question_id="q1",
             codestubs={"java": "..."},
         )
-        sync_client.questions.generate_codestubs(
+        _ = sync_client.questions.generate_codestubs(
             question_id="q1",
             body={"type": "code"},
         )
-        sync_client.questions.generate_codestubs(
+        _ = sync_client.questions.generate_codestubs(
             question_id="q1",
             body={"lang": "java"},
         )
-        sync_client.questions.add_testcase(
+        _ = sync_client.questions.add_testcase(
             question_id="q1",
             body={"input": "x"},
         )
@@ -390,21 +390,21 @@ class TestSyncEndpoints:
     @staticmethod
     def test_environments(sync_client: HackerRank) -> None:
         """Exercise the ``environments`` namespace."""
-        sync_client.environments.list()
-        sync_client.environments.get(environment_id=92)
+        _ = sync_client.environments.list()
+        _ = sync_client.environments.get(environment_id=92)
 
     @staticmethod
     def test_tests(sync_client: HackerRank) -> None:
         """Exercise the ``tests`` namespace."""
-        sync_client.tests.list()
-        sync_client.tests.list(limit=1, offset=0)
-        sync_client.tests.create(
+        _ = sync_client.tests.list()
+        _ = sync_client.tests.list(limit=1, offset=0)
+        _ = sync_client.tests.create(
             name="T",
             duration=60,
             role_ids=["r"],
             experience=["junior"],
         )
-        sync_client.tests.create(
+        _ = sync_client.tests.create(
             name="T",
             starttime="2024",
             endtime="2024",
@@ -435,8 +435,8 @@ class TestSyncEndpoints:
             enable_photo_identification=False,
             ide_config="{}",
         )
-        sync_client.tests.get(test_id="t1")
-        sync_client.tests.get(
+        _ = sync_client.tests.get(test_id="t1")
+        _ = sync_client.tests.get(
             test_id="t1",
             additional_fields="questions",
         )
@@ -476,8 +476,8 @@ class TestSyncEndpoints:
         )
         sync_client.tests.delete(test_id="t1")
         sync_client.tests.archive(test_id="t1")
-        sync_client.tests.list_inviters(test_id="t1")
-        sync_client.tests.list_inviters(
+        _ = sync_client.tests.list_inviters(test_id="t1")
+        _ = sync_client.tests.list_inviters(
             test_id="t1",
             limit=1,
             offset=0,
@@ -487,17 +487,17 @@ class TestSyncEndpoints:
     def test_test_candidates(sync_client: HackerRank) -> None:
         """Exercise the ``tests.candidates`` namespace."""
         ns = sync_client.tests.candidates
-        ns.list(test_id="t1")
-        ns.list(test_id="t1", limit=1, offset=0)
-        ns.search(test_id="t1", search="alice")
-        ns.search(
+        _ = ns.list(test_id="t1")
+        _ = ns.list(test_id="t1", limit=1, offset=0)
+        _ = ns.search(test_id="t1", search="alice")
+        _ = ns.search(
             test_id="t1",
             search="alice",
             limit=1,
             offset=0,
         )
-        ns.invite(test_id="t1", email="c@x.com")
-        ns.invite(
+        _ = ns.invite(test_id="t1", email="c@x.com")
+        _ = ns.invite(
             test_id="t1",
             email="c@x.com",
             full_name="Alice",
@@ -519,13 +519,13 @@ class TestSyncEndpoints:
             message="msg",
             template="tpl",
         )
-        ns.get(test_id="t1", candidate_id="c1")
-        ns.get(
+        _ = ns.get(test_id="t1", candidate_id="c1")
+        _ = ns.get(
             test_id="t1",
             candidate_id="c1",
             additional_fields="questions",
         )
-        ns.update(
+        _ = ns.update(
             test_id="t1",
             candidate_id="c1",
             full_name="Alice",
@@ -543,8 +543,8 @@ class TestSyncEndpoints:
         )
         ns.cancel_invite(test_id="t1", candidate_id="c1")
         ns.delete_report(test_id="t1", candidate_id="c1")
-        ns.get_report_pdf(test_id="t1", candidate_id="c1")
-        ns.get_report_pdf(
+        _ = ns.get_report_pdf(test_id="t1", candidate_id="c1")
+        _ = ns.get_report_pdf(
             test_id="t1",
             candidate_id="c1",
             format_="url",
@@ -553,15 +553,15 @@ class TestSyncEndpoints:
     @staticmethod
     def test_templates(sync_client: HackerRank) -> None:
         """Exercise the ``templates`` namespace."""
-        sync_client.templates.list()
-        sync_client.templates.list(limit=1, offset=0, access="owned")
-        sync_client.templates.get(template_id="tpl1")
+        _ = sync_client.templates.list()
+        _ = sync_client.templates.list(limit=1, offset=0, access="owned")
+        _ = sync_client.templates.get(template_id="tpl1")
 
     @staticmethod
     def test_candidates(sync_client: HackerRank) -> None:
         """Exercise the top-level ``candidates`` namespace."""
-        sync_client.candidates.search(query="jane")
-        sync_client.candidates.search(
+        _ = sync_client.candidates.search(query="jane")
+        _ = sync_client.candidates.search(
             query="jane",
             limit=1,
             offset=0,
@@ -570,21 +570,21 @@ class TestSyncEndpoints:
     @staticmethod
     def test_users(sync_client: HackerRank) -> None:
         """Exercise the ``users`` namespace."""
-        sync_client.users.list()
-        sync_client.users.list(limit=1, offset=0)
-        sync_client.users.search(search="alice")
-        sync_client.users.search(
+        _ = sync_client.users.list()
+        _ = sync_client.users.list(limit=1, offset=0)
+        _ = sync_client.users.search(search="alice")
+        _ = sync_client.users.search(
             search="alice",
             limit=1,
             offset=0,
         )
-        sync_client.users.create(
+        _ = sync_client.users.create(
             email="u@x.com",
             firstname="Alice",
             role="recruiter",
             teams=["tm1"],
         )
-        sync_client.users.create(
+        _ = sync_client.users.create(
             email="u@x.com",
             firstname="Alice",
             lastname="A",
@@ -604,7 +604,7 @@ class TestSyncEndpoints:
             team_admin=False,
             teams=["tm1"],
         )
-        sync_client.users.get(user_id="u1")
+        _ = sync_client.users.get(user_id="u1")
         sync_client.users.update(
             user_id="u1",
             body=UserUpdate(
@@ -630,10 +630,10 @@ class TestSyncEndpoints:
     @staticmethod
     def test_teams(sync_client: HackerRank) -> None:
         """Exercise the ``teams`` namespace."""
-        sync_client.teams.list()
-        sync_client.teams.list(limit=1, offset=0)
-        sync_client.teams.create(name="t")
-        sync_client.teams.create(
+        _ = sync_client.teams.list()
+        _ = sync_client.teams.list(limit=1, offset=0)
+        _ = sync_client.teams.create(name="t")
+        _ = sync_client.teams.create(
             name="t",
             recruiter_cap=5,
             developer_cap=5,
@@ -641,7 +641,7 @@ class TestSyncEndpoints:
             locations=["NYC"],
             departments=["Eng"],
         )
-        sync_client.teams.get(team_id="tm1")
+        _ = sync_client.teams.get(team_id="tm1")
         sync_client.teams.update(
             team_id="tm1",
             name="t",
@@ -657,18 +657,18 @@ class TestSyncEndpoints:
     def test_team_memberships(sync_client: HackerRank) -> None:
         """Exercise the ``teams.memberships`` namespace."""
         ns = sync_client.teams.memberships
-        ns.list(team_id="tm1")
-        ns.list(team_id="tm1", limit=1, offset=0)
-        ns.get(team_id="tm1", user_id="u1")
-        ns.create(team_id="tm1", user_id="u1")
-        ns.create(team_id="tm1", user_id="u1", license="developer")
+        _ = ns.list(team_id="tm1")
+        _ = ns.list(team_id="tm1", limit=1, offset=0)
+        _ = ns.get(team_id="tm1", user_id="u1")
+        _ = ns.create(team_id="tm1", user_id="u1")
+        _ = ns.create(team_id="tm1", user_id="u1", license="developer")
         ns.delete(team_id="tm1", user_id="u1")
 
     @staticmethod
     def test_audit_logs(sync_client: HackerRank) -> None:
         """Exercise the ``audit_logs`` namespace."""
-        sync_client.audit_logs.list()
-        sync_client.audit_logs.list(
+        _ = sync_client.audit_logs.list()
+        _ = sync_client.audit_logs.list(
             limit=1,
             offset=0,
             user_id="u1",
@@ -677,12 +677,12 @@ class TestSyncEndpoints:
     @staticmethod
     def test_ats(sync_client: HackerRank) -> None:
         """Exercise the ``ats`` namespace."""
-        sync_client.ats.codepair.invite(
+        _ = sync_client.ats.codepair.invite(
             title="t",
             requisition_id="r",
             candidate_id="c",
         )
-        sync_client.ats.codepair.invite(
+        _ = sync_client.ats.codepair.invite(
             title="t",
             requisition_id="r",
             candidate_id="c",
@@ -690,13 +690,13 @@ class TestSyncEndpoints:
             send_email=True,
             interview_metadata={"x": "y"},
         )
-        sync_client.ats.codescreen.invite(
+        _ = sync_client.ats.codescreen.invite(
             test_id="t1",
             email="c@x.com",
             requisition_id="r",
             candidate_id="c",
         )
-        sync_client.ats.codescreen.invite(
+        _ = sync_client.ats.codescreen.invite(
             test_id="t1",
             email="c@x.com",
             requisition_id="r",
@@ -713,27 +713,27 @@ class TestSyncEndpoints:
     @staticmethod
     def test_scim(sync_client: HackerRank) -> None:
         """Exercise the SCIM namespaces."""
-        sync_client.scim.users.list()
-        sync_client.scim.users.list(limit=1, offset=0)
-        sync_client.scim.users.create(
+        _ = sync_client.scim.users.list()
+        _ = sync_client.scim.users.list(limit=1, offset=0)
+        _ = sync_client.scim.users.create(
             body={"userName": "u@x.com"},
         )
-        sync_client.scim.users.get(scim_user_id="scim-1")
-        sync_client.scim.users.replace(
+        _ = sync_client.scim.users.get(scim_user_id="scim-1")
+        _ = sync_client.scim.users.replace(
             scim_user_id="scim-1",
             body={"userName": "u@x.com"},
         )
-        sync_client.scim.users.patch(
+        _ = sync_client.scim.users.patch(
             scim_user_id="scim-1",
             operations=[{"op": "replace"}],
         )
         sync_client.scim.users.delete(scim_user_id="scim-1")
-        sync_client.scim.groups.list()
-        sync_client.scim.groups.create(
+        _ = sync_client.scim.groups.list()
+        _ = sync_client.scim.groups.create(
             body={"displayName": "G"},
         )
-        sync_client.scim.groups.get(scim_group_id="scim-2")
-        sync_client.scim.groups.patch(
+        _ = sync_client.scim.groups.get(scim_group_id="scim-2")
+        _ = sync_client.scim.groups.patch(
             scim_group_id="scim-2",
             operations=[{"op": "replace"}],
         )
@@ -877,12 +877,12 @@ class TestAsyncEndpoints:
             )
 
         with respx.mock(assert_all_called=True) as router:
-            router.post(
+            _ = router.post(
                 url=(
                     "https://www.hackerrank.com/x/api/v3/interview_templates"
                 ),
             ).mock(side_effect=template_response)
-            router.put(
+            _ = router.put(
                 url=(
                     "https://www.hackerrank.com/x/api/v3/"
                     "interview_templates/template-1"

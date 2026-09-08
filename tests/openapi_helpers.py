@@ -21,7 +21,7 @@ _WHITESPACE_RE = re.compile(pattern=r"\s+")
 _DYNAMIC_KEYS = frozenset({"example", "examples", "x-examples"})
 
 
-def _as_str_keyed_dict(*, value: object) -> dict[str, Any] | None:
+def _as_str_keyed_dict(*, value: object) -> dict[str, Any] | None:  # pyrefly: ignore [explicit-any]
     """Return ``value`` as a ``str``-keyed dict, or ``None``.
 
     Uses a JSON round-trip so static checkers see concrete ``Any``
@@ -29,8 +29,8 @@ def _as_str_keyed_dict(*, value: object) -> dict[str, Any] | None:
     """
     if not isinstance(value, dict):
         return None
-    decoded: Any = json.loads(s=json.dumps(obj=value))
-    typed: dict[str, Any] = decoded
+    decoded: Any = json.loads(s=json.dumps(obj=value))  # pyrefly: ignore [explicit-any]
+    typed: dict[str, Any] = decoded  # pyrefly: ignore [explicit-any]
     return typed
 
 
@@ -38,7 +38,7 @@ def _as_object_list(*, value: object) -> list[object] | None:
     """Return ``value`` as a list of objects, or ``None``."""
     if not isinstance(value, list):
         return None
-    decoded: Any = json.loads(s=json.dumps(obj=value))
+    decoded: Any = json.loads(s=json.dumps(obj=value))  # pyrefly: ignore [explicit-any]
     typed: list[object] = decoded
     return typed
 
@@ -63,7 +63,7 @@ def normalize_openapi(*, spec: object) -> object:
         for key, value in as_dict.items():
             if key in _DYNAMIC_KEYS:
                 continue
-            if (
+            if bool(
                 key == "default"
                 and isinstance(value, str)
                 and _DATETIMEISH_RE.fullmatch(string=value)

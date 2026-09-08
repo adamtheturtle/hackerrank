@@ -110,7 +110,9 @@ def _response_for(  # noqa: C901, PLR0911, PLR0912, PLR0915  # pylint: disable=t
             return httpx.Response(status_code=200, json=_PAGE)
         if path.endswith(("/candidates/search", "/users/search")):
             return httpx.Response(status_code=200, json=_PAGE)
-        if re.fullmatch(pattern=r"/x/api/v3/teams/[^/]+/users", string=path):
+        if bool(
+            re.fullmatch(pattern=r"/x/api/v3/teams/[^/]+/users", string=path)
+        ):
             return httpx.Response(status_code=200, json=_PAGE)
         if path in {"/scim/v2/Users", "/scim/v2/Groups"}:
             return httpx.Response(status_code=200, json=_SCIM_PAGE)
@@ -119,35 +121,46 @@ def _response_for(  # noqa: C901, PLR0911, PLR0912, PLR0915  # pylint: disable=t
                 status_code=200,
                 json={"messages": []},
             )
-        if re.fullmatch(
-            pattern=r"/x/api/v3/tests/[^/]+/candidates/[^/]+/pdf", string=path
+        if bool(
+            re.fullmatch(
+                pattern=r"/x/api/v3/tests/[^/]+/candidates/[^/]+/pdf",
+                string=path,
+            )
         ):
             return httpx.Response(
                 status_code=200,
                 json={"url": "https://example.com/r.pdf"},
             )
-        if re.fullmatch(
-            pattern=r"/x/api/v3/tests/[^/]+/candidates/[^/]+", string=path
+        if bool(
+            re.fullmatch(
+                pattern=r"/x/api/v3/tests/[^/]+/candidates/[^/]+", string=path
+            )
         ):
             return httpx.Response(
                 status_code=200,
                 json=_CANDIDATE_OBJ,
             )
-        if re.fullmatch(pattern=r"/x/api/v3/tests/[^/]+", string=path):
+        if bool(re.fullmatch(pattern=r"/x/api/v3/tests/[^/]+", string=path)):
             return httpx.Response(status_code=200, json=_TEST_OBJ)
-        if re.fullmatch(pattern=r"/x/api/v3/interviews/[^/]+", string=path):
+        if bool(
+            re.fullmatch(pattern=r"/x/api/v3/interviews/[^/]+", string=path)
+        ):
             return httpx.Response(
                 status_code=200,
                 json=_INTERVIEW_OBJ,
             )
-        if re.fullmatch(
-            pattern=r"/x/api/v3/interview_templates/[^/]+", string=path
+        if bool(
+            re.fullmatch(
+                pattern=r"/x/api/v3/interview_templates/[^/]+", string=path
+            )
         ):
             return httpx.Response(
                 status_code=200,
                 json=_INTERVIEW_TEMPLATE_OBJ,
             )
-        if re.fullmatch(pattern=r"/x/api/v3/environments/[^/]+", string=path):
+        if bool(
+            re.fullmatch(pattern=r"/x/api/v3/environments/[^/]+", string=path)
+        ):
             return httpx.Response(
                 status_code=200,
                 json={
@@ -160,33 +173,39 @@ def _response_for(  # noqa: C901, PLR0911, PLR0912, PLR0915  # pylint: disable=t
                     },
                 },
             )
-        if re.fullmatch(pattern=r"/x/api/v3/questions/[^/]+", string=path):
+        if bool(
+            re.fullmatch(pattern=r"/x/api/v3/questions/[^/]+", string=path)
+        ):
             return httpx.Response(
                 status_code=200,
                 json=_QUESTION_OBJ,
             )
-        if re.fullmatch(pattern=r"/x/api/v3/templates/[^/]+", string=path):
+        if bool(
+            re.fullmatch(pattern=r"/x/api/v3/templates/[^/]+", string=path)
+        ):
             return httpx.Response(
                 status_code=200,
                 json=_TEMPLATE_OBJ,
             )
-        if re.fullmatch(pattern=r"/x/api/v3/users/[^/]+", string=path):
+        if bool(re.fullmatch(pattern=r"/x/api/v3/users/[^/]+", string=path)):
             return httpx.Response(status_code=200, json=_USER_OBJ)
-        if re.fullmatch(
-            pattern=r"/x/api/v3/teams/[^/]+/users/[^/]+", string=path
+        if bool(
+            re.fullmatch(
+                pattern=r"/x/api/v3/teams/[^/]+/users/[^/]+", string=path
+            )
         ):
             return httpx.Response(
                 status_code=200,
                 json=_MEMBERSHIP_OBJ,
             )
-        if re.fullmatch(pattern=r"/x/api/v3/teams/[^/]+", string=path):
+        if bool(re.fullmatch(pattern=r"/x/api/v3/teams/[^/]+", string=path)):
             return httpx.Response(status_code=200, json=_TEAM_OBJ)
-        if re.fullmatch(pattern=r"/scim/v2/Users/[^/]+", string=path):
+        if bool(re.fullmatch(pattern=r"/scim/v2/Users/[^/]+", string=path)):
             return httpx.Response(
                 status_code=200,
                 json=_SCIM_USER_OBJ,
             )
-        if re.fullmatch(pattern=r"/scim/v2/Groups/[^/]+", string=path):
+        if bool(re.fullmatch(pattern=r"/scim/v2/Groups/[^/]+", string=path)):
             return httpx.Response(
                 status_code=200,
                 json=_SCIM_TEAM_OBJ,
@@ -209,9 +228,11 @@ def _response_for(  # noqa: C901, PLR0911, PLR0912, PLR0915  # pylint: disable=t
                 status_code=200,
                 json=_QUESTION_OBJ,
             )
-        if re.fullmatch(
-            pattern=r"/x/api/v3/questions/[^/]+/upload_project_zip",
-            string=path,
+        if bool(
+            re.fullmatch(
+                pattern=r"/x/api/v3/questions/[^/]+/upload_project_zip",
+                string=path,
+            )
         ):
             return httpx.Response(
                 status_code=200,
@@ -220,23 +241,29 @@ def _response_for(  # noqa: C901, PLR0911, PLR0912, PLR0915  # pylint: disable=t
                     "file_path": "question_projects/q1/project.zip",
                 },
             )
-        if re.fullmatch(
-            pattern=r"/x/api/v3/questions/[^/]+/testcases", string=path
+        if bool(
+            re.fullmatch(
+                pattern=r"/x/api/v3/questions/[^/]+/testcases", string=path
+            )
         ):
             return httpx.Response(status_code=200, json={"id": 1})
         if path == "/x/api/v3/users":
             return httpx.Response(status_code=200, json=_USER_OBJ)
         if path == "/x/api/v3/teams":
             return httpx.Response(status_code=200, json=_TEAM_OBJ)
-        if re.fullmatch(
-            pattern=r"/x/api/v3/teams/[^/]+/users/[^/]+", string=path
+        if bool(
+            re.fullmatch(
+                pattern=r"/x/api/v3/teams/[^/]+/users/[^/]+", string=path
+            )
         ):
             return httpx.Response(
                 status_code=200,
                 json=_MEMBERSHIP_OBJ,
             )
-        if re.fullmatch(
-            pattern=r"/x/api/v3/tests/[^/]+/candidates", string=path
+        if bool(
+            re.fullmatch(
+                pattern=r"/x/api/v3/tests/[^/]+/candidates", string=path
+            )
         ):
             return httpx.Response(
                 status_code=200,
@@ -265,33 +292,41 @@ def _response_for(  # noqa: C901, PLR0911, PLR0912, PLR0915  # pylint: disable=t
                 json=_SCIM_TEAM_OBJ,
             )
     if method == "PUT":
-        if re.fullmatch(
-            pattern=r"/x/api/v3/interview_templates/[^/]+",
-            string=path,
+        if bool(
+            re.fullmatch(
+                pattern=r"/x/api/v3/interview_templates/[^/]+",
+                string=path,
+            )
         ):
             return httpx.Response(
                 status_code=200,
                 json=_INTERVIEW_TEMPLATE_OBJ,
             )
-        if re.fullmatch(
-            pattern=r"/x/api/v3/interviews/[^/]+",
-            string=path,
+        if bool(
+            re.fullmatch(
+                pattern=r"/x/api/v3/interviews/[^/]+",
+                string=path,
+            )
         ):
             return httpx.Response(
                 status_code=200,
                 json=_INTERVIEW_OBJ,
             )
-        if re.fullmatch(
-            pattern=r"/x/api/v3/tests/[^/]+/candidates/[^/]+",
-            string=path,
+        if bool(
+            re.fullmatch(
+                pattern=r"/x/api/v3/tests/[^/]+/candidates/[^/]+",
+                string=path,
+            )
         ):
             return httpx.Response(
                 status_code=200,
                 json=_CANDIDATE_OBJ,
             )
-        if re.fullmatch(
-            pattern=r"/x/api/v3/questions/[^/]+/(custom_codestubs|generate)",
-            string=path,
+        if bool(
+            re.fullmatch(
+                pattern=r"/x/api/v3/questions/[^/]+/(custom_codestubs|generate)",
+                string=path,
+            )
         ):
             return httpx.Response(status_code=200, json={})
         if path == "/x/api/v3/questions/q-with-body":
@@ -299,19 +334,19 @@ def _response_for(  # noqa: C901, PLR0911, PLR0912, PLR0915  # pylint: disable=t
                 status_code=200,
                 json=_QUESTION_OBJ,
             )
-        if re.fullmatch(pattern=r"/scim/v2/Users/[^/]+", string=path):
+        if bool(re.fullmatch(pattern=r"/scim/v2/Users/[^/]+", string=path)):
             return httpx.Response(
                 status_code=200,
                 json=_SCIM_USER_OBJ,
             )
         return httpx.Response(status_code=204)
     if method == "PATCH":
-        if re.fullmatch(pattern=r"/scim/v2/Users/[^/]+", string=path):
+        if bool(re.fullmatch(pattern=r"/scim/v2/Users/[^/]+", string=path)):
             return httpx.Response(
                 status_code=200,
                 json=_SCIM_MESSAGE_OBJ,
             )
-        if re.fullmatch(pattern=r"/scim/v2/Groups/[^/]+", string=path):
+        if bool(re.fullmatch(pattern=r"/scim/v2/Groups/[^/]+", string=path)):
             return httpx.Response(
                 status_code=200,
                 json=_SCIM_GROUP_MESSAGE_OBJ,
@@ -373,7 +408,7 @@ def fixture_stub_router() -> Generator[respx.MockRouter]:
     # different hosts, so the router must intercept both. Requests are
     # dispatched by path inside ``_response_for``.
     with respx.mock(assert_all_called=False) as router:
-        router.route().mock(side_effect=_response_for)
+        _ = router.route().mock(side_effect=_response_for)
         yield router
 
 

@@ -19,14 +19,14 @@ _LIVE_OPENAPI_URL = "https://www.hackerrank.com/apidoc"
 _MOCK_OPENAPI_URL = "https://example.com/apidoc"
 
 
-def _load_checked_in_spec() -> dict[str, Any]:
+def _load_checked_in_spec() -> dict[str, Any]:  # pyrefly: ignore [explicit-any]
     """Load the repository's ``openapi.json``.
 
     Returns:
         The parsed OpenAPI document.
     """
-    loaded: Any = json.loads(s=_OPENAPI_PATH.read_text(encoding="utf-8"))
-    typed: dict[str, Any] = loaded
+    loaded: Any = json.loads(s=_OPENAPI_PATH.read_text(encoding="utf-8"))  # pyrefly: ignore [explicit-any]
+    typed: dict[str, Any] = loaded  # pyrefly: ignore [explicit-any]
     return typed
 
 
@@ -39,7 +39,7 @@ def _assert_remote_openapi_matches_checked_in(*, url: str) -> None:
     """
     checked = normalize_openapi(spec=_load_checked_in_spec())
     response = httpx.get(url=url, timeout=30.0)
-    response.raise_for_status()
+    _ = response.raise_for_status()
     live = normalize_openapi(spec=response.json())
     assert checked == live
 
@@ -147,10 +147,10 @@ class TestCheckedInOpenAPI:
         assert "CandidateSearchResult" in definitions
         assert "CandidateSearchAttemptResult" in definitions
         attempt_required = set(
-            definitions["CandidateSearchAttemptResult"]["required"],
+            definitions["CandidateSearchAttemptResult"]["required"],  # pyrefly: ignore [unknown-argument-type]
         )
         assert attempt_required == {"attempt_id", "test_id", "report_url"}
-        result_required = set(definitions["CandidateSearchResult"]["required"])
+        result_required = set(definitions["CandidateSearchResult"]["required"])  # pyrefly: ignore [unknown-argument-type]
         assert result_required == {
             "uuid",
             "name",
@@ -165,7 +165,7 @@ class TestCheckedInOpenAPI:
         """Interview create/update schemas include current live fields."""
         definitions = _load_checked_in_spec()["definitions"]
         for name in ("InterviewCreate", "InterviewUpdate"):
-            properties = definitions[name]["properties"]
+            properties = definitions[name]["properties"]  # pyrefly: ignore [unknown-variable-type]
             assert "ai_assistant_available" in properties
             assert "interviewers" in properties
             assert "replace_interviewers" in properties
@@ -174,7 +174,7 @@ class TestCheckedInOpenAPI:
     def test_remote_document_matches_after_normalize() -> None:
         """A mocked remote document matches after normalization."""
         with respx.mock(assert_all_called=True) as router:
-            router.get(url=_MOCK_OPENAPI_URL).mock(
+            _ = router.get(url=_MOCK_OPENAPI_URL).mock(
                 return_value=httpx.Response(
                     status_code=HTTPStatus.OK,
                     json=_load_checked_in_spec(),

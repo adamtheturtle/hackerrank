@@ -62,6 +62,7 @@ pluggable
 plugins
 pragma
 py
+pyrefly
 pyright
 pytest
 readme
