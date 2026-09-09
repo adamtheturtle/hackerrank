@@ -335,7 +335,7 @@ class TestInterviewBodyFields:
                     replace_interviewers=True,
                     ai_assistant_available=False,
                 )
-                object_interviewers: list[Mapping[str, JSONValue]] = [  # pyrefly: ignore [explicit-any]
+                object_interviewers: list[Mapping[str, JSONValue]] = [
                     {"email": "a@b.com", "name": "Ada"},
                 ]
                 _ = client.interviews.update(

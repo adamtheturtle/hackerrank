@@ -163,7 +163,7 @@ class _ScriptedTransport(_ScriptedCalls):
         url: str,
         headers: dict[str, str],
         params: dict[str, str | int] | None,
-        json: Mapping[str, JSONValue] | None,  # pyrefly: ignore [explicit-any]
+        json: Mapping[str, JSONValue] | None,
         files: Mapping[str, Any] | None,  # pyrefly: ignore [explicit-any]
     ) -> TransportResponse:
         """Make a scripted request.
@@ -193,7 +193,7 @@ class _AsyncScriptedTransport(_ScriptedCalls):
         url: str,
         headers: dict[str, str],
         params: dict[str, str | int] | None,
-        json: Mapping[str, JSONValue] | None,  # pyrefly: ignore [explicit-any]
+        json: Mapping[str, JSONValue] | None,
         files: Mapping[str, Any] | None,  # pyrefly: ignore [explicit-any]
     ) -> TransportResponse:
         """Make a scripted async request.
