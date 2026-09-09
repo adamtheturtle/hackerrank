@@ -7,6 +7,10 @@ from beartype.door import TypeHint
 
 from hackerrank._dict_types import InterviewDict
 
+type _JSONValue = (
+    bool | int | float | str | list[_JSONValue] | dict[str, _JSONValue] | None
+)
+
 
 def _is_interviews(value: object, /) -> TypeGuard[list[InterviewDict]]:
     """Return whether a value is a list of interview objects."""
@@ -14,7 +18,10 @@ def _is_interviews(value: object, /) -> TypeGuard[list[InterviewDict]]:
 
 
 @beartype
-def object_response(value: dict[str, object], /) -> dict[str, object]:
+def object_response(
+    value: dict[str, _JSONValue],
+    /,
+) -> dict[str, _JSONValue]:
     """Return a runtime-validated API response object."""
     return value
 
