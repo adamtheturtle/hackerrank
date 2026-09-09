@@ -351,6 +351,19 @@ class TestListEndpoints:
         assert result.total >= 0
 
     @staticmethod
+    def test_list_interviews_rejects_invalid_items() -> None:
+        """The interviews list rejects malformed response items."""
+        with respx.mock(base_url="https://www.hackerrank.com") as router:
+            _ = router.get(url="/x/api/v3/interviews").respond(
+                status_code=HTTPStatus.OK,
+                json={"data": "invalid"},
+            )
+            client = HackerRank(api_key="test-key")
+            with pytest.raises(expected_exception=TypeError):
+                _ = client.interviews.list()
+            client.close()
+
+    @staticmethod
     def test_list_users(
         hackerrank_client: HackerRank,
     ) -> None:

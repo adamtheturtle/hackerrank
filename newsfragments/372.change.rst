@@ -1,0 +1,1 @@
+Validate interview API response shapes before constructing client models.

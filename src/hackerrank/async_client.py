@@ -11,6 +11,7 @@ import httpx
 import httpx2
 from beartype import beartype
 
+from hackerrank._responses import interview_items, object_response
 from hackerrank._retries import (
     RETRY_STATUS_CODES,
     delay_seconds,
@@ -108,7 +109,7 @@ def _coerce_str(value: object, /) -> str:
 
 def _make_page[T](
     items: list[T],
-    metadata: Mapping[str, JSONValue],  # pyrefly: ignore [explicit-any]
+    metadata: Mapping[str, object],
     /,
 ) -> Page[T]:
     """Wrap ``items`` and ``metadata`` into a ``Page``.
@@ -417,11 +418,10 @@ class AsyncInterviewsNamespace(_AsyncNamespace):
             files=None,
             repeatable=True,
         )
-        payload = response.json()
-        raw_items = list(payload.get("data", []))  # pyrefly: ignore [unknown-argument-type]
+        payload = object_response(value=response.json())
+        raw_items = interview_items(value=payload.get("data", []))
         items: list[Interview] = [
-            Interview.from_dict(data=item)  # pyrefly: ignore [unknown-argument-type]
-            for item in raw_items
+            Interview.from_dict(data=item) for item in raw_items
         ]
         return _make_page(items, payload)
 
