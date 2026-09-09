@@ -20,13 +20,12 @@ def _is_interviews(value: object, /) -> TypeGuard[list[InterviewDict]]:
 @beartype
 def object_response(
     value: dict[str, _JSONValue],
-    /,
 ) -> dict[str, _JSONValue]:
     """Return a runtime-validated API response object."""
     return value
 
 
-def interview_items(value: object, /) -> list[InterviewDict]:
+def interview_items(value: object) -> list[InterviewDict]:
     """Return runtime-validated interview response objects."""
     if not _is_interviews(value):
         message = "Expected the response data to contain interview objects."

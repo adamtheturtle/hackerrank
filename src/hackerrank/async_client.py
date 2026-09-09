@@ -418,8 +418,8 @@ class AsyncInterviewsNamespace(_AsyncNamespace):
             files=None,
             repeatable=True,
         )
-        payload = object_response(response.json())
-        raw_items = interview_items(payload.get("data", []))
+        payload = object_response(value=response.json())
+        raw_items = interview_items(value=payload.get("data", []))
         items: list[Interview] = [
             Interview.from_dict(data=item) for item in raw_items
         ]
