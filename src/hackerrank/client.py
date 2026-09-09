@@ -56,9 +56,9 @@ _SCIM_BASE_URL = "https://services.hackerrank.com/scim/v2"
 
 
 def _drop_none(
-    data: Mapping[str, JSONValue],  # pyrefly: ignore [explicit-any]
+    data: Mapping[str, JSONValue],
     /,
-) -> dict[str, JSONValue]:  # pyrefly: ignore [explicit-any]
+) -> dict[str, JSONValue]:
     """Return a copy of ``data`` with ``None`` values removed.
 
     Args:
@@ -102,7 +102,7 @@ class _Namespace:
         method: str,
         url: str,
         params: dict[str, str | int] | None,
-        json: Mapping[str, JSONValue] | None,  # pyrefly: ignore [explicit-any]
+        json: Mapping[str, JSONValue] | None,
         files: Mapping[str, Any] | None,  # pyrefly: ignore [explicit-any]
         repeatable: bool,
     ) -> TransportResponse:
@@ -276,10 +276,13 @@ def _question_body(
     scoring_files: builtins.list[str] | None,
     readonly_paths: builtins.list[str] | None,
     default_files: builtins.list[str] | None,
-    configuration: Mapping[str, JSONValue] | None,  # pyrefly: ignore [explicit-any]
-    testcases: Sequence[Mapping[str, JSONValue]] | None,  # pyrefly: ignore [explicit-any]
-) -> dict[str, JSONValue]:  # pyrefly: ignore [explicit-any]
+    configuration: Mapping[str, JSONValue] | None,
+    testcases: Sequence[Mapping[str, JSONValue]] | None,
+) -> dict[str, JSONValue]:
     """Build a JSON body for question create/update calls."""
+    answer_value = (
+        answer if isinstance(answer, int) or answer is None else list(answer)
+    )
     return _drop_none(
         {
             "name": name,
@@ -290,11 +293,7 @@ def _question_body(
             "recommended_duration": recommended_duration,
             "tags": list(tags) if tags is not None else None,
             "options": (list(options) if options is not None else None),
-            "answer": (
-                list(answer)
-                if isinstance(answer, Sequence) and not isinstance(answer, str)
-                else answer
-            ),
+            "answer": answer_value,
             "score": score,
             "environment_id": environment_id,
             "role_type": role_type,
@@ -402,9 +401,9 @@ class InterviewsNamespace(_Namespace):
         resume_url: str | None = None,
         interviewers: builtins.list[str | Mapping[str, str]] | None = None,
         result_url: str | None = None,
-        candidate: Mapping[str, JSONValue] | None = None,  # pyrefly: ignore [explicit-any]
+        candidate: Mapping[str, JSONValue] | None = None,
         send_email: bool | None = None,
-        metadata: Mapping[str, JSONValue] | None = None,  # pyrefly: ignore [explicit-any]
+        metadata: Mapping[str, JSONValue] | None = None,
         interview_template_id: int | None = None,
         ai_assistant_available: bool | None = None,
     ) -> Interview:
@@ -488,12 +487,12 @@ class InterviewsNamespace(_Namespace):
         notes: str,
         resume_url: str,
         result_url: str,
-        candidate: Mapping[str, JSONValue],  # pyrefly: ignore [explicit-any]
+        candidate: Mapping[str, JSONValue],
         send_email: bool,
-        metadata: Mapping[str, JSONValue],  # pyrefly: ignore [explicit-any]
+        metadata: Mapping[str, JSONValue],
         interview_template_id: int,
         interviewers: (
-            builtins.list[str] | builtins.list[Mapping[str, JSONValue]] | None  # pyrefly: ignore [explicit-any]
+            builtins.list[str] | builtins.list[Mapping[str, JSONValue]] | None
         ) = None,
         replace_interviewers: bool | None = None,
         ai_assistant_available: bool | None = None,
@@ -606,7 +605,7 @@ class ExplicitSharingRolesNamespace(_Namespace):
         self,
         *,
         template_id: int | str,
-        explicit_roles: Sequence[Mapping[str, JSONValue]],  # pyrefly: ignore [explicit-any]
+        explicit_roles: Sequence[Mapping[str, JSONValue]],
     ) -> None:
         """Grant or change access to a template.
 
@@ -637,7 +636,7 @@ class ExplicitSharingRolesNamespace(_Namespace):
         self,
         *,
         template_id: int | str,
-        explicit_roles: Sequence[Mapping[str, JSONValue]],  # pyrefly: ignore [explicit-any]
+        explicit_roles: Sequence[Mapping[str, JSONValue]],
     ) -> None:
         """Revoke access to a template.
 
@@ -989,8 +988,8 @@ class QuestionsNamespace(_Namespace):
         scoring_files: builtins.list[str] | None = None,
         readonly_paths: builtins.list[str] | None = None,
         default_files: builtins.list[str] | None = None,
-        configuration: Mapping[str, JSONValue] | None = None,  # pyrefly: ignore [explicit-any]
-        testcases: builtins.list[Mapping[str, JSONValue]] | None = None,  # pyrefly: ignore [explicit-any]
+        configuration: Mapping[str, JSONValue] | None = None,
+        testcases: builtins.list[Mapping[str, JSONValue]] | None = None,
     ) -> Question:
         """Create a question.
 
@@ -1091,8 +1090,8 @@ class QuestionsNamespace(_Namespace):
         scoring_files: builtins.list[str] | None = None,
         readonly_paths: builtins.list[str] | None = None,
         default_files: builtins.list[str] | None = None,
-        configuration: Mapping[str, JSONValue] | None = None,  # pyrefly: ignore [explicit-any]
-        testcases: builtins.list[Mapping[str, JSONValue]] | None = None,  # pyrefly: ignore [explicit-any]
+        configuration: Mapping[str, JSONValue] | None = None,
+        testcases: builtins.list[Mapping[str, JSONValue]] | None = None,
     ) -> Question | None:
         """Update a question.
 
@@ -1162,7 +1161,7 @@ class QuestionsNamespace(_Namespace):
         file: bytes | BinaryIO,
         filename: str = "project.zip",
         content_type: str = "application/zip",
-    ) -> dict[str, JSONValue]:  # pyrefly: ignore [explicit-any]
+    ) -> dict[str, JSONValue]:
         """Upload a project zip for a fullstack question.
 
         Safe to retry: uploading again replaces the project archive.
@@ -1185,14 +1184,14 @@ class QuestionsNamespace(_Namespace):
             json=None,
             repeatable=True,
         )
-        result: dict[str, JSONValue] = dict(response.json())  # pyrefly: ignore [explicit-any]
+        result: dict[str, JSONValue] = dict(response.json())
         return result
 
     def update_codestubs(
         self,
         *,
         question_id: str,
-        codestubs: Mapping[str, JSONValue],  # pyrefly: ignore [explicit-any]
+        codestubs: Mapping[str, JSONValue],
     ) -> None:
         """Update custom code-stubs for a question.
 
@@ -1215,8 +1214,8 @@ class QuestionsNamespace(_Namespace):
         self,
         *,
         question_id: str,
-        body: Mapping[str, JSONValue],  # pyrefly: ignore [explicit-any]
-    ) -> dict[str, JSONValue]:  # pyrefly: ignore [explicit-any]
+        body: Mapping[str, JSONValue],
+    ) -> dict[str, JSONValue]:
         """Generate code-stubs for a question.
 
         Safe to retry: the request replaces the generated code stubs.
@@ -1236,15 +1235,15 @@ class QuestionsNamespace(_Namespace):
             files=None,
             repeatable=True,
         )
-        result: dict[str, JSONValue] = dict(response.json())  # pyrefly: ignore [explicit-any]
+        result: dict[str, JSONValue] = dict(response.json())
         return result
 
     def add_testcase(
         self,
         *,
         question_id: str,
-        body: Mapping[str, JSONValue],  # pyrefly: ignore [explicit-any]
-    ) -> dict[str, JSONValue]:  # pyrefly: ignore [explicit-any]
+        body: Mapping[str, JSONValue],
+    ) -> dict[str, JSONValue]:
         """Add a test case to a question.
 
         Not safe to retry: each call appends another test case.
@@ -1264,7 +1263,7 @@ class QuestionsNamespace(_Namespace):
             files=None,
             repeatable=False,
         )
-        result: dict[str, JSONValue] = dict(response.json())  # pyrefly: ignore [explicit-any]
+        result: dict[str, JSONValue] = dict(response.json())
         return result
 
     def update_testcase(
@@ -1272,7 +1271,7 @@ class QuestionsNamespace(_Namespace):
         *,
         question_id: str,
         testcase_id: str,
-        body: Mapping[str, JSONValue],  # pyrefly: ignore [explicit-any]
+        body: Mapping[str, JSONValue],
     ) -> None:
         """Update an existing test case.
 
@@ -1427,9 +1426,9 @@ class TestCandidatesNamespace(_Namespace):
         invite_valid_to: str | None = None,
         force: bool | None = None,
         force_reattempt: bool | None = None,
-        accommodations: Mapping[str, JSONValue] | None = None,  # pyrefly: ignore [explicit-any]
-        invite_metadata: Mapping[str, JSONValue] | None = None,  # pyrefly: ignore [explicit-any]
-        webhook_authentication: Mapping[str, JSONValue] | None = None,  # pyrefly: ignore [explicit-any]
+        accommodations: Mapping[str, JSONValue] | None = None,
+        invite_metadata: Mapping[str, JSONValue] | None = None,
+        webhook_authentication: Mapping[str, JSONValue] | None = None,
         accept_result_updates: bool | None = None,
         subject: str | None = None,
         message: str | None = None,
@@ -1538,14 +1537,14 @@ class TestCandidatesNamespace(_Namespace):
         ats_state: int,
         invite_valid_from: str,
         invite_valid_to: str,
-        invite_metadata: Mapping[str, JSONValue],  # pyrefly: ignore [explicit-any]
+        invite_metadata: Mapping[str, JSONValue],
         evaluator_email: str,
         test_finish_url: str,
         test_result_url: str,
-        webhook_authentication: Mapping[str, JSONValue],  # pyrefly: ignore [explicit-any]
+        webhook_authentication: Mapping[str, JSONValue],
         accept_result_updates: bool,
         tags: builtins.list[str],
-        accommodations: Mapping[str, JSONValue],  # pyrefly: ignore [explicit-any]
+        accommodations: Mapping[str, JSONValue],
     ) -> TestCandidate:
         """Update a candidate.
 
@@ -1570,7 +1569,7 @@ class TestCandidatesNamespace(_Namespace):
         Returns:
             The updated candidate.
         """
-        body: dict[str, JSONValue] = {  # pyrefly: ignore [explicit-any]
+        body: dict[str, JSONValue] = {
             "full_name": full_name,
             "ats_state": ats_state,
             "invite_valid_from": invite_valid_from,
@@ -1650,7 +1649,7 @@ class TestCandidatesNamespace(_Namespace):
         test_id: str,
         candidate_id: str,
         format_: str = "url",
-    ) -> dict[str, JSONValue]:  # pyrefly: ignore [explicit-any]
+    ) -> dict[str, JSONValue]:
         """Retrieve the PDF report for a candidate.
 
         Args:
@@ -1671,7 +1670,7 @@ class TestCandidatesNamespace(_Namespace):
             files=None,
             repeatable=True,
         )
-        result: dict[str, JSONValue] = dict(response.json())  # pyrefly: ignore [explicit-any]
+        result: dict[str, JSONValue] = dict(response.json())
         return result
 
 
@@ -1751,7 +1750,7 @@ class TestsNamespace(_Namespace):
         draft: bool | None = None,
         languages: builtins.list[str] | None = None,
         candidate_details: (
-            builtins.list[str | Mapping[str, JSONValue]] | None  # pyrefly: ignore [explicit-any]
+            builtins.list[str | Mapping[str, JSONValue]] | None
         ) = None,
         custom_acknowledge_text: str | None = None,
         cutoff_score: int | None = None,
@@ -2580,7 +2579,7 @@ class TeamsNamespace(_Namespace):
             locations: New allowed locations.
             departments: New allowed departments.
         """
-        body: dict[str, JSONValue] = {  # pyrefly: ignore [explicit-any]
+        body: dict[str, JSONValue] = {
             "name": name,
             "recruiter_cap": recruiter_cap,
             "developer_cap": developer_cap,
@@ -2671,9 +2670,9 @@ class ATSCodePairNamespace(_Namespace):
         title: str,
         requisition_id: str,
         candidate_id: str,
-        candidate: Mapping[str, JSONValue] | None = None,  # pyrefly: ignore [explicit-any]
+        candidate: Mapping[str, JSONValue] | None = None,
         send_email: bool | None = None,
-        interview_metadata: Mapping[str, JSONValue] | None = None,  # pyrefly: ignore [explicit-any]
+        interview_metadata: Mapping[str, JSONValue] | None = None,
     ) -> Interview:
         """Invite a candidate to an ATS Codepair interview.
 
@@ -2724,11 +2723,11 @@ class ATSCodeScreenNamespace(_Namespace):
         candidate_id: str,
         send_email: bool | None = None,
         test_result_url: str | None = None,
-        webhook_authentication: Mapping[str, JSONValue] | None = None,  # pyrefly: ignore [explicit-any]
+        webhook_authentication: Mapping[str, JSONValue] | None = None,
         accept_result_updates: bool | None = None,
         force: bool | None = None,
         force_reattempt_after: int | None = None,
-        accommodations: Mapping[str, JSONValue] | None = None,  # pyrefly: ignore [explicit-any]
+        accommodations: Mapping[str, JSONValue] | None = None,
     ) -> CandidateInvite:
         """Invite a candidate to a CodeScreen test.
 
@@ -2819,7 +2818,7 @@ class ATSNamespace(_Namespace):
 
 def _make_scim_page[T](
     items: list[T],
-    payload: Mapping[str, JSONValue],  # pyrefly: ignore [explicit-any]
+    payload: Mapping[str, JSONValue],
     /,
 ) -> SCIMPage[T]:
     """Wrap items and a SCIM payload into a ``SCIMPage``.
@@ -2885,7 +2884,7 @@ class SCIMUsersNamespace(_Namespace):
     def create(
         self,
         *,
-        body: Mapping[str, JSONValue],  # pyrefly: ignore [explicit-any]
+        body: Mapping[str, JSONValue],
     ) -> SCIMUser:
         """Create a SCIM user.
 
@@ -2931,7 +2930,7 @@ class SCIMUsersNamespace(_Namespace):
         self,
         *,
         scim_user_id: str,
-        body: Mapping[str, JSONValue],  # pyrefly: ignore [explicit-any]
+        body: Mapping[str, JSONValue],
     ) -> SCIMUser:
         """Replace a SCIM user (PUT).
 
@@ -2958,7 +2957,7 @@ class SCIMUsersNamespace(_Namespace):
         self,
         *,
         scim_user_id: str,
-        operations: Sequence[Mapping[str, JSONValue]],  # pyrefly: ignore [explicit-any]
+        operations: Sequence[Mapping[str, JSONValue]],
     ) -> SCIMMessage:
         """Patch a SCIM user.
 
@@ -2972,7 +2971,7 @@ class SCIMUsersNamespace(_Namespace):
         Returns:
             The SCIM patch acknowledgement message.
         """
-        body: dict[str, JSONValue] = {  # pyrefly: ignore [explicit-any]
+        body: dict[str, JSONValue] = {
             "operations": [dict(op) for op in operations],
         }
         response = self._request(
@@ -3036,7 +3035,7 @@ class SCIMGroupsNamespace(_Namespace):
         items: list[SCIMTeam] = [SCIMTeam.from_dict(data=item) for item in raw]  # pyrefly: ignore [unknown-argument-type]
         return _make_scim_page(items, payload)
 
-    def create(self, *, body: Mapping[str, JSONValue]) -> SCIMTeam:  # pyrefly: ignore [explicit-any]
+    def create(self, *, body: Mapping[str, JSONValue]) -> SCIMTeam:
         """Create a SCIM group.
 
         Not safe to retry: a lost response may still have created the
@@ -3081,7 +3080,7 @@ class SCIMGroupsNamespace(_Namespace):
         self,
         *,
         scim_group_id: str,
-        operations: Sequence[Mapping[str, JSONValue]],  # pyrefly: ignore [explicit-any]
+        operations: Sequence[Mapping[str, JSONValue]],
     ) -> SCIMMessage:
         """Patch a SCIM group.
 
@@ -3095,7 +3094,7 @@ class SCIMGroupsNamespace(_Namespace):
         Returns:
             The SCIM patch acknowledgement message.
         """
-        body: dict[str, JSONValue] = {  # pyrefly: ignore [explicit-any]
+        body: dict[str, JSONValue] = {
             "operations": [dict(op) for op in operations],
         }
         response = self._request(
