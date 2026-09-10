@@ -3,7 +3,7 @@
 import logging
 from collections.abc import Iterator, Mapping
 from http import HTTPStatus
-from io import IOBase
+from typing import Protocol, runtime_checkable
 
 from beartype import beartype
 
@@ -28,7 +28,24 @@ which a second identical request would hit again.
 """
 
 
-type _MultipartContent = IOBase | bytes | str
+@runtime_checkable
+class _MultipartStream(Protocol):
+    """A readable binary stream which can be rewound for a retry."""
+
+    def read(self) -> bytes:
+        """Read the remaining bytes from the stream."""
+        ...  # pylint: disable=unnecessary-ellipsis
+
+    def seek(self, offset: int, _whence: int, /) -> int:
+        """Move to a byte offset in the stream."""
+        ...  # pylint: disable=unnecessary-ellipsis
+
+    def seekable(self) -> bool:
+        """Return whether the stream supports seeking."""
+        ...  # pylint: disable=unnecessary-ellipsis
+
+
+type _MultipartContent = _MultipartStream | bytes | str
 type _MultipartFile = (
     _MultipartContent
     | tuple[str | None, _MultipartContent]
@@ -51,7 +68,7 @@ def _file_contents(*, files: _MultipartFiles) -> Iterator[_MultipartContent]:
     if files is None:
         return
     for value in files.values():
-        if isinstance(value, IOBase | bytes | str):
+        if isinstance(value, _MultipartStream | bytes | str):
             yield value
         else:
             yield value[1]
