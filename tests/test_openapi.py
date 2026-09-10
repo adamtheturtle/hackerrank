@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-import json
 from http import HTTPStatus
 from pathlib import Path
-from typing import Any
+from typing import NotRequired, TypedDict
 
 import httpx
 import pytest
 import respx
+from pydantic import TypeAdapter
 
 from .openapi_helpers import normalize_openapi
 
@@ -19,15 +19,28 @@ _LIVE_OPENAPI_URL = "https://www.hackerrank.com/apidoc"
 _MOCK_OPENAPI_URL = "https://example.com/apidoc"
 
 
-def _load_checked_in_spec() -> dict[str, Any]:  # pyrefly: ignore [explicit-any]
+class _OpenAPIDefinition(TypedDict):
+    """Fields inspected on an OpenAPI definition."""
+
+    required: NotRequired[list[str]]
+    properties: NotRequired[dict[str, object]]
+
+
+class _OpenAPISpec(TypedDict):
+    """Top-level OpenAPI fields inspected by these tests."""
+
+    paths: dict[str, object]
+    definitions: dict[str, _OpenAPIDefinition]
+
+
+def _load_checked_in_spec() -> _OpenAPISpec:
     """Load the repository's ``openapi.json``.
 
     Returns:
         The parsed OpenAPI document.
     """
-    loaded: Any = json.loads(s=_OPENAPI_PATH.read_text(encoding="utf-8"))  # pyrefly: ignore [explicit-any]
-    typed: dict[str, Any] = loaded  # pyrefly: ignore [explicit-any]
-    return typed
+    adapter: TypeAdapter[_OpenAPISpec] = TypeAdapter(type=_OpenAPISpec)
+    return adapter.validate_json(_OPENAPI_PATH.read_text(encoding="utf-8"))
 
 
 def _assert_remote_openapi_matches_checked_in(*, url: str) -> None:
@@ -146,11 +159,13 @@ class TestCheckedInOpenAPI:
         definitions = spec["definitions"]
         assert "CandidateSearchResult" in definitions
         assert "CandidateSearchAttemptResult" in definitions
-        attempt_required = set(
-            definitions["CandidateSearchAttemptResult"]["required"],  # pyrefly: ignore [unknown-argument-type]
-        )
+        attempt_definition = definitions["CandidateSearchAttemptResult"]
+        assert "required" in attempt_definition
+        attempt_required = set(attempt_definition["required"])
         assert attempt_required == {"attempt_id", "test_id", "report_url"}
-        result_required = set(definitions["CandidateSearchResult"]["required"])  # pyrefly: ignore [unknown-argument-type]
+        result_definition = definitions["CandidateSearchResult"]
+        assert "required" in result_definition
+        result_required = set(result_definition["required"])
         assert result_required == {
             "uuid",
             "name",
@@ -165,7 +180,9 @@ class TestCheckedInOpenAPI:
         """Interview create/update schemas include current live fields."""
         definitions = _load_checked_in_spec()["definitions"]
         for name in ("InterviewCreate", "InterviewUpdate"):
-            properties = definitions[name]["properties"]  # pyrefly: ignore [unknown-variable-type]
+            definition = definitions[name]
+            assert "properties" in definition
+            properties = definition["properties"]
             assert "ai_assistant_available" in properties
             assert "interviewers" in properties
             assert "replace_interviewers" in properties

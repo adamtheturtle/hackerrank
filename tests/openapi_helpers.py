@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
-import json
 import re
-from typing import Any
+from typing import TypeGuard
+
+from beartype.door import TypeHint
 
 # ISO-8601-ish date / date-time strings that appear as dynamic defaults
 # or examples in HackerRank's live schema.
@@ -21,26 +22,17 @@ _WHITESPACE_RE = re.compile(pattern=r"\s+")
 _DYNAMIC_KEYS = frozenset({"example", "examples", "x-examples"})
 
 
-def _as_str_keyed_dict(*, value: object) -> dict[str, Any] | None:  # pyrefly: ignore [explicit-any]
-    """Return ``value`` as a ``str``-keyed dict, or ``None``.
-
-    Uses a JSON round-trip so static checkers see concrete ``Any``
-    values rather than unknown dict items from ``isinstance`` narrowing.
-    """
-    if not isinstance(value, dict):
-        return None
-    decoded: Any = json.loads(s=json.dumps(obj=value))  # pyrefly: ignore [explicit-any]
-    typed: dict[str, Any] = decoded  # pyrefly: ignore [explicit-any]
-    return typed
+def _is_str_keyed_dict(
+    value: object,
+    /,
+) -> TypeGuard[dict[str, object]]:
+    """Return whether ``value`` is a string-keyed dictionary."""
+    return TypeHint(hint=dict[str, object]).is_bearable(obj=value)
 
 
-def _as_object_list(*, value: object) -> list[object] | None:
-    """Return ``value`` as a list of objects, or ``None``."""
-    if not isinstance(value, list):
-        return None
-    decoded: Any = json.loads(s=json.dumps(obj=value))  # pyrefly: ignore [explicit-any]
-    typed: list[object] = decoded  # ty: ignore[unsound-assignment]
-    return typed
+def _is_object_list(value: object, /) -> TypeGuard[list[object]]:
+    """Return whether ``value`` is a list."""
+    return isinstance(value, list)
 
 
 def normalize_openapi(*, spec: object) -> object:
@@ -57,10 +49,9 @@ def normalize_openapi(*, spec: object) -> object:
     Returns:
         A structurally comparable copy of ``spec``.
     """
-    as_dict = _as_str_keyed_dict(value=spec)
-    if as_dict is not None:
+    if _is_str_keyed_dict(spec):
         normalized: dict[str, object] = {}
-        for key, value in as_dict.items():
+        for key, value in spec.items():
             if key in _DYNAMIC_KEYS:
                 continue
             if bool(
@@ -72,9 +63,8 @@ def normalize_openapi(*, spec: object) -> object:
                 continue
             normalized[key] = normalize_openapi(spec=value)
         return normalized
-    as_list = _as_object_list(value=spec)
-    if as_list is not None:
-        return [normalize_openapi(spec=item) for item in as_list]
+    if _is_object_list(spec):
+        return [normalize_openapi(spec=item) for item in spec]
     if isinstance(spec, str):
         return _WHITESPACE_RE.sub(repl=" ", string=spec).strip()
     return spec
