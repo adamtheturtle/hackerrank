@@ -1,11 +1,12 @@
 """Types for the HackerRank for Work API."""
 
-from collections.abc import Iterable, Mapping, Sequence
+from collections.abc import Iterable
 from dataclasses import asdict, dataclass
 from typing import ClassVar, Self
 
 from beartype import beartype
 
+from hackerrank import _dict_types
 from hackerrank._dict_types import (
     ATSCodePairDict,
     ATSCodeScreenDict,
@@ -35,15 +36,8 @@ from hackerrank._dict_types import (
     UserTeamMembershipDict,
 )
 
-type JSONValue = (
-    str
-    | int
-    | float
-    | bool
-    | Sequence[JSONValue]
-    | Mapping[str, JSONValue]
-    | None
-)
+type JSONValue = _dict_types.JSONValue
+
 """A JSON-compatible value.
 
 Used for free-form fields such as ``metadata``, ``candidate``,
