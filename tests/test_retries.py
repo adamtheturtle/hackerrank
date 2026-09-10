@@ -581,8 +581,20 @@ class TestRewindFiles:
 
     @staticmethod
     def test_bytes_and_strings() -> None:
-        """Byte and string parts need no rewinding."""
-        files = {"file": ("project.zip", b"data", "application/zip")}
+        """Byte and string content needs no rewinding."""
+        assert rewind_files(files={"bytes": b"data", "text": "data"})
+
+    @staticmethod
+    def test_tuple_metadata() -> None:
+        """Filename, content type, and headers do not affect retries."""
+        files = {
+            "file": (
+                "project.zip",
+                b"data",
+                "application/zip",
+                {"X-Description": "project"},
+            )
+        }
         assert rewind_files(files=files)
 
     @staticmethod
@@ -604,7 +616,7 @@ class TestRewindFiles:
     def test_unseekable_file_is_refused() -> None:
         """An unseekable file makes the request unrepeatable."""
 
-        class _Unseekable(io.RawIOBase):
+        class _Unseekable(io.BytesIO):
             """A stream which cannot be rewound."""
 
             @override
@@ -616,12 +628,9 @@ class TestRewindFiles:
                 """
                 return False
 
-        assert not rewind_files(files={"file": _Unseekable()})
-
-    @staticmethod
-    def test_unknown_object_is_refused() -> None:
-        """A part which is not recognised is not sent twice."""
-        assert not rewind_files(files={"file": object()})
+        handle = _Unseekable()
+        _ = handle.write(b"data")
+        assert not rewind_files(files={"file": handle})
 
 
 class TestLogging:
