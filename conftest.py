@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-import json
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 import pytest
 import respx
 from openapi_mock import add_openapi_to_respx
+from pydantic import TypeAdapter, ValidationError
 
 if TYPE_CHECKING:
     from collections.abc import Generator
@@ -17,27 +17,31 @@ _HTTP_METHODS = frozenset(
     {"get", "post", "put", "delete", "patch", "head", "options", "trace"},
 )
 
+type _JSONValue = (
+    bool | int | float | str | list[_JSONValue] | dict[str, _JSONValue] | None
+)
 
-def _as_str_keyed_dict(*, value: object) -> dict[str, Any] | None:  # pyrefly: ignore [explicit-any]
-    """Return ``value`` as a ``str``-keyed dict, or ``None``.
 
-    Uses a JSON round-trip so static checkers see concrete ``Any``
-    values rather than unknown dict items from ``isinstance`` narrowing.
-    """
-    if not isinstance(value, dict):
+def _as_json_object(*, value: object) -> dict[str, _JSONValue] | None:
+    """Return ``value`` as a JSON object, or ``None``."""
+    try:
+        return TypeAdapter(type=dict[str, _JSONValue]).validate_python(
+            value,
+            strict=True,
+        )
+    except ValidationError:
         return None
-    decoded: Any = json.loads(s=json.dumps(obj=value))  # pyrefly: ignore [explicit-any]
-    typed: dict[str, Any] = decoded  # pyrefly: ignore [explicit-any]
-    return typed
 
 
-def _as_object_list(*, value: object) -> list[object] | None:
-    """Return ``value`` as a list of objects, or ``None``."""
-    if not isinstance(value, list):
+def _as_json_list(*, value: object) -> list[_JSONValue] | None:
+    """Return ``value`` as a JSON array, or ``None``."""
+    try:
+        return TypeAdapter(type=list[_JSONValue]).validate_python(
+            value,
+            strict=True,
+        )
+    except ValidationError:
         return None
-    decoded: Any = json.loads(s=json.dumps(obj=value))  # pyrefly: ignore [explicit-any]
-    typed: list[object] = decoded  # ty: ignore[unsound-assignment]
-    return typed
 
 
 def pytest_addoption(parser: pytest.Parser) -> None:
@@ -87,22 +91,24 @@ def pytest_collection_modifyitems(
             item.add_marker(marker=skip_network)
 
 
-def _fix_schema_required(*, schema: dict[str, Any]) -> dict[str, Any]:  # pyrefly: ignore [explicit-any]
+def _fix_schema_required(
+    *, schema: dict[str, _JSONValue]
+) -> dict[str, _JSONValue]:
     """Normalize Swagger-style ``required`` flags for OpenAPI 3
     schemas.
     """
-    result: dict[str, Any] = dict(schema)  # pyrefly: ignore [explicit-any]
-    props = _as_str_keyed_dict(value=result.get("properties"))
+    result = dict(schema)
+    props = _as_json_object(value=result.get("properties"))
     if props is not None:
-        required_names: list[str] = []
-        existing_required = _as_object_list(value=result.get("required"))
+        required_names: list[_JSONValue] = []
+        existing_required = _as_json_list(value=result.get("required"))
         if existing_required is not None:
             required_names.extend(
                 name for name in existing_required if isinstance(name, str)
             )
-        fixed_props: dict[str, Any] = {}  # pyrefly: ignore [explicit-any]
+        fixed_props: dict[str, _JSONValue] = {}
         for prop_name, prop_schema_raw in props.items():
-            prop_schema = _as_str_keyed_dict(value=prop_schema_raw)
+            prop_schema = _as_json_object(value=prop_schema_raw)
             if prop_schema is None:
                 continue
             fixed_prop = _fix_schema_required(schema=prop_schema)
@@ -116,25 +122,27 @@ def _fix_schema_required(*, schema: dict[str, Any]) -> dict[str, Any]:  # pyrefl
         if bool(required_names):
             result["required"] = required_names
         elif "required" in result and not isinstance(result["required"], list):
-            result.pop("required", None)
-    items = _as_str_keyed_dict(value=result.get("items"))
+            _ = result.pop("required", None)
+    items = _as_json_object(value=result.get("items"))
     if items is not None:
         result["items"] = _fix_schema_required(schema=items)
     return result
 
 
-def _migrate_body_parameter(*, operation: dict[str, Any]) -> dict[str, Any]:  # pyrefly: ignore [explicit-any]
+def _migrate_body_parameter(
+    *, operation: dict[str, _JSONValue]
+) -> dict[str, _JSONValue]:
     """Convert Swagger 2 ``in: body`` parameters to OpenAPI 3
     requestBody.
     """
-    result: dict[str, Any] = dict(operation)  # pyrefly: ignore [explicit-any]
-    params = _as_object_list(value=result.get("parameters"))
+    result = dict(operation)
+    params = _as_json_list(value=result.get("parameters"))
     if params is None:
         return result
-    kept: list[object] = []
-    body_param: dict[str, Any] | None = None  # pyrefly: ignore [explicit-any]
+    kept: list[_JSONValue] = []
+    body_param: dict[str, _JSONValue] | None = None
     for param_raw in params:
-        param = _as_str_keyed_dict(value=param_raw)
+        param = _as_json_object(value=param_raw)
         if param is not None and param.get("in") == "body":
             body_param = param
         else:
@@ -142,8 +150,8 @@ def _migrate_body_parameter(*, operation: dict[str, Any]) -> dict[str, Any]:  # 
     result["parameters"] = kept
     if body_param is not None and "requestBody" not in result:
         schema_raw = body_param.get("schema", {})
-        schema: object = schema_raw
-        schema_dict = _as_str_keyed_dict(value=schema_raw)
+        schema: _JSONValue = schema_raw
+        schema_dict = _as_json_object(value=schema_raw)
         if schema_dict is not None:
             schema = _fix_schema_required(schema=schema_dict)
         result["requestBody"] = {
@@ -153,30 +161,33 @@ def _migrate_body_parameter(*, operation: dict[str, Any]) -> dict[str, Any]:  # 
     return result
 
 
-def _prepare_openapi_spec(*, spec: dict[str, object]) -> dict[str, object]:
+def _prepare_openapi_spec(
+    *, spec: dict[str, _JSONValue]
+) -> dict[str, _JSONValue]:
     """Normalize the HackerRank OpenAPI document for mock route
     registration.
     """
-    prepared: dict[str, object] = dict(spec)
-    raw_paths = _as_str_keyed_dict(value=prepared.get("paths", {}))
+    prepared = dict(spec)
+    raw_paths = _as_json_object(value=prepared.get("paths", {}))
     if raw_paths is None:
         return prepared
 
-    cleaned_paths: dict[str, dict[str, object]] = {}
+    cleaned_paths: dict[str, dict[str, _JSONValue]] = {}
     for raw_key, raw_value_obj in raw_paths.items():
-        raw_value = _as_str_keyed_dict(value=raw_value_obj)
+        raw_value = _as_json_object(value=raw_value_obj)
         if raw_value is None:
             continue
         cleaned = raw_key.split(sep="?", maxsplit=1)[0]
-        merged: dict[str, object] = dict(cleaned_paths.get(cleaned, {}))
+        merged = dict(cleaned_paths.get(cleaned, {}))
         for op_key, op_val_obj in raw_value.items():
-            op_val = _as_str_keyed_dict(value=op_val_obj)
+            op_val = _as_json_object(value=op_val_obj)
             if op_key in _HTTP_METHODS and op_val is not None:
                 merged[op_key] = _migrate_body_parameter(operation=op_val)
             else:
                 merged[op_key] = op_val_obj
         cleaned_paths[cleaned] = merged
-    prepared["paths"] = cleaned_paths
+    json_paths = dict[str, _JSONValue](cleaned_paths)
+    prepared["paths"] = json_paths
     return prepared
 
 
@@ -195,7 +206,10 @@ def fixture_mock_hackerrank_api(
     """
     openapi_spec_path = request.config.rootpath / "openapi.json"
     spec_text = openapi_spec_path.read_text(encoding="utf-8")
-    openapi_spec: dict[str, object] = json.loads(s=spec_text)  # ty: ignore[unsound-assignment]
+    openapi_spec = TypeAdapter(type=dict[str, _JSONValue]).validate_json(
+        spec_text,
+        strict=True,
+    )
     openapi_spec = _prepare_openapi_spec(spec=openapi_spec)
     with respx.mock(
         base_url=_BASE_URL,
