@@ -7,20 +7,20 @@ from typing import TYPE_CHECKING
 
 import pytest
 import respx
+from beartype import beartype
 
 from hackerrank.async_client import AsyncHackerRank
 from hackerrank.client import HackerRank
+from hackerrank.types import JSONValue
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
     import httpx
 
-    from hackerrank.types import JSONValue
-
 _BASE = "https://www.hackerrank.com/x/api/v3"
-_EMPTY_DATA: list[object] = []
-_PAGE: dict[str, object] = {
+_EMPTY_DATA: list[JSONValue] = []
+_PAGE: dict[str, JSONValue] = {
     "data": _EMPTY_DATA,
     "page_total": 0,
     "offset": 0,
@@ -64,19 +64,15 @@ def _indexed_route_request(*, route: respx.Route, index: int) -> httpx.Request:
     return call.request
 
 
-def _as_str_keyed_dict(*, value: object) -> dict[str, object]:
-    """Return ``value`` as a ``str``-keyed dict."""
-    assert isinstance(value, dict)
-    result: dict[str, object] = {}
-    for key_obj, item in value.items():  # pyright: ignore[reportUnknownVariableType]
-        assert isinstance(key_obj, str)
-        result[key_obj] = item  # pyrefly: ignore [unknown-argument-type]
-    return result
+@beartype
+def _as_json_object(*, value: dict[str, JSONValue]) -> dict[str, JSONValue]:
+    """Return ``value`` as a runtime-validated JSON object."""
+    return value
 
 
-def _last_route_json(*, route: respx.Route) -> dict[str, object]:
+def _last_route_json(*, route: respx.Route) -> dict[str, JSONValue]:
     """Return decoded JSON body from the last captured ``route`` call."""
-    return _as_str_keyed_dict(
+    return _as_json_object(
         value=json.loads(s=_last_route_request(route=route).content),
     )
 
@@ -85,10 +81,10 @@ def _indexed_route_json(
     *,
     route: respx.Route,
     index: int,
-) -> dict[str, object]:
+) -> dict[str, JSONValue]:
     """Return decoded JSON body from a captured ``route`` call."""
     request = _indexed_route_request(route=route, index=index)
-    return _as_str_keyed_dict(value=json.loads(s=request.content))
+    return _as_json_object(value=json.loads(s=request.content))
 
 
 class TestInterviewListParams:
