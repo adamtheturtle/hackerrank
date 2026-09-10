@@ -11,7 +11,28 @@ import httpx
 import httpx2
 from beartype import beartype
 
-from hackerrank._responses import interview_items, object_response
+from hackerrank._dict_types import (
+    AuditLogDict,
+    CandidateSearchResultDict,
+    EnvironmentDict,
+    InterviewTemplateDict,
+    InviterDict,
+    QuestionDict,
+    SCIMTeamDict,
+    SCIMUserDict,
+    TeamDict,
+    TemplateDict,
+    TestCandidateDict,
+    TestDict,
+    UserDict,
+    UserTeamMembershipDict,
+)
+from hackerrank._responses import (
+    environment_response,
+    interview_items,
+    object_response,
+    response_items,
+)
 from hackerrank._retries import (
     RETRY_STATUS_CODES,
     delay_seconds,
@@ -731,11 +752,13 @@ class InterviewTemplatesNamespace(_Namespace):
             files=None,
             repeatable=True,
         )
-        payload = response.json()
-        raw_items = list(payload.get("data", []))  # pyrefly: ignore [unknown-argument-type]
+        payload = object_response(value=response.json())
+        raw_items = response_items(
+            value=payload.get("data", []),
+            item_type=InterviewTemplateDict,
+        )
         items: list[InterviewTemplate] = [
-            InterviewTemplate.from_dict(data=item)  # pyrefly: ignore [unknown-argument-type]
-            for item in raw_items
+            InterviewTemplate.from_dict(data=item) for item in raw_items
         ]
         return _make_page(items, payload)
 
@@ -872,8 +895,12 @@ class EnvironmentsNamespace(_Namespace):
             files=None,
             repeatable=True,
         )
-        raw_items = list(response.json().get("environments", []))  # pyrefly: ignore [unknown-argument-type]
-        return [Environment.from_dict(data=item) for item in raw_items]  # pyrefly: ignore [unknown-argument-type]
+        payload = object_response(value=response.json())
+        raw_items = response_items(
+            value=payload.get("environments", []),
+            item_type=EnvironmentDict,
+        )
+        return [Environment.from_dict(data=item) for item in raw_items]
 
     def get(self, *, environment_id: int) -> Environment:
         """Retrieve a project-question environment.
@@ -892,7 +919,10 @@ class EnvironmentsNamespace(_Namespace):
             files=None,
             repeatable=True,
         )
-        return Environment.from_dict(data=response.json()["environment"])  # pyrefly: ignore [unknown-argument-type]
+        payload = object_response(value=response.json())
+        return Environment.from_dict(
+            data=environment_response(value=payload["environment"]),
+        )
 
 
 @beartype
@@ -961,11 +991,13 @@ class QuestionsNamespace(_Namespace):
             files=None,
             repeatable=True,
         )
-        payload = response.json()
-        raw_items = list(payload.get("data", []))  # pyrefly: ignore [unknown-argument-type]
+        payload = object_response(value=response.json())
+        raw_items = response_items(
+            value=payload.get("data", []),
+            item_type=QuestionDict,
+        )
         items: list[Question] = [
-            Question.from_dict(data=item)  # pyrefly: ignore [unknown-argument-type]
-            for item in raw_items
+            Question.from_dict(data=item) for item in raw_items
         ]
         return _make_page(items, payload)
 
@@ -1362,11 +1394,13 @@ class TestCandidatesNamespace(_Namespace):
             files=None,
             repeatable=True,
         )
-        payload = response.json()
-        raw_items = list(payload.get("data", []))  # pyrefly: ignore [unknown-argument-type]
+        payload = object_response(value=response.json())
+        raw_items = response_items(
+            value=payload.get("data", []),
+            item_type=TestCandidateDict,
+        )
         items: list[TestCandidate] = [
-            TestCandidate.from_dict(data=item)  # pyrefly: ignore [unknown-argument-type]
-            for item in raw_items
+            TestCandidate.from_dict(data=item) for item in raw_items
         ]
         return _make_page(items, payload)
 
@@ -1402,11 +1436,13 @@ class TestCandidatesNamespace(_Namespace):
             files=None,
             repeatable=True,
         )
-        payload = response.json()
-        raw_items = list(payload.get("data", []))  # pyrefly: ignore [unknown-argument-type]
+        payload = object_response(value=response.json())
+        raw_items = response_items(
+            value=payload.get("data", []),
+            item_type=TestCandidateDict,
+        )
         items: list[TestCandidate] = [
-            TestCandidate.from_dict(data=item)  # pyrefly: ignore [unknown-argument-type]
-            for item in raw_items
+            TestCandidate.from_dict(data=item) for item in raw_items
         ]
         return _make_page(items, payload)
 
@@ -1731,9 +1767,12 @@ class TestsNamespace(_Namespace):
             files=None,
             repeatable=True,
         )
-        payload = response.json()
-        raw_items = list(payload.get("data", []))  # pyrefly: ignore [unknown-argument-type]
-        items: list[Test] = [Test.from_dict(data=item) for item in raw_items]  # pyrefly: ignore [unknown-argument-type]
+        payload = object_response(value=response.json())
+        raw_items = response_items(
+            value=payload.get("data", []),
+            item_type=TestDict,
+        )
+        items = [Test.from_dict(data=item) for item in raw_items]
         return _make_page(items, payload)
 
     def create(
@@ -1978,11 +2017,13 @@ class TestsNamespace(_Namespace):
             files=None,
             repeatable=True,
         )
-        payload = response.json()
-        raw_items = list(payload.get("data", []))  # pyrefly: ignore [unknown-argument-type]
+        payload = object_response(value=response.json())
+        raw_items = response_items(
+            value=payload.get("data", []),
+            item_type=InviterDict,
+        )
         items: list[Inviter] = [
-            Inviter.from_dict(data=item)  # pyrefly: ignore [unknown-argument-type]
-            for item in raw_items
+            Inviter.from_dict(data=item) for item in raw_items
         ]
         return _make_page(items, payload)
 
@@ -2023,11 +2064,13 @@ class TemplatesNamespace(_Namespace):
             files=None,
             repeatable=True,
         )
-        payload = response.json()
-        raw_items = list(payload.get("data", []))  # pyrefly: ignore [unknown-argument-type]
+        payload = object_response(value=response.json())
+        raw_items = response_items(
+            value=payload.get("data", []),
+            item_type=TemplateDict,
+        )
         items: list[Template] = [
-            Template.from_dict(data=item)  # pyrefly: ignore [unknown-argument-type]
-            for item in raw_items
+            Template.from_dict(data=item) for item in raw_items
         ]
         return _make_page(items, payload)
 
@@ -2085,11 +2128,13 @@ class CandidatesNamespace(_Namespace):
             files=None,
             repeatable=True,
         )
-        payload = response.json()
-        raw_items = list(payload.get("data", []))  # pyrefly: ignore [unknown-argument-type]
+        payload = object_response(value=response.json())
+        raw_items = response_items(
+            value=payload.get("data", []),
+            item_type=CandidateSearchResultDict,
+        )
         items: list[CandidateSearchResult] = [
-            CandidateSearchResult.from_dict(data=item)  # pyrefly: ignore [unknown-argument-type]
-            for item in raw_items
+            CandidateSearchResult.from_dict(data=item) for item in raw_items
         ]
         return _make_page(items, payload)
 
@@ -2121,9 +2166,12 @@ class UsersNamespace(_Namespace):
             files=None,
             repeatable=True,
         )
-        payload = response.json()
-        raw_items = list(payload.get("data", []))  # pyrefly: ignore [unknown-argument-type]
-        items: list[User] = [User.from_dict(data=item) for item in raw_items]  # pyrefly: ignore [unknown-argument-type]
+        payload = object_response(value=response.json())
+        raw_items = response_items(
+            value=payload.get("data", []),
+            item_type=UserDict,
+        )
+        items = [User.from_dict(data=item) for item in raw_items]
         return _make_page(items, payload)
 
     def search(
@@ -2156,9 +2204,12 @@ class UsersNamespace(_Namespace):
             files=None,
             repeatable=True,
         )
-        payload = response.json()
-        raw_items = list(payload.get("data", []))  # pyrefly: ignore [unknown-argument-type]
-        items: list[User] = [User.from_dict(data=item) for item in raw_items]  # pyrefly: ignore [unknown-argument-type]
+        payload = object_response(value=response.json())
+        raw_items = response_items(
+            value=payload.get("data", []),
+            item_type=UserDict,
+        )
+        items = [User.from_dict(data=item) for item in raw_items]
         return _make_page(items, payload)
 
     def create(
@@ -2333,11 +2384,13 @@ class TeamMembershipsNamespace(_Namespace):
             files=None,
             repeatable=True,
         )
-        payload = response.json()
-        raw_items = list(payload.get("data", []))  # pyrefly: ignore [unknown-argument-type]
+        payload = object_response(value=response.json())
+        raw_items = response_items(
+            value=payload.get("data", []),
+            item_type=UserTeamMembershipDict,
+        )
         items: list[UserTeamMembership] = [
-            UserTeamMembership.from_dict(data=item)  # pyrefly: ignore [unknown-argument-type]
-            for item in raw_items
+            UserTeamMembership.from_dict(data=item) for item in raw_items
         ]
         return _make_page(items, payload)
 
@@ -2481,9 +2534,12 @@ class TeamsNamespace(_Namespace):
             files=None,
             repeatable=True,
         )
-        payload = response.json()
-        raw_items = list(payload.get("data", []))  # pyrefly: ignore [unknown-argument-type]
-        items: list[Team] = [Team.from_dict(data=item) for item in raw_items]  # pyrefly: ignore [unknown-argument-type]
+        payload = object_response(value=response.json())
+        raw_items = response_items(
+            value=payload.get("data", []),
+            item_type=TeamDict,
+        )
+        items = [Team.from_dict(data=item) for item in raw_items]
         return _make_page(items, payload)
 
     def create(
@@ -2651,11 +2707,13 @@ class AuditLogsNamespace(_Namespace):
             files=None,
             repeatable=True,
         )
-        payload = response.json()
-        raw_items = list(payload.get("data", []))  # pyrefly: ignore [unknown-argument-type]
+        payload = object_response(value=response.json())
+        raw_items = response_items(
+            value=payload.get("data", []),
+            item_type=AuditLogDict,
+        )
         items: list[AuditLog] = [
-            AuditLog.from_dict(data=item)  # pyrefly: ignore [unknown-argument-type]
-            for item in raw_items
+            AuditLog.from_dict(data=item) for item in raw_items
         ]
         return _make_page(items, payload)
 
@@ -2876,9 +2934,12 @@ class SCIMUsersNamespace(_Namespace):
             files=None,
             repeatable=True,
         )
-        payload = response.json()
-        raw = list(payload.get("Resources", []))  # pyrefly: ignore [unknown-argument-type]
-        items: list[SCIMUser] = [SCIMUser.from_dict(data=item) for item in raw]  # pyrefly: ignore [unknown-argument-type]
+        payload = object_response(value=response.json())
+        raw = response_items(
+            value=payload.get("Resources", []),
+            item_type=SCIMUserDict,
+        )
+        items = [SCIMUser.from_dict(data=item) for item in raw]
         return _make_scim_page(items, payload)
 
     def create(
@@ -3030,9 +3091,12 @@ class SCIMGroupsNamespace(_Namespace):
             files=None,
             repeatable=True,
         )
-        payload = response.json()
-        raw = list(payload.get("Resources", []))  # pyrefly: ignore [unknown-argument-type]
-        items: list[SCIMTeam] = [SCIMTeam.from_dict(data=item) for item in raw]  # pyrefly: ignore [unknown-argument-type]
+        payload = object_response(value=response.json())
+        raw = response_items(
+            value=payload.get("Resources", []),
+            item_type=SCIMTeamDict,
+        )
+        items = [SCIMTeam.from_dict(data=item) for item in raw]
         return _make_scim_page(items, payload)
 
     def create(self, *, body: Mapping[str, JSONValue]) -> SCIMTeam:
