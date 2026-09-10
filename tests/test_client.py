@@ -343,6 +343,26 @@ class TestListEndpoints:
         assert result.total >= 0
 
     @staticmethod
+    @pytest.mark.parametrize(
+        argnames="invalid_data",
+        argvalues=["invalid", ["invalid"]],
+    )
+    def test_list_tests_rejects_invalid_items(invalid_data: object) -> None:
+        """The tests list rejects malformed response items."""
+        with respx.mock(base_url="https://www.hackerrank.com") as router:
+            _ = router.get(url="/x/api/v3/tests").respond(
+                status_code=HTTPStatus.OK,
+                json={"data": invalid_data},
+            )
+            client = HackerRank(api_key="test-key")
+            with pytest.raises(
+                expected_exception=TypeError,
+                match="valid objects",
+            ):
+                _ = client.tests.list()
+            client.close()
+
+    @staticmethod
     def test_list_interviews(
         hackerrank_client: HackerRank,
     ) -> None:
@@ -410,6 +430,22 @@ class TestListEndpoints:
         """The questions list endpoint returns a page."""
         result = hackerrank_client.questions.list()
         assert result.total >= 0
+
+    @staticmethod
+    def test_get_environment_rejects_invalid_data() -> None:
+        """The environment endpoint rejects malformed response data."""
+        with respx.mock(base_url="https://www.hackerrank.com") as router:
+            _ = router.get(url="/x/api/v3/environments/1").respond(
+                status_code=HTTPStatus.OK,
+                json={"environment": "invalid"},
+            )
+            client = HackerRank(api_key="test-key")
+            with pytest.raises(
+                expected_exception=TypeError,
+                match="an environment",
+            ):
+                _ = client.environments.get(environment_id=1)
+            client.close()
 
 
 class TestErrorHandling:
