@@ -208,7 +208,7 @@ def _coerce_str(value: object, /) -> str:
 
 def _make_page[T](
     items: list[T],
-    metadata: Mapping[str, object],
+    metadata: Mapping[str, JSONValue],
     /,
 ) -> Page[T]:
     """Wrap ``items`` and ``metadata`` into a ``Page``.
