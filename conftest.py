@@ -20,14 +20,15 @@ _HTTP_METHODS = frozenset(
 type _JSONValue = (
     bool | int | float | str | list[_JSONValue] | dict[str, _JSONValue] | None
 )
-_JSON_OBJECT_ADAPTER = TypeAdapter(type=dict[str, _JSONValue])
-_JSON_LIST_ADAPTER = TypeAdapter(type=list[_JSONValue])
 
 
 def _as_json_object(*, value: object) -> dict[str, _JSONValue] | None:
     """Return ``value`` as a JSON object, or ``None``."""
     try:
-        return _JSON_OBJECT_ADAPTER.validate_python(value, strict=True)
+        return TypeAdapter(type=dict[str, _JSONValue]).validate_python(
+            value,
+            strict=True,
+        )
     except ValidationError:
         return None
 
@@ -35,7 +36,10 @@ def _as_json_object(*, value: object) -> dict[str, _JSONValue] | None:
 def _as_json_list(*, value: object) -> list[_JSONValue] | None:
     """Return ``value`` as a JSON array, or ``None``."""
     try:
-        return _JSON_LIST_ADAPTER.validate_python(value, strict=True)
+        return TypeAdapter(type=list[_JSONValue]).validate_python(
+            value,
+            strict=True,
+        )
     except ValidationError:
         return None
 
@@ -182,10 +186,8 @@ def _prepare_openapi_spec(
             else:
                 merged[op_key] = op_val_obj
         cleaned_paths[cleaned] = merged
-    prepared["paths"] = _JSON_OBJECT_ADAPTER.validate_python(
-        cleaned_paths,
-        strict=True,
-    )
+    json_paths = dict[str, _JSONValue](cleaned_paths)
+    prepared["paths"] = json_paths
     return prepared
 
 
@@ -204,7 +206,10 @@ def fixture_mock_hackerrank_api(
     """
     openapi_spec_path = request.config.rootpath / "openapi.json"
     spec_text = openapi_spec_path.read_text(encoding="utf-8")
-    openapi_spec = _JSON_OBJECT_ADAPTER.validate_json(spec_text, strict=True)
+    openapi_spec = TypeAdapter(type=dict[str, _JSONValue]).validate_json(
+        spec_text,
+        strict=True,
+    )
     openapi_spec = _prepare_openapi_spec(spec=openapi_spec)
     with respx.mock(
         base_url=_BASE_URL,
