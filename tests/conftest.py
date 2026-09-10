@@ -16,9 +16,11 @@ from hackerrank.client import HackerRank
 if TYPE_CHECKING:
     from collections.abc import AsyncGenerator, Generator
 
+    from hackerrank.types import JSONValue
+
 _BASE_URL = "https://www.hackerrank.com"
 
-_PAGE: dict[str, object] = {
+_PAGE: dict[str, JSONValue] = {
     "data": [],
     "page_total": 0,
     "offset": 0,
@@ -28,7 +30,7 @@ _PAGE: dict[str, object] = {
     "last": "",
     "total": 0,
 }
-_SCIM_PAGE: dict[str, object] = {
+_SCIM_PAGE: dict[str, JSONValue] = {
     "schemas": ["urn:ietf:params:scim:api:messages:2.0:ListResponse"],
     "Resources": [],
     "startIndex": 1,

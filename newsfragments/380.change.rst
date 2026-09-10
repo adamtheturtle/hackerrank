@@ -1,0 +1,1 @@
+Type shared page fixtures and captured request bodies as JSON values.
