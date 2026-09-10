@@ -3,7 +3,7 @@
 import logging
 from collections.abc import Iterator, Mapping
 from http import HTTPStatus
-from typing import BinaryIO, Protocol, runtime_checkable
+from typing import BinaryIO, Protocol
 
 from beartype import beartype
 
@@ -28,13 +28,8 @@ which a second identical request would hit again.
 """
 
 
-@runtime_checkable
-class _MultipartStream(Protocol):
-    """A readable binary stream which can be rewound for a retry."""
-
-    def read(self) -> bytes:
-        """Read the remaining bytes from the stream."""
-        ...  # pylint: disable=unnecessary-ellipsis
+class _SeekableStream(Protocol):
+    """The file operations needed to make an upload repeatable."""
 
     def seek(self, offset: int, _whence: int, /) -> int:
         """Move to a byte offset in the stream."""
@@ -45,34 +40,13 @@ class _MultipartStream(Protocol):
         ...  # pylint: disable=unnecessary-ellipsis
 
 
-type _MultipartFile[Content] = (
-    Content
-    | tuple[str | None, Content]
-    | tuple[str | None, Content, str | None]
-    | tuple[str | None, Content, str | None, Mapping[str, str]]
-)
-type MultipartContent = BinaryIO | bytes | str
-type MultipartFile = _MultipartFile[MultipartContent]
+type MultipartContent = BinaryIO | bytes
+type MultipartFile = tuple[str, MultipartContent, str]
 type MultipartFiles = Mapping[str, MultipartFile] | None
-type _RetryMultipartContent = _MultipartStream | bytes | str
-type _RetryMultipartFile = (
-    _RetryMultipartContent
-    | tuple[str | None, _RetryMultipartContent]
-    | tuple[str | None, _RetryMultipartContent, str | None]
-    | tuple[
-        str | None,
-        _RetryMultipartContent,
-        str | None,
-        Mapping[str, str],
-    ]
-)
-type _RetryMultipartFiles = Mapping[str, _RetryMultipartFile] | None
 
 
 @beartype
-def _file_contents(
-    *, files: _RetryMultipartFiles
-) -> Iterator[_RetryMultipartContent]:
+def _file_contents(*, files: MultipartFiles) -> Iterator[MultipartContent]:
     """Yield the content from each multipart ``files`` value.
 
     Args:
@@ -84,14 +58,11 @@ def _file_contents(
     if files is None:
         return
     for value in files.values():
-        if isinstance(value, _MultipartStream | bytes | str):
-            yield value
-        else:
-            yield value[1]
+        yield value[1]
 
 
 @beartype
-def _content_is_repeatable(*, content: _RetryMultipartContent) -> bool:
+def _content_is_repeatable(*, content: MultipartContent) -> bool:
     """Whether multipart file content can be sent more than once.
 
     Args:
@@ -100,13 +71,14 @@ def _content_is_repeatable(*, content: _RetryMultipartContent) -> bool:
     Returns:
         Whether sending ``content`` again would send the same bytes.
     """
-    if isinstance(content, bytes | str):
+    if isinstance(content, bytes):
         return True
-    return content.seekable()
+    stream: _SeekableStream = content
+    return stream.seekable()
 
 
 @beartype
-def rewind_files(*, files: _RetryMultipartFiles) -> bool:
+def rewind_files(*, files: MultipartFiles) -> bool:
     """Rewind the file objects in ``files`` ready for another attempt.
 
     A file object which has already been read is at its end, so a
@@ -127,8 +99,9 @@ def rewind_files(*, files: _RetryMultipartFiles) -> bool:
     ):
         return False
     for content in contents:
-        if not isinstance(content, bytes | str):
-            _ = content.seek(0, 0)
+        if not isinstance(content, bytes):
+            stream: _SeekableStream = content
+            _ = stream.seek(0, 0)
     return True
 
 

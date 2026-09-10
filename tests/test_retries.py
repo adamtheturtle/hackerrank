@@ -94,10 +94,7 @@ def _file_parts(*, files: MultipartFiles) -> Iterator[object]:
     if files is None:
         return
     for value in files.values():
-        if isinstance(value, tuple):
-            yield from value
-        else:
-            yield value
+        yield from value
 
 
 class _ScriptedCalls:
@@ -584,22 +581,17 @@ class TestRewindFiles:
         assert rewind_files(files={})
 
     @staticmethod
-    def test_bytes_and_strings() -> None:
-        """Byte and string content needs no rewinding."""
-        assert rewind_files(files={"bytes": b"data", "text": "data"})
-
-    @staticmethod
-    def test_tuple_metadata() -> None:
-        """Filename, content type, and headers do not affect retries."""
-        files = {
-            "file": (
-                "project.zip",
-                b"data",
-                "application/zip",
-                {"X-Description": "project"},
-            )
-        }
-        assert rewind_files(files=files)
+    def test_bytes() -> None:
+        """Byte content needs no rewinding."""
+        assert rewind_files(
+            files={
+                "bytes": (
+                    "data.bin",
+                    b"data",
+                    "application/octet-stream",
+                )
+            }
+        )
 
     @staticmethod
     def test_seekable_file_is_rewound(tmp_path: Path) -> None:
@@ -617,10 +609,10 @@ class TestRewindFiles:
             assert handle.read() == b"data"
 
     @staticmethod
-    def test_unseekable_file_is_refused() -> None:
+    def test_unseekable_file_is_refused(tmp_path: Path) -> None:
         """An unseekable file makes the request unrepeatable."""
 
-        class _Unseekable(io.BytesIO):
+        class _Unseekable(io.FileIO):
             """A stream which cannot be rewound."""
 
             @override
@@ -632,9 +624,12 @@ class TestRewindFiles:
                 """
                 return False
 
-        handle = _Unseekable()
-        _ = handle.write(b"data")
-        assert not rewind_files(files={"file": handle})
+        path = tmp_path / "project.zip"
+        _ = path.write_bytes(data=b"data")
+        with _Unseekable(file=path, mode="rb") as handle:
+            assert not rewind_files(
+                files={"file": ("project.zip", handle, "application/zip")}
+            )
 
 
 class TestLogging:
