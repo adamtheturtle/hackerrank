@@ -1,9 +1,9 @@
 """Helpers for retrying requests which are safe to repeat."""
 
-import io
 import logging
 from collections.abc import Iterator, Mapping
 from http import HTTPStatus
+from io import IOBase
 
 from beartype import beartype
 
@@ -28,41 +28,52 @@ which a second identical request would hit again.
 """
 
 
+type _MultipartContent = IOBase | bytes | str
+type _MultipartFile = (
+    _MultipartContent
+    | tuple[str | None, _MultipartContent]
+    | tuple[str | None, _MultipartContent, str | None]
+    | tuple[str | None, _MultipartContent, str | None, Mapping[str, str]]
+)
+type _MultipartFiles = Mapping[str, _MultipartFile] | None
+
+
 @beartype
-def _file_parts(*, files: Mapping[str, object] | None) -> Iterator[object]:
-    """Yield each part of a multipart ``files`` mapping.
+def _file_contents(*, files: _MultipartFiles) -> Iterator[_MultipartContent]:
+    """Yield the content from each multipart ``files`` value.
 
     Args:
         files: Files to send as multipart form-data.
 
     Yields:
-        Each value, and each element of each tuple value.
+        Each bare value or the content element of each tuple value.
     """
-    file_mapping: Mapping[str, object] = {} if files is None else files
-    for value in file_mapping.values():
-        if isinstance(value, tuple):
-            yield from value
-        else:
+    if files is None:
+        return
+    for value in files.values():
+        if isinstance(value, IOBase | bytes | str):
             yield value
+        else:
+            yield value[1]
 
 
 @beartype
-def _part_is_repeatable(*, part: object) -> bool:
-    """Whether a single multipart part can be sent more than once.
+def _content_is_repeatable(*, content: _MultipartContent) -> bool:
+    """Whether multipart file content can be sent more than once.
 
     Args:
-        part: One part of a multipart ``files`` mapping.
+        content: The content from a multipart ``files`` value.
 
     Returns:
-        Whether sending ``part`` again would send the same bytes.
+        Whether sending ``content`` again would send the same bytes.
     """
-    if part is None or isinstance(part, bytes | bytearray | memoryview | str):
+    if isinstance(content, bytes | str):
         return True
-    return isinstance(part, io.IOBase) and part.seekable()
+    return content.seekable()
 
 
 @beartype
-def rewind_files(*, files: Mapping[str, object] | None) -> bool:
+def rewind_files(*, files: _MultipartFiles) -> bool:
     """Rewind the file objects in ``files`` ready for another attempt.
 
     A file object which has already been read is at its end, so a
@@ -77,12 +88,14 @@ def rewind_files(*, files: Mapping[str, object] | None) -> bool:
         is ``False`` nothing is rewound and the request must not be
         repeated.
     """
-    parts = list(_file_parts(files=files))
-    if not all(_part_is_repeatable(part=part) for part in parts):
+    contents = list(_file_contents(files=files))
+    if not all(
+        _content_is_repeatable(content=content) for content in contents
+    ):
         return False
-    for part in parts:
-        if isinstance(part, io.IOBase):
-            _ = part.seek(0)
+    for content in contents:
+        if not isinstance(content, bytes | str):
+            _ = content.seek(0, 0)
     return True
 
 
