@@ -2,7 +2,6 @@
 
 from collections.abc import Mapping
 from http import HTTPStatus
-from typing import Any
 
 import httpx
 import httpx2
@@ -10,6 +9,7 @@ import pytest
 import respx
 
 import hackerrank.async_client as async_client_module
+from hackerrank._retries import MultipartFiles
 from hackerrank.async_client import AsyncHackerRank
 from hackerrank.transports import (
     DEFAULT_TIMEOUT_SECONDS,
@@ -81,13 +81,13 @@ class TestAsyncHackerRank:
                 headers: dict[str, str],
                 params: dict[str, str | int] | None,
                 json: Mapping[str, JSONValue] | None,
-                files: Mapping[str, Any] | None,  # pyrefly: ignore [explicit-any]
+                files: MultipartFiles,
             ) -> TransportResponse:  # pragma: no cover
                 """Make a request."""
                 del method, url, headers, params, json, files
                 raise NotImplementedError
 
-        transport: Any = _FalsyTransport()  # pyrefly: ignore [explicit-any]
+        transport = _FalsyTransport()
         client = AsyncHackerRank(api_key="test-key", transport=transport)
         assert client.users.transport is transport
 

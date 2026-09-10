@@ -7,13 +7,13 @@ import time
 from collections.abc import Iterator, Mapping, Sequence
 from http import HTTPStatus
 from pathlib import Path
-from typing import Any, override
+from typing import override
 
 import httpx
 import httpx2
 import pytest
 
-from hackerrank._retries import rewind_files
+from hackerrank._retries import MultipartFiles, rewind_files
 from hackerrank.async_client import AsyncHackerRank
 from hackerrank.client import HackerRank
 from hackerrank.exceptions import (
@@ -79,7 +79,7 @@ def _error(*, status_code: int) -> TransportResponse:
     return _response(status_code=status_code, headers={}, content=b"{}")
 
 
-def _file_parts(*, files: Mapping[str, Any] | None) -> Iterator[Any]:  # pyrefly: ignore [explicit-any]
+def _file_parts(*, files: MultipartFiles) -> Iterator[object]:
     """Yield each part of a multipart ``files`` mapping.
 
     The client only ever sends the ``(filename, file, content_type)``
@@ -91,9 +91,13 @@ def _file_parts(*, files: Mapping[str, Any] | None) -> Iterator[Any]:  # pyrefly
     Yields:
         Each element of each value.
     """
-    file_mapping: Mapping[str, Any] = {} if files is None else files  # pyrefly: ignore [explicit-any]
-    for value in file_mapping.values():
-        yield from value
+    if files is None:
+        return
+    for value in files.values():
+        if isinstance(value, tuple):
+            yield from value
+        else:
+            yield value
 
 
 class _ScriptedCalls:
@@ -124,7 +128,7 @@ class _ScriptedCalls:
         *,
         method: str,
         url: str,
-        files: Mapping[str, Any] | None,  # pyrefly: ignore [explicit-any]
+        files: MultipartFiles,
     ) -> TransportResponse:
         """Record a call and return its scripted result.
 
@@ -164,7 +168,7 @@ class _ScriptedTransport(_ScriptedCalls):
         headers: dict[str, str],
         params: dict[str, str | int] | None,
         json: Mapping[str, JSONValue] | None,
-        files: Mapping[str, Any] | None,  # pyrefly: ignore [explicit-any]
+        files: MultipartFiles,
     ) -> TransportResponse:
         """Make a scripted request.
 
@@ -194,7 +198,7 @@ class _AsyncScriptedTransport(_ScriptedCalls):
         headers: dict[str, str],
         params: dict[str, str | int] | None,
         json: Mapping[str, JSONValue] | None,
-        files: Mapping[str, Any] | None,  # pyrefly: ignore [explicit-any]
+        files: MultipartFiles,
     ) -> TransportResponse:
         """Make a scripted async request.
 

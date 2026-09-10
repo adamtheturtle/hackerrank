@@ -5,7 +5,7 @@ import builtins
 from collections.abc import Mapping, Sequence
 from http import HTTPStatus
 from types import TracebackType
-from typing import Any, BinaryIO, Self
+from typing import BinaryIO, Self
 
 import httpx
 import httpx2
@@ -35,6 +35,7 @@ from hackerrank._responses import (
 )
 from hackerrank._retries import (
     RETRY_STATUS_CODES,
+    MultipartFiles,
     delay_seconds,
     log_retry,
     rewind_files,
@@ -301,7 +302,7 @@ class _AsyncNamespace:
         url: str,
         params: dict[str, str | int] | None,
         json: Mapping[str, JSONValue] | None,
-        files: Mapping[str, Any] | None,  # pyrefly: ignore [explicit-any]
+        files: MultipartFiles,
         repeatable: bool,
     ) -> TransportResponse:
         """Make an async HTTP request.

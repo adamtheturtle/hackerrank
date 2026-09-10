@@ -3,7 +3,7 @@
 import logging
 from collections.abc import Iterator, Mapping
 from http import HTTPStatus
-from typing import Protocol, runtime_checkable
+from typing import BinaryIO, Protocol, runtime_checkable
 
 from beartype import beartype
 
@@ -45,18 +45,34 @@ class _MultipartStream(Protocol):
         ...  # pylint: disable=unnecessary-ellipsis
 
 
-type _MultipartContent = _MultipartStream | bytes | str
-type _MultipartFile = (
-    _MultipartContent
-    | tuple[str | None, _MultipartContent]
-    | tuple[str | None, _MultipartContent, str | None]
-    | tuple[str | None, _MultipartContent, str | None, Mapping[str, str]]
+type _MultipartFile[Content] = (
+    Content
+    | tuple[str | None, Content]
+    | tuple[str | None, Content, str | None]
+    | tuple[str | None, Content, str | None, Mapping[str, str]]
 )
-type _MultipartFiles = Mapping[str, _MultipartFile] | None
+type MultipartContent = BinaryIO | bytes | str
+type MultipartFile = _MultipartFile[MultipartContent]
+type MultipartFiles = Mapping[str, MultipartFile] | None
+type _RetryMultipartContent = _MultipartStream | bytes | str
+type _RetryMultipartFile = (
+    _RetryMultipartContent
+    | tuple[str | None, _RetryMultipartContent]
+    | tuple[str | None, _RetryMultipartContent, str | None]
+    | tuple[
+        str | None,
+        _RetryMultipartContent,
+        str | None,
+        Mapping[str, str],
+    ]
+)
+type _RetryMultipartFiles = Mapping[str, _RetryMultipartFile] | None
 
 
 @beartype
-def _file_contents(*, files: _MultipartFiles) -> Iterator[_MultipartContent]:
+def _file_contents(
+    *, files: _RetryMultipartFiles
+) -> Iterator[_RetryMultipartContent]:
     """Yield the content from each multipart ``files`` value.
 
     Args:
@@ -75,7 +91,7 @@ def _file_contents(*, files: _MultipartFiles) -> Iterator[_MultipartContent]:
 
 
 @beartype
-def _content_is_repeatable(*, content: _MultipartContent) -> bool:
+def _content_is_repeatable(*, content: _RetryMultipartContent) -> bool:
     """Whether multipart file content can be sent more than once.
 
     Args:
@@ -90,7 +106,7 @@ def _content_is_repeatable(*, content: _MultipartContent) -> bool:
 
 
 @beartype
-def rewind_files(*, files: _MultipartFiles) -> bool:
+def rewind_files(*, files: _RetryMultipartFiles) -> bool:
     """Rewind the file objects in ``files`` ready for another attempt.
 
     A file object which has already been read is at its end, so a
