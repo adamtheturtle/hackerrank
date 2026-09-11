@@ -14,8 +14,6 @@ import httpx
 import pytest
 import respx
 
-from hackerrank import async_client as ac
-from hackerrank import client as sc
 from hackerrank.async_client import AsyncHackerRank
 from hackerrank.client import HackerRank
 from hackerrank.exceptions import HackerRankError
@@ -28,74 +26,71 @@ from hackerrank.transports import (
 _BASE_URL = "https://www.hackerrank.com"
 
 
-class TestCoercionHelpers:
-    """Tests for the private pagination coercion helpers."""
-
-    # pylint: disable=protected-access
+class TestPaginationCoercion:
+    """Test pagination coercion through the public clients."""
 
     @staticmethod
-    @pytest.mark.parametrize(
-        argnames=("value", "expected"),
-        argvalues=[
-            (True, 1),
-            (False, 0),
-            (5, 5),
-            ("7", 7),
-            ("abc", 0),
-            ("", 0),
-            (None, 0),
-            ([], 0),
-        ],
-    )
-    def test_sync_coerce_int(
-        value: object,
-        expected: int,
-    ) -> None:
-        """Sync ``_coerce_int`` handles every documented case.
+    def test_sync_coerces_pagination_metadata() -> None:
+        """The sync client normalizes irregular pagination metadata."""
+        expected_offset = 7
+        with respx.mock(assert_all_called=True) as router:
+            _ = router.get(url__regex=r".*/x/api/v3/tests.*").mock(
+                return_value=httpx.Response(
+                    status_code=HTTPStatus.OK,
+                    json={
+                        "data": [],
+                        "page_total": True,
+                        "offset": f"{expected_offset}",
+                        "previous": None,
+                        "next": 5,
+                        "first": "first",
+                        "last": [],
+                        "total": "invalid",
+                    },
+                ),
+            )
+            with HackerRank(api_key="test-key") as client:
+                result = client.tests.list()
 
-        Args:
-            value: Input value to coerce.
-            expected: Expected integer result.
-        """
-        assert sc._coerce_int(value) == expected  # noqa: SLF001  # pyright: ignore[reportPrivateUsage]
-
-    @staticmethod
-    @pytest.mark.parametrize(
-        argnames=("value", "expected"),
-        argvalues=[
-            (True, 1),
-            (False, 0),
-            (5, 5),
-            ("7", 7),
-            ("abc", 0),
-            ("", 0),
-            (None, 0),
-            ([], 0),
-        ],
-    )
-    def test_async_coerce_int(
-        value: object,
-        expected: int,
-    ) -> None:
-        """Async ``_coerce_int`` handles every documented case.
-
-        Args:
-            value: Input value to coerce.
-            expected: Expected integer result.
-        """
-        assert ac._coerce_int(value) == expected  # noqa: SLF001  # pyright: ignore[reportPrivateUsage]
+        assert result.page_total == 1
+        assert result.offset == expected_offset
+        assert result.previous == ""
+        assert result.next == ""
+        assert result.first == "first"
+        assert result.last == ""
+        assert result.total == 0
 
     @staticmethod
-    def test_sync_coerce_str_non_string() -> None:
-        """``_coerce_str`` returns ``""`` for non-strings."""
-        assert sc._coerce_str(None) == ""  # noqa: SLF001  # pyright: ignore[reportPrivateUsage]
-        assert sc._coerce_str(5) == ""  # noqa: SLF001  # pyright: ignore[reportPrivateUsage]
+    @pytest.mark.asyncio
+    async def test_async_coerces_pagination_metadata() -> None:
+        """The async client normalizes irregular pagination metadata."""
+        expected_offset = 7
+        with respx.mock(assert_all_called=True) as router:
+            _ = router.get(url__regex=r".*/x/api/v3/tests.*").mock(
+                return_value=httpx.Response(
+                    status_code=HTTPStatus.OK,
+                    json={
+                        "data": [],
+                        "page_total": True,
+                        "offset": f"{expected_offset}",
+                        "previous": None,
+                        "next": 5,
+                        "first": "first",
+                        "last": [],
+                        "total": "invalid",
+                    },
+                ),
+            )
+            async with AsyncHackerRank(api_key="test-key") as client:
+                result = await client.tests.list()
 
-    @staticmethod
-    def test_async_coerce_str_non_string() -> None:
-        """Async ``_coerce_str`` returns ``""`` for non-strings."""
-        assert ac._coerce_str(None) == ""  # noqa: SLF001  # pyright: ignore[reportPrivateUsage]
-        assert ac._coerce_str(5) == ""  # noqa: SLF001  # pyright: ignore[reportPrivateUsage]
+        assert result.page_total == 1
+        assert result.offset == expected_offset
+        assert result.previous == ""
+        assert result.next == ""
+        assert result.first == "first"
+        assert result.last == ""
+        assert result.total == 0
 
 
 class TestTransportContextManagers:
@@ -175,20 +170,14 @@ class TestHackerRankErrorRegistry:
     """Tests covering the error registry fallback paths."""
 
     @staticmethod
-    def test_subclass_without_status_code_is_not_registered() -> None:
-        """Subclasses without ``status_code`` skip registration."""
-
-        class _UnregisteredError(HackerRankError):
-            """A subclass with no status_code mapping."""
-
-        registry = HackerRankError._registry  # noqa: SLF001  # pyright: ignore[reportPrivateUsage]  # pylint: disable=protected-access
-        assert _UnregisteredError not in registry.values()
-
-    @staticmethod
     def test_unknown_status_falls_back_to_base_error() -> None:
         """An unmapped status returns the base ``HackerRankError``
         type.
         """
+
+        class _UnregisteredError(HackerRankError):
+            """A subclass with no status-code mapping."""
+
         unmapped_status = 418
         response = TransportResponse(
             status_code=unmapped_status,
@@ -196,7 +185,8 @@ class TestHackerRankErrorRegistry:
             content=b"{}",
         )
         err = HackerRankError.from_response(response=response)
-        assert type(err) is HackerRankError  # pylint: disable=unidiomatic-typecheck
+        assert err.__class__ is HackerRankError
+        assert not isinstance(err, _UnregisteredError)
         assert err.status_code == unmapped_status
         assert err.content == b"{}"
 

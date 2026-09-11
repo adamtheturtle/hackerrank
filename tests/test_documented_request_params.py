@@ -56,14 +56,6 @@ def _last_route_request(*, route: respx.Route) -> httpx.Request:
     return call.request
 
 
-def _indexed_route_request(*, route: respx.Route, index: int) -> httpx.Request:
-    """Return a typed ``httpx.Request`` captured by ``route`` at ``index``."""
-    # CallList.__getitem__ is untyped in respx stubs.
-    call: object = route.calls[index]  # pyright: ignore[reportUnknownVariableType]
-    assert isinstance(call, respx.models.Call)
-    return call.request
-
-
 @beartype
 def _as_json_object(*, value: dict[str, JSONValue]) -> dict[str, JSONValue]:
     """Return ``value`` as a runtime-validated JSON object."""
@@ -75,16 +67,6 @@ def _last_route_json(*, route: respx.Route) -> dict[str, JSONValue]:
     return _as_json_object(
         value=json.loads(s=_last_route_request(route=route).content),
     )
-
-
-def _indexed_route_json(
-    *,
-    route: respx.Route,
-    index: int,
-) -> dict[str, JSONValue]:
-    """Return decoded JSON body from a captured ``route`` call."""
-    request = _indexed_route_request(route=route, index=index)
-    return _as_json_object(value=json.loads(s=request.content))
 
 
 class TestInterviewListParams:
@@ -229,13 +211,9 @@ class TestTemplateListParams:
             ).respond(status_code=200, json=_PAGE)
             with HackerRank(api_key="test-key") as client:
                 _ = client.interview_templates.list(filter="owned")
+                first = _query(request=_last_route_request(route=route))
                 _ = client.interview_templates.list(filter="shared")
-        first = _query(
-            request=_indexed_route_request(route=route, index=0),
-        )
-        second = _query(
-            request=_indexed_route_request(route=route, index=1),
-        )
+                second = _query(request=_last_route_request(route=route))
         assert first["filter"] == "owned"
         assert second["filter"] == "shared"
 
@@ -249,17 +227,11 @@ class TestTemplateListParams:
             )
             with HackerRank(api_key="test-key") as client:
                 _ = client.templates.list(access="owned")
+                first = _query(request=_last_route_request(route=route))
                 _ = client.templates.list(access="shared")
+                second = _query(request=_last_route_request(route=route))
                 _ = client.templates.list()
-        first = _query(
-            request=_indexed_route_request(route=route, index=0),
-        )
-        second = _query(
-            request=_indexed_route_request(route=route, index=1),
-        )
-        third = _query(
-            request=_indexed_route_request(route=route, index=2),
-        )
+                third = _query(request=_last_route_request(route=route))
         assert first["access"] == "owned"
         assert second["access"] == "shared"
         assert "access" not in third
@@ -331,6 +303,7 @@ class TestInterviewBodyFields:
                     replace_interviewers=True,
                     ai_assistant_available=False,
                 )
+                first = _last_route_json(route=route)
                 object_interviewers: list[Mapping[str, JSONValue]] = [
                     {"email": "a@b.com", "name": "Ada"},
                 ]
@@ -350,8 +323,7 @@ class TestInterviewBodyFields:
                     replace_interviewers=False,
                     ai_assistant_available=True,
                 )
-        first = _indexed_route_json(route=route, index=0)
-        second = _indexed_route_json(route=route, index=1)
+                second = _last_route_json(route=route)
         assert first["interviewers"] == ["a@b.com"]
         assert first["replace_interviewers"] is True
         assert first["ai_assistant_available"] is False
@@ -420,13 +392,13 @@ class TestCandidateInviteAtsState:
                     email="c@x.com",
                     ats_state=first_ats_state,
                 )
+                first_body = _last_route_json(route=route)
                 _ = client.tests.candidates.invite(
                     test_id="t1",
                     email="c@x.com",
                     ats_state=second_ats_state,
                 )
-        first_body = _indexed_route_json(route=route, index=0)
-        second_body = _indexed_route_json(route=route, index=1)
+                second_body = _last_route_json(route=route)
         assert first_body["ats_state"] == first_ats_state
         assert second_body["ats_state"] == second_ats_state
 
