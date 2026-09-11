@@ -7,13 +7,13 @@ import time
 from collections.abc import Iterator, Mapping, Sequence
 from http import HTTPStatus
 from pathlib import Path
-from typing import Any, override
+from typing import override
 
 import httpx
 import httpx2
 import pytest
 
-from hackerrank._retries import rewind_files
+from hackerrank._retries import MultipartFiles, rewind_files
 from hackerrank.async_client import AsyncHackerRank
 from hackerrank.client import HackerRank
 from hackerrank.exceptions import (
@@ -79,7 +79,7 @@ def _error(*, status_code: int) -> TransportResponse:
     return _response(status_code=status_code, headers={}, content=b"{}")
 
 
-def _file_parts(*, files: Mapping[str, Any] | None) -> Iterator[Any]:  # pyrefly: ignore [explicit-any]
+def _file_parts(*, files: MultipartFiles) -> Iterator[object]:
     """Yield each part of a multipart ``files`` mapping.
 
     The client only ever sends the ``(filename, file, content_type)``
@@ -91,8 +91,9 @@ def _file_parts(*, files: Mapping[str, Any] | None) -> Iterator[Any]:  # pyrefly
     Yields:
         Each element of each value.
     """
-    file_mapping: Mapping[str, Any] = {} if files is None else files  # pyrefly: ignore [explicit-any]
-    for value in file_mapping.values():
+    if files is None:
+        return
+    for value in files.values():
         yield from value
 
 
@@ -124,7 +125,7 @@ class _ScriptedCalls:
         *,
         method: str,
         url: str,
-        files: Mapping[str, Any] | None,  # pyrefly: ignore [explicit-any]
+        files: MultipartFiles,
     ) -> TransportResponse:
         """Record a call and return its scripted result.
 
@@ -164,7 +165,7 @@ class _ScriptedTransport(_ScriptedCalls):
         headers: dict[str, str],
         params: dict[str, str | int] | None,
         json: Mapping[str, JSONValue] | None,
-        files: Mapping[str, Any] | None,  # pyrefly: ignore [explicit-any]
+        files: MultipartFiles,
     ) -> TransportResponse:
         """Make a scripted request.
 
@@ -194,7 +195,7 @@ class _AsyncScriptedTransport(_ScriptedCalls):
         headers: dict[str, str],
         params: dict[str, str | int] | None,
         json: Mapping[str, JSONValue] | None,
-        files: Mapping[str, Any] | None,  # pyrefly: ignore [explicit-any]
+        files: MultipartFiles,
     ) -> TransportResponse:
         """Make a scripted async request.
 
@@ -580,22 +581,17 @@ class TestRewindFiles:
         assert rewind_files(files={})
 
     @staticmethod
-    def test_bytes_and_strings() -> None:
-        """Byte and string content needs no rewinding."""
-        assert rewind_files(files={"bytes": b"data", "text": "data"})
-
-    @staticmethod
-    def test_tuple_metadata() -> None:
-        """Filename, content type, and headers do not affect retries."""
-        files = {
-            "file": (
-                "project.zip",
-                b"data",
-                "application/zip",
-                {"X-Description": "project"},
-            )
-        }
-        assert rewind_files(files=files)
+    def test_bytes() -> None:
+        """Byte content needs no rewinding."""
+        assert rewind_files(
+            files={
+                "bytes": (
+                    "data.bin",
+                    b"data",
+                    "application/octet-stream",
+                )
+            }
+        )
 
     @staticmethod
     def test_seekable_file_is_rewound(tmp_path: Path) -> None:
@@ -613,10 +609,10 @@ class TestRewindFiles:
             assert handle.read() == b"data"
 
     @staticmethod
-    def test_unseekable_file_is_refused() -> None:
+    def test_unseekable_file_is_refused(tmp_path: Path) -> None:
         """An unseekable file makes the request unrepeatable."""
 
-        class _Unseekable(io.BytesIO):
+        class _Unseekable(io.FileIO):
             """A stream which cannot be rewound."""
 
             @override
@@ -628,9 +624,12 @@ class TestRewindFiles:
                 """
                 return False
 
-        handle = _Unseekable()
-        _ = handle.write(b"data")
-        assert not rewind_files(files={"file": handle})
+        path = tmp_path / "project.zip"
+        _ = path.write_bytes(data=b"data")
+        with _Unseekable(file=path, mode="rb") as handle:
+            assert not rewind_files(
+                files={"file": ("project.zip", handle, "application/zip")}
+            )
 
 
 class TestLogging:

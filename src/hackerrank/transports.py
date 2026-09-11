@@ -11,6 +11,7 @@ import httpx
 import httpx2
 from beartype import beartype
 
+from hackerrank._retries import MultipartFiles
 from hackerrank.types import JSONValue
 
 DEFAULT_TIMEOUT_SECONDS = 60.0
@@ -88,7 +89,7 @@ class Transport(Protocol):
         headers: dict[str, str],
         params: dict[str, str | int] | None,
         json: Mapping[str, JSONValue] | None,
-        files: Mapping[str, Any] | None,  # pyrefly: ignore [explicit-any]
+        files: MultipartFiles,
     ) -> TransportResponse:
         """Make an HTTP request.
 
@@ -164,7 +165,7 @@ class HTTPXTransport:
         headers: dict[str, str],
         params: dict[str, str | int] | None,
         json: Mapping[str, JSONValue] | None,
-        files: Mapping[str, Any] | None,  # pyrefly: ignore [explicit-any]
+        files: MultipartFiles,
     ) -> TransportResponse:
         """Make an HTTP request using ``httpx``.
 
@@ -250,7 +251,7 @@ class HTTPX2Transport:
         headers: dict[str, str],
         params: dict[str, str | int] | None,
         json: Mapping[str, JSONValue] | None,
-        files: Mapping[str, Any] | None,  # pyrefly: ignore [explicit-any]
+        files: MultipartFiles,
     ) -> TransportResponse:
         """Make an HTTP request using ``httpx2``.
 
@@ -293,7 +294,7 @@ class AsyncTransport(Protocol):
         headers: dict[str, str],
         params: dict[str, str | int] | None,
         json: Mapping[str, JSONValue] | None,
-        files: Mapping[str, Any] | None,  # pyrefly: ignore [explicit-any]
+        files: MultipartFiles,
     ) -> TransportResponse:
         """Make an async HTTP request.
 
@@ -364,7 +365,7 @@ class AsyncHTTPXTransport:
         headers: dict[str, str],
         params: dict[str, str | int] | None,
         json: Mapping[str, JSONValue] | None,
-        files: Mapping[str, Any] | None,  # pyrefly: ignore [explicit-any]
+        files: MultipartFiles,
     ) -> TransportResponse:
         """Make an async HTTP request using ``httpx``.
 
@@ -447,7 +448,7 @@ class AsyncHTTPX2Transport:
         headers: dict[str, str],
         params: dict[str, str | int] | None,
         json: Mapping[str, JSONValue] | None,
-        files: Mapping[str, Any] | None,  # pyrefly: ignore [explicit-any]
+        files: MultipartFiles,
     ) -> TransportResponse:
         """Make an async HTTP request using ``httpx2``.
 
