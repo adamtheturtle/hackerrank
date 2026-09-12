@@ -9,7 +9,7 @@ from typing import Any, Protocol, Self, runtime_checkable
 
 import httpx
 import httpx2
-from beartype import beartype
+from beartype import BeartypeConf, beartype
 
 from hackerrank._retries import MultipartFiles
 from hackerrank.types import JSONValue
@@ -110,7 +110,7 @@ class Transport(Protocol):
         ...  # pylint: disable=unnecessary-ellipsis
 
 
-@beartype
+@beartype(conf=BeartypeConf(is_pep484_tower=True))
 class HTTPXTransport:
     """HTTP transport using the ``httpx`` library.
 
@@ -121,10 +121,7 @@ class HTTPXTransport:
     def __init__(
         self,
         *,
-        # ``int`` is redundant to a type checker, which reads ``float``
-        # as "int or float", but ``beartype`` checks the annotation
-        # literally at runtime and would reject ``timeout=60``.
-        timeout: httpx.Timeout | float | int = DEFAULT_TIMEOUT_SECONDS,  # noqa: PYI041
+        timeout: httpx.Timeout | float = DEFAULT_TIMEOUT_SECONDS,
     ) -> None:
         """Create a new HTTPX transport.
 
@@ -196,7 +193,7 @@ class HTTPXTransport:
         )
 
 
-@beartype
+@beartype(conf=BeartypeConf(is_pep484_tower=True))
 class HTTPX2Transport:
     """HTTP transport using the ``httpx2`` library.
 
@@ -207,10 +204,7 @@ class HTTPX2Transport:
     def __init__(
         self,
         *,
-        # ``int`` is redundant to a type checker, which reads ``float``
-        # as "int or float", but ``beartype`` checks the annotation
-        # literally at runtime and would reject ``timeout=60``.
-        timeout: httpx2.Timeout | float | int = DEFAULT_TIMEOUT_SECONDS,  # noqa: PYI041
+        timeout: httpx2.Timeout | float = DEFAULT_TIMEOUT_SECONDS,
     ) -> None:
         """Create a new HTTPX2 transport.
 
@@ -313,17 +307,14 @@ class AsyncTransport(Protocol):
         ...  # pylint: disable=unnecessary-ellipsis
 
 
-@beartype
+@beartype(conf=BeartypeConf(is_pep484_tower=True))
 class AsyncHTTPXTransport:
     """Async HTTP transport using the ``httpx`` library."""
 
     def __init__(
         self,
         *,
-        # ``int`` is redundant to a type checker, which reads ``float``
-        # as "int or float", but ``beartype`` checks the annotation
-        # literally at runtime and would reject ``timeout=60``.
-        timeout: httpx.Timeout | float | int = DEFAULT_TIMEOUT_SECONDS,  # noqa: PYI041
+        timeout: httpx.Timeout | float = DEFAULT_TIMEOUT_SECONDS,
     ) -> None:
         """Create a new async HTTPX transport.
 
@@ -396,17 +387,14 @@ class AsyncHTTPXTransport:
         )
 
 
-@beartype
+@beartype(conf=BeartypeConf(is_pep484_tower=True))
 class AsyncHTTPX2Transport:
     """Async HTTP transport using the ``httpx2`` library."""
 
     def __init__(
         self,
         *,
-        # ``int`` is redundant to a type checker, which reads ``float``
-        # as "int or float", but ``beartype`` checks the annotation
-        # literally at runtime and would reject ``timeout=60``.
-        timeout: httpx2.Timeout | float | int = DEFAULT_TIMEOUT_SECONDS,  # noqa: PYI041
+        timeout: httpx2.Timeout | float = DEFAULT_TIMEOUT_SECONDS,
     ) -> None:
         """Create a new async HTTPX2 transport.
 
