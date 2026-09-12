@@ -228,7 +228,7 @@ class TestHTTPXTransport:
         ],
     )
     def test_timeout(
-        timeout: httpx.Timeout | float | int | None,  # noqa: PYI041
+        timeout: object,
         expected: httpx.Timeout,
     ) -> None:
         """The configured timeout reaches the outgoing request.
@@ -238,11 +238,11 @@ class TestHTTPXTransport:
                 ``None`` to leave it at its default.
             expected: The timeout expected on the request.
         """
-        transport = (
-            HTTPXTransport()
-            if timeout is None
-            else HTTPXTransport(timeout=timeout)
-        )
+        if timeout is None:
+            transport = HTTPXTransport()
+        else:
+            assert isinstance(timeout, (httpx.Timeout, float, int))
+            transport = HTTPXTransport(timeout=timeout)
         url = "https://timeout.example.com/thing"
         with respx.mock:
             route = respx.get(url=url).mock(
