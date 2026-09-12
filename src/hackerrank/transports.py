@@ -5,7 +5,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from http import HTTPStatus
 from types import TracebackType
-from typing import Any, Protocol, Self, runtime_checkable
+from typing import Protocol, Self, runtime_checkable
 
 import httpx
 import httpx2
@@ -53,13 +53,14 @@ class TransportResponse:
     headers: dict[str, str]
     content: bytes
 
-    def json(self) -> Any:  # noqa: ANN401  # pyrefly: ignore [explicit-any]
+    def json(self) -> object:
         """Parse the response body as JSON.
 
         Returns:
             The parsed JSON data.
         """
-        return json_module.loads(s=self.content)
+        value: object = json_module.loads(s=self.content)
+        return value
 
     def raise_for_status(self) -> None:
         """Raise an error if the response has an error status.

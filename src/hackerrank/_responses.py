@@ -2,14 +2,9 @@
 
 from typing import TypeGuard
 
-from beartype import beartype
 from beartype.door import TypeHint
 
 from hackerrank import _dict_types
-
-type _JSONValue = (
-    bool | int | float | str | list[_JSONValue] | dict[str, _JSONValue] | None
-)
 
 
 @beartype
@@ -23,11 +18,31 @@ def _is_interviews(
     )
 
 
-@beartype
 def object_response(
-    value: dict[str, _JSONValue],
-) -> dict[str, _JSONValue]:
+    value: object,
+) -> dict[str, _dict_types.JSONValue]:
     """Return a runtime-validated API response object."""
+    return response_data(value, dict[str, _dict_types.JSONValue])
+
+
+def _is_response[Response](
+    value: object,
+    response_type: type[Response],
+    /,
+) -> TypeGuard[Response]:
+    """Return whether a value has the expected API response shape."""
+    return TypeHint(hint=response_type).is_bearable(obj=value)
+
+
+def response_data[Response](
+    value: object,
+    response_type: type[Response],
+    /,
+) -> Response:
+    """Return API response data narrowed to its domain type."""
+    if not _is_response(value, response_type):
+        message = "Response data did not have the expected shape."
+        raise TypeError(message)
     return value
 
 
