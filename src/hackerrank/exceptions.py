@@ -3,9 +3,12 @@
 from http import HTTPStatus
 from typing import ClassVar
 
+from beartype import beartype
+
 from hackerrank.transports import TransportResponse
 
 
+@beartype
 class HackerRankError(Exception):
     """Base exception for all HackerRank API errors.
 

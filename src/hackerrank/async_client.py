@@ -77,6 +77,7 @@ _API_V3 = "/x/api/v3"
 _SCIM_BASE_URL = "https://services.hackerrank.com/scim/v2"
 
 
+@beartype
 def _drop_none(
     data: Mapping[str, JSONValue],
     /,
@@ -92,6 +93,7 @@ def _drop_none(
     return {k: v for k, v in data.items() if v is not None}
 
 
+@beartype
 def _coerce_int(value: object, /) -> int:
     """Coerce ``value`` to ``int``, defaulting to ``0``.
 
@@ -115,6 +117,7 @@ def _coerce_int(value: object, /) -> int:
     return 0
 
 
+@beartype
 def _coerce_str(value: object, /) -> str:
     """Coerce ``value`` to ``str``, defaulting to ``""``.
 
@@ -129,6 +132,7 @@ def _coerce_str(value: object, /) -> str:
     return ""
 
 
+@beartype
 def _make_page[T](
     items: list[T],
     metadata: Mapping[str, JSONValue],
@@ -155,6 +159,7 @@ def _make_page[T](
     )
 
 
+@beartype
 def _make_scim_page[T](
     items: list[T],
     payload: Mapping[str, JSONValue],
@@ -188,6 +193,7 @@ def _make_scim_page[T](
     )
 
 
+@beartype
 def _list_params(
     *,
     limit: int | None,
@@ -214,6 +220,7 @@ def _list_params(
     return params
 
 
+@beartype
 def _question_body(
     *,
     name: str | None,
