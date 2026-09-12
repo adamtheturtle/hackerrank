@@ -13,11 +13,15 @@ from beartype import beartype
 
 from hackerrank._dict_types import (
     AuditLogDict,
+    CandidateInviteDict,
     CandidateSearchResultDict,
     EnvironmentDict,
+    InterviewDict,
     InterviewTemplateDict,
+    InterviewTranscriptDict,
     InviterDict,
     QuestionDict,
+    SCIMMessageDict,
     SCIMTeamDict,
     SCIMUserDict,
     TeamDict,
@@ -31,6 +35,7 @@ from hackerrank._responses import (
     environment_response,
     interview_items,
     object_response,
+    response_data,
     response_items,
 )
 from hackerrank._retries import (
@@ -511,7 +516,9 @@ class AsyncInterviewsNamespace(_AsyncNamespace):
             files=None,
             repeatable=False,
         )
-        return Interview.from_dict(data=response.json())
+        return Interview.from_dict(
+            data=response_data(response.json(), InterviewDict)
+        )
 
     async def get(self, *, interview_id: str) -> Interview:
         """Retrieve an interview.
@@ -530,7 +537,9 @@ class AsyncInterviewsNamespace(_AsyncNamespace):
             files=None,
             repeatable=True,
         )
-        return Interview.from_dict(data=response.json())
+        return Interview.from_dict(
+            data=response_data(response.json(), InterviewDict)
+        )
 
     async def update(
         self,
@@ -608,7 +617,9 @@ class AsyncInterviewsNamespace(_AsyncNamespace):
             files=None,
             repeatable=True,
         )
-        return Interview.from_dict(data=response.json())
+        return Interview.from_dict(
+            data=response_data(response.json(), InterviewDict)
+        )
 
     async def delete(self, *, interview_id: str) -> None:
         """Delete an interview.
@@ -649,7 +660,9 @@ class AsyncInterviewsNamespace(_AsyncNamespace):
             files=None,
             repeatable=True,
         )
-        return InterviewTranscript.from_dict(data=response.json())
+        return InterviewTranscript.from_dict(
+            data=response_data(response.json(), InterviewTranscriptDict)
+        )
 
 
 @beartype
@@ -833,7 +846,9 @@ class AsyncInterviewTemplatesNamespace(_AsyncNamespace):
             files=None,
             repeatable=False,
         )
-        return InterviewTemplate.from_dict(data=response.json())
+        return InterviewTemplate.from_dict(
+            data=response_data(response.json(), InterviewTemplateDict)
+        )
 
     async def get(
         self,
@@ -856,7 +871,9 @@ class AsyncInterviewTemplatesNamespace(_AsyncNamespace):
             files=None,
             repeatable=True,
         )
-        return InterviewTemplate.from_dict(data=response.json())
+        return InterviewTemplate.from_dict(
+            data=response_data(response.json(), InterviewTemplateDict)
+        )
 
     async def update(
         self,
@@ -894,7 +911,9 @@ class AsyncInterviewTemplatesNamespace(_AsyncNamespace):
             files=None,
             repeatable=True,
         )
-        return InterviewTemplate.from_dict(data=response.json())
+        return InterviewTemplate.from_dict(
+            data=response_data(response.json(), InterviewTemplateDict)
+        )
 
     async def delete(self, *, template_id: int | str) -> None:
         """Delete an interview template.
@@ -1056,7 +1075,9 @@ class AsyncQuestionsNamespace(_AsyncNamespace):
             files=None,
             repeatable=True,
         )
-        return Question.from_dict(data=response.json())
+        return Question.from_dict(
+            data=response_data(response.json(), QuestionDict)
+        )
 
     async def create(
         self,
@@ -1136,7 +1157,9 @@ class AsyncQuestionsNamespace(_AsyncNamespace):
             files=None,
             repeatable=False,
         )
-        return Question.from_dict(data=response.json())
+        return Question.from_dict(
+            data=response_data(response.json(), QuestionDict)
+        )
 
     async def update(
         self,
@@ -1219,7 +1242,9 @@ class AsyncQuestionsNamespace(_AsyncNamespace):
             repeatable=True,
         )
         if bool(response.content):
-            return Question.from_dict(data=response.json())
+            return Question.from_dict(
+                data=response_data(response.json(), QuestionDict)
+            )
         return None
 
     async def upload_project_zip(
@@ -1252,8 +1277,7 @@ class AsyncQuestionsNamespace(_AsyncNamespace):
             json=None,
             repeatable=True,
         )
-        result: dict[str, JSONValue] = dict(response.json())
-        return result
+        return object_response(value=response.json())
 
     async def update_codestubs(
         self,
@@ -1303,8 +1327,7 @@ class AsyncQuestionsNamespace(_AsyncNamespace):
             files=None,
             repeatable=True,
         )
-        result: dict[str, JSONValue] = dict(response.json())
-        return result
+        return object_response(value=response.json())
 
     async def add_testcase(
         self,
@@ -1331,8 +1354,7 @@ class AsyncQuestionsNamespace(_AsyncNamespace):
             files=None,
             repeatable=False,
         )
-        result: dict[str, JSONValue] = dict(response.json())
-        return result
+        return object_response(value=response.json())
 
     async def update_testcase(
         self,
@@ -1568,7 +1590,9 @@ class AsyncTestCandidatesNamespace(_AsyncNamespace):
             files=None,
             repeatable=False,
         )
-        return CandidateInvite.from_dict(data=response.json())
+        return CandidateInvite.from_dict(
+            data=response_data(response.json(), CandidateInviteDict)
+        )
 
     async def get(
         self,
@@ -1598,7 +1622,9 @@ class AsyncTestCandidatesNamespace(_AsyncNamespace):
             files=None,
             repeatable=True,
         )
-        return TestCandidate.from_dict(data=response.json())
+        return TestCandidate.from_dict(
+            data=response_data(response.json(), TestCandidateDict)
+        )
 
     async def update(
         self,
@@ -1663,7 +1689,9 @@ class AsyncTestCandidatesNamespace(_AsyncNamespace):
             files=None,
             repeatable=True,
         )
-        return TestCandidate.from_dict(data=response.json())
+        return TestCandidate.from_dict(
+            data=response_data(response.json(), TestCandidateDict)
+        )
 
     async def cancel_invite(
         self,
@@ -1742,8 +1770,7 @@ class AsyncTestCandidatesNamespace(_AsyncNamespace):
             files=None,
             repeatable=True,
         )
-        result: dict[str, JSONValue] = dict(response.json())
-        return result
+        return object_response(value=response.json())
 
 
 @beartype
@@ -1942,7 +1969,7 @@ class AsyncTestsNamespace(_AsyncNamespace):
             files=None,
             repeatable=False,
         )
-        return Test.from_dict(data=response.json())
+        return Test.from_dict(data=response_data(response.json(), TestDict))
 
     async def get(
         self,
@@ -1970,7 +1997,7 @@ class AsyncTestsNamespace(_AsyncNamespace):
             files=None,
             repeatable=True,
         )
-        return Test.from_dict(data=response.json())
+        return Test.from_dict(data=response_data(response.json(), TestDict))
 
     async def update(
         self,
@@ -2129,7 +2156,9 @@ class AsyncTemplatesNamespace(_AsyncNamespace):
             files=None,
             repeatable=True,
         )
-        return Template.from_dict(data=response.json())
+        return Template.from_dict(
+            data=response_data(response.json(), TemplateDict)
+        )
 
 
 @beartype
@@ -2330,7 +2359,7 @@ class AsyncUsersNamespace(_AsyncNamespace):
             files=None,
             repeatable=False,
         )
-        return User.from_dict(data=response.json())
+        return User.from_dict(data=response_data(response.json(), UserDict))
 
     async def get(self, *, user_id: str) -> User:
         """Retrieve a user.
@@ -2349,7 +2378,7 @@ class AsyncUsersNamespace(_AsyncNamespace):
             files=None,
             repeatable=True,
         )
-        return User.from_dict(data=response.json())
+        return User.from_dict(data=response_data(response.json(), UserDict))
 
     async def update(
         self,
@@ -2455,7 +2484,9 @@ class AsyncTeamMembershipsNamespace(_AsyncNamespace):
             files=None,
             repeatable=True,
         )
-        return UserTeamMembership.from_dict(data=response.json())
+        return UserTeamMembership.from_dict(
+            data=response_data(response.json(), UserTeamMembershipDict)
+        )
 
     async def create(
         self,
@@ -2489,7 +2520,9 @@ class AsyncTeamMembershipsNamespace(_AsyncNamespace):
             files=None,
             repeatable=False,
         )
-        return UserTeamMembership.from_dict(data=response.json())
+        return UserTeamMembership.from_dict(
+            data=response_data(response.json(), UserTeamMembershipDict)
+        )
 
     async def delete(
         self,
@@ -2630,7 +2663,7 @@ class AsyncTeamsNamespace(_AsyncNamespace):
             files=None,
             repeatable=False,
         )
-        return Team.from_dict(data=response.json())
+        return Team.from_dict(data=response_data(response.json(), TeamDict))
 
     async def get(self, *, team_id: str) -> Team:
         """Retrieve a team.
@@ -2649,7 +2682,7 @@ class AsyncTeamsNamespace(_AsyncNamespace):
             files=None,
             repeatable=True,
         )
-        return Team.from_dict(data=response.json())
+        return Team.from_dict(data=response_data(response.json(), TeamDict))
 
     async def update(
         self,
@@ -2805,7 +2838,9 @@ class AsyncATSCodePairNamespace(_AsyncNamespace):
             files=None,
             repeatable=False,
         )
-        return Interview.from_dict(data=response.json())
+        return Interview.from_dict(
+            data=response_data(response.json(), InterviewDict)
+        )
 
 
 @beartype
@@ -2870,7 +2905,9 @@ class AsyncATSCodeScreenNamespace(_AsyncNamespace):
             files=None,
             repeatable=False,
         )
-        return CandidateInvite.from_dict(data=response.json())
+        return CandidateInvite.from_dict(
+            data=response_data(response.json(), CandidateInviteDict)
+        )
 
 
 @beartype
@@ -2975,7 +3012,9 @@ class AsyncSCIMUsersNamespace(_AsyncNamespace):
             files=None,
             repeatable=False,
         )
-        return SCIMUser.from_dict(data=response.json())
+        return SCIMUser.from_dict(
+            data=response_data(response.json(), SCIMUserDict)
+        )
 
     async def get(self, *, scim_user_id: str) -> SCIMUser:
         """Retrieve a SCIM user.
@@ -2994,7 +3033,9 @@ class AsyncSCIMUsersNamespace(_AsyncNamespace):
             files=None,
             repeatable=True,
         )
-        return SCIMUser.from_dict(data=response.json())
+        return SCIMUser.from_dict(
+            data=response_data(response.json(), SCIMUserDict)
+        )
 
     async def replace(
         self,
@@ -3021,7 +3062,9 @@ class AsyncSCIMUsersNamespace(_AsyncNamespace):
             files=None,
             repeatable=True,
         )
-        return SCIMUser.from_dict(data=response.json())
+        return SCIMUser.from_dict(
+            data=response_data(response.json(), SCIMUserDict)
+        )
 
     async def patch(
         self,
@@ -3052,7 +3095,9 @@ class AsyncSCIMUsersNamespace(_AsyncNamespace):
             files=None,
             repeatable=False,
         )
-        return SCIMMessage.from_dict(data=response.json())
+        return SCIMMessage.from_dict(
+            data=response_data(response.json(), SCIMMessageDict)
+        )
 
     async def delete(self, *, scim_user_id: str) -> None:
         """Lock a SCIM user.
@@ -3128,7 +3173,9 @@ class AsyncSCIMGroupsNamespace(_AsyncNamespace):
             files=None,
             repeatable=False,
         )
-        return SCIMTeam.from_dict(data=response.json())
+        return SCIMTeam.from_dict(
+            data=response_data(response.json(), SCIMTeamDict)
+        )
 
     async def get(self, *, scim_group_id: str) -> SCIMTeam:
         """Retrieve a SCIM group.
@@ -3147,7 +3194,9 @@ class AsyncSCIMGroupsNamespace(_AsyncNamespace):
             files=None,
             repeatable=True,
         )
-        return SCIMTeam.from_dict(data=response.json())
+        return SCIMTeam.from_dict(
+            data=response_data(response.json(), SCIMTeamDict)
+        )
 
     async def patch(
         self,
@@ -3178,7 +3227,9 @@ class AsyncSCIMGroupsNamespace(_AsyncNamespace):
             files=None,
             repeatable=False,
         )
-        return SCIMMessage.from_dict(data=response.json())
+        return SCIMMessage.from_dict(
+            data=response_data(response.json(), SCIMMessageDict)
+        )
 
     async def delete(self, *, scim_group_id: str) -> None:
         """Deprovision a SCIM group.

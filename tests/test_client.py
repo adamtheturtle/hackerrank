@@ -384,6 +384,22 @@ class TestListEndpoints:
             client.close()
 
     @staticmethod
+    def test_get_interview_rejects_invalid_response() -> None:
+        """The interview endpoint rejects a malformed response shape."""
+        with respx.mock(base_url="https://www.hackerrank.com") as router:
+            _ = router.get(url="/x/api/v3/interviews/1").respond(
+                status_code=HTTPStatus.OK,
+                json=[],
+            )
+            client = HackerRank(api_key="test-key")
+            with pytest.raises(
+                expected_exception=TypeError,
+                match="did not have the expected shape",
+            ):
+                _ = client.interviews.get(interview_id="1")
+            client.close()
+
+    @staticmethod
     def test_list_users(
         hackerrank_client: HackerRank,
     ) -> None:
