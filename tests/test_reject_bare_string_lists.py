@@ -192,7 +192,7 @@ def _sync_calls(
 
 def _async_calls(
     client: AsyncHackerRank,
-) -> list[tuple[str, Callable[[], Awaitable[Any]]]]:  # pyrefly: ignore [explicit-any]
+) -> list[tuple[str, Callable[[], Awaitable[object]]]]:
     """Build async callables that pass a bare string for each field."""
     return [
         (
