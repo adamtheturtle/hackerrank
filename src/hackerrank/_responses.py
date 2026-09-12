@@ -12,6 +12,7 @@ type _JSONValue = (
 )
 
 
+@beartype
 def _is_interviews(
     value: object,
     /,
@@ -30,6 +31,7 @@ def object_response(
     return value
 
 
+@beartype
 def interview_items(value: object) -> list[_dict_types.InterviewDict]:
     """Return runtime-validated interview response objects."""
     if not _is_interviews(value):
@@ -38,6 +40,7 @@ def interview_items(value: object) -> list[_dict_types.InterviewDict]:
     return value
 
 
+@beartype
 def _is_environment(
     value: object,
     /,
@@ -46,6 +49,7 @@ def _is_environment(
     return TypeHint(hint=_dict_types.EnvironmentDict).is_bearable(obj=value)
 
 
+@beartype
 def environment_response(value: object) -> _dict_types.EnvironmentDict:
     """Return a runtime-validated environment response object."""
     if not _is_environment(value):
@@ -54,11 +58,13 @@ def environment_response(value: object) -> _dict_types.EnvironmentDict:
     return value
 
 
+@beartype
 def _is_object_list(value: object, /) -> TypeGuard[list[object]]:
     """Return whether a value is a list."""
     return isinstance(value, list)
 
 
+@beartype
 def _is_items[ResponseItem](
     value: object,
     item_type: type[ResponseItem],
@@ -71,6 +77,7 @@ def _is_items[ResponseItem](
     )
 
 
+@beartype
 def response_items[ResponseItem](
     *,
     value: object,

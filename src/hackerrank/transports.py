@@ -22,6 +22,7 @@ endpoints which carry large payloads, such as project zip uploads.
 """
 
 
+@beartype
 class HTTPStatusError(Exception):
     """Raised when an HTTP response has an error status code."""
 
