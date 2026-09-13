@@ -2,10 +2,8 @@
 
 from __future__ import annotations
 
-import re
 from typing import TYPE_CHECKING
 
-import httpx
 import pytest
 import pytest_asyncio
 import respx
@@ -37,325 +35,44 @@ _SCIM_PAGE: dict[str, JSONValue] = {
     "itemsPerPage": 0,
     "totalResults": 0,
 }
-_TEST_OBJ = {"id": "t1", "name": "T"}
-_CANDIDATE_OBJ = {"id": "c1", "email": "x@y.com"}
-_CANDIDATE_INVITE_OBJ = {
+_TEST_OBJ: dict[str, JSONValue] = {"id": "t1", "name": "T"}
+_CANDIDATE_OBJ: dict[str, JSONValue] = {"id": "c1", "email": "x@y.com"}
+_CANDIDATE_INVITE_OBJ: dict[str, JSONValue] = {
     "test_link": "https://example.com/invite",
     "email": "x@y.com",
     "id": 10000,
 }
-_INTERVIEW_OBJ = {
+_INTERVIEW_OBJ: dict[str, JSONValue] = {
     "id": "iv1",
     "status": "scheduled",
     "url": "https://example.com/iv1",
 }
-_INTERVIEW_TEMPLATE_OBJ = {
+_INTERVIEW_TEMPLATE_OBJ: dict[str, JSONValue] = {
     "id": "template-1",
     "name": "T",
     "questions": [2687118],
 }
-_ENVIRONMENT_OBJ = {
+_ENVIRONMENT_OBJ: dict[str, JSONValue] = {
     "id": 92,
     "name": "PERN",
     "tags": ["fullstack"],
     "runtime": [{"name": "Node", "version": "20"}],
 }
-_QUESTION_OBJ = {"id": "q1", "type": "code", "name": "Q"}
-_TEMPLATE_OBJ = {"id": "tpl1", "name": "T"}
-_USER_OBJ = {"id": "u1", "email": "u@x.com"}
-_TEAM_OBJ = {"id": "tm1", "name": "Engineering"}
-_MEMBERSHIP_OBJ = {"team": "tm1", "user": "u1"}
-_SCIM_USER_OBJ = {"id": "scim-1", "userName": "x@y.com"}
-_SCIM_TEAM_OBJ = {"id": "scim-2", "displayName": "G"}
-_SCIM_MESSAGE_OBJ = {
+_QUESTION_OBJ: dict[str, JSONValue] = {"id": "q1", "type": "code", "name": "Q"}
+_TEMPLATE_OBJ: dict[str, JSONValue] = {"id": "tpl1", "name": "T"}
+_USER_OBJ: dict[str, JSONValue] = {"id": "u1", "email": "u@x.com"}
+_TEAM_OBJ: dict[str, JSONValue] = {"id": "tm1", "name": "Engineering"}
+_MEMBERSHIP_OBJ: dict[str, JSONValue] = {"team": "tm1", "user": "u1"}
+_SCIM_USER_OBJ: dict[str, JSONValue] = {"id": "scim-1", "userName": "x@y.com"}
+_SCIM_TEAM_OBJ: dict[str, JSONValue] = {"id": "scim-2", "displayName": "G"}
+_SCIM_MESSAGE_OBJ: dict[str, JSONValue] = {
     "schemas": ["urn:ietf:params:scim:schemas:core:2.0:User"],
     "message": "Successful transaction",
 }
-_SCIM_GROUP_MESSAGE_OBJ = {
+_SCIM_GROUP_MESSAGE_OBJ: dict[str, JSONValue] = {
     "schemas": ["urn:ietf:params:scim:schemas:core:2.0:Group"],
     "message": "Successful transaction",
 }
-
-
-def _response_for(  # noqa: C901, PLR0911, PLR0912, PLR0915  # pylint: disable=too-complex,too-many-branches,too-many-statements
-    request: httpx.Request,
-) -> httpx.Response:
-    """Return a plausible response for ``request``.
-
-    Args:
-        request: The intercepted HTTP request.
-
-    Returns:
-        A response whose body satisfies the corresponding
-        client parser.
-    """
-    path = request.url.path
-    method = request.method
-    if method == "GET":
-        if path in {
-            "/x/api/v3/tests",
-            "/x/api/v3/interviews",
-            "/x/api/v3/users",
-            "/x/api/v3/teams",
-            "/x/api/v3/templates",
-            "/x/api/v3/interview_templates",
-            "/x/api/v3/questions",
-            "/x/api/v3/audit_log",
-        }:
-            return httpx.Response(status_code=200, json=_PAGE)
-        if path == "/x/api/v3/environments":
-            return httpx.Response(
-                status_code=200,
-                json={"environments": [_ENVIRONMENT_OBJ]},
-            )
-        if path.endswith(("/inviters", "/candidates")):
-            return httpx.Response(status_code=200, json=_PAGE)
-        if path.endswith(("/candidates/search", "/users/search")):
-            return httpx.Response(status_code=200, json=_PAGE)
-        if bool(
-            re.fullmatch(pattern=r"/x/api/v3/teams/[^/]+/users", string=path)
-        ):
-            return httpx.Response(status_code=200, json=_PAGE)
-        if path in {"/scim/v2/Users", "/scim/v2/Groups"}:
-            return httpx.Response(status_code=200, json=_SCIM_PAGE)
-        if path.endswith("/transcript"):
-            return httpx.Response(
-                status_code=200,
-                json={"messages": []},
-            )
-        if bool(
-            re.fullmatch(
-                pattern=r"/x/api/v3/tests/[^/]+/candidates/[^/]+/pdf",
-                string=path,
-            )
-        ):
-            return httpx.Response(
-                status_code=200,
-                json={"url": "https://example.com/r.pdf"},
-            )
-        if bool(
-            re.fullmatch(
-                pattern=r"/x/api/v3/tests/[^/]+/candidates/[^/]+", string=path
-            )
-        ):
-            return httpx.Response(
-                status_code=200,
-                json=_CANDIDATE_OBJ,
-            )
-        if bool(re.fullmatch(pattern=r"/x/api/v3/tests/[^/]+", string=path)):
-            return httpx.Response(status_code=200, json=_TEST_OBJ)
-        if bool(
-            re.fullmatch(pattern=r"/x/api/v3/interviews/[^/]+", string=path)
-        ):
-            return httpx.Response(
-                status_code=200,
-                json=_INTERVIEW_OBJ,
-            )
-        if bool(
-            re.fullmatch(
-                pattern=r"/x/api/v3/interview_templates/[^/]+", string=path
-            )
-        ):
-            return httpx.Response(
-                status_code=200,
-                json=_INTERVIEW_TEMPLATE_OBJ,
-            )
-        if bool(
-            re.fullmatch(pattern=r"/x/api/v3/environments/[^/]+", string=path)
-        ):
-            return httpx.Response(
-                status_code=200,
-                json={
-                    "environment": {
-                        **_ENVIRONMENT_OBJ,
-                        "active": True,
-                        "sample_project_url": (
-                            "https://example.com/project.zip"
-                        ),
-                    },
-                },
-            )
-        if bool(
-            re.fullmatch(pattern=r"/x/api/v3/questions/[^/]+", string=path)
-        ):
-            return httpx.Response(
-                status_code=200,
-                json=_QUESTION_OBJ,
-            )
-        if bool(
-            re.fullmatch(pattern=r"/x/api/v3/templates/[^/]+", string=path)
-        ):
-            return httpx.Response(
-                status_code=200,
-                json=_TEMPLATE_OBJ,
-            )
-        if bool(re.fullmatch(pattern=r"/x/api/v3/users/[^/]+", string=path)):
-            return httpx.Response(status_code=200, json=_USER_OBJ)
-        if bool(
-            re.fullmatch(
-                pattern=r"/x/api/v3/teams/[^/]+/users/[^/]+", string=path
-            )
-        ):
-            return httpx.Response(
-                status_code=200,
-                json=_MEMBERSHIP_OBJ,
-            )
-        if bool(re.fullmatch(pattern=r"/x/api/v3/teams/[^/]+", string=path)):
-            return httpx.Response(status_code=200, json=_TEAM_OBJ)
-        if bool(re.fullmatch(pattern=r"/scim/v2/Users/[^/]+", string=path)):
-            return httpx.Response(
-                status_code=200,
-                json=_SCIM_USER_OBJ,
-            )
-        if bool(re.fullmatch(pattern=r"/scim/v2/Groups/[^/]+", string=path)):
-            return httpx.Response(
-                status_code=200,
-                json=_SCIM_TEAM_OBJ,
-            )
-    if method == "POST":
-        if path == "/x/api/v3/tests":
-            return httpx.Response(status_code=200, json=_TEST_OBJ)
-        if path == "/x/api/v3/interviews":
-            return httpx.Response(
-                status_code=200,
-                json=_INTERVIEW_OBJ,
-            )
-        if path == "/x/api/v3/interview_templates":
-            return httpx.Response(
-                status_code=200,
-                json=_INTERVIEW_TEMPLATE_OBJ,
-            )
-        if path == "/x/api/v3/questions":
-            return httpx.Response(
-                status_code=200,
-                json=_QUESTION_OBJ,
-            )
-        if bool(
-            re.fullmatch(
-                pattern=r"/x/api/v3/questions/[^/]+/upload_project_zip",
-                string=path,
-            )
-        ):
-            return httpx.Response(
-                status_code=200,
-                json={
-                    "file_url": "https://example.com/project.zip",
-                    "file_path": "question_projects/q1/project.zip",
-                },
-            )
-        if bool(
-            re.fullmatch(
-                pattern=r"/x/api/v3/questions/[^/]+/testcases", string=path
-            )
-        ):
-            return httpx.Response(status_code=200, json={"id": 1})
-        if path == "/x/api/v3/users":
-            return httpx.Response(status_code=200, json=_USER_OBJ)
-        if path == "/x/api/v3/teams":
-            return httpx.Response(status_code=200, json=_TEAM_OBJ)
-        if bool(
-            re.fullmatch(
-                pattern=r"/x/api/v3/teams/[^/]+/users/[^/]+", string=path
-            )
-        ):
-            return httpx.Response(
-                status_code=200,
-                json=_MEMBERSHIP_OBJ,
-            )
-        if bool(
-            re.fullmatch(
-                pattern=r"/x/api/v3/tests/[^/]+/candidates", string=path
-            )
-        ):
-            return httpx.Response(
-                status_code=200,
-                json=_CANDIDATE_INVITE_OBJ,
-            )
-        if path.endswith("/archive"):
-            return httpx.Response(status_code=204)
-        if path == "/x/api/v3/ats/codepair":
-            return httpx.Response(
-                status_code=200,
-                json=_INTERVIEW_OBJ,
-            )
-        if path == "/x/api/v3/ats/codescreen":
-            return httpx.Response(
-                status_code=200,
-                json=_CANDIDATE_INVITE_OBJ,
-            )
-        if path == "/scim/v2/Users":
-            return httpx.Response(
-                status_code=200,
-                json=_SCIM_USER_OBJ,
-            )
-        if path == "/scim/v2/Groups":
-            return httpx.Response(
-                status_code=200,
-                json=_SCIM_TEAM_OBJ,
-            )
-    if method == "PUT":
-        if bool(
-            re.fullmatch(
-                pattern=r"/x/api/v3/interview_templates/[^/]+",
-                string=path,
-            )
-        ):
-            return httpx.Response(
-                status_code=200,
-                json=_INTERVIEW_TEMPLATE_OBJ,
-            )
-        if bool(
-            re.fullmatch(
-                pattern=r"/x/api/v3/interviews/[^/]+",
-                string=path,
-            )
-        ):
-            return httpx.Response(
-                status_code=200,
-                json=_INTERVIEW_OBJ,
-            )
-        if bool(
-            re.fullmatch(
-                pattern=r"/x/api/v3/tests/[^/]+/candidates/[^/]+",
-                string=path,
-            )
-        ):
-            return httpx.Response(
-                status_code=200,
-                json=_CANDIDATE_OBJ,
-            )
-        if bool(
-            re.fullmatch(
-                pattern=r"/x/api/v3/questions/[^/]+/(custom_codestubs|generate)",
-                string=path,
-            )
-        ):
-            return httpx.Response(status_code=200, json={})
-        if path == "/x/api/v3/questions/q-with-body":
-            return httpx.Response(
-                status_code=200,
-                json=_QUESTION_OBJ,
-            )
-        if bool(re.fullmatch(pattern=r"/scim/v2/Users/[^/]+", string=path)):
-            return httpx.Response(
-                status_code=200,
-                json=_SCIM_USER_OBJ,
-            )
-        return httpx.Response(status_code=204)
-    if method == "PATCH":
-        if bool(re.fullmatch(pattern=r"/scim/v2/Users/[^/]+", string=path)):
-            return httpx.Response(
-                status_code=200,
-                json=_SCIM_MESSAGE_OBJ,
-            )
-        if bool(re.fullmatch(pattern=r"/scim/v2/Groups/[^/]+", string=path)):
-            return httpx.Response(
-                status_code=200,
-                json=_SCIM_GROUP_MESSAGE_OBJ,
-            )
-    if method == "DELETE":
-        return httpx.Response(status_code=204)
-    return httpx.Response(status_code=200, json={})
 
 
 @pytest.fixture(name="hackerrank_client")
@@ -403,14 +120,87 @@ def fixture_stub_router() -> Generator[respx.MockRouter]:
     """A respx router that stubs every HackerRank endpoint.
 
     Yields:
-        The respx mock router with a side-effect wired to
-        ``_response_for``.
+        The respx mock router with representative endpoint responses.
     """
-    # No ``base_url`` guard: the v3 API and the SCIM v2 API live on
-    # different hosts, so the router must intercept both. Requests are
-    # dispatched by path inside ``_response_for``.
+    responses: dict[str, dict[str, JSONValue]] = {
+        "GET": {
+            (
+                r"/x/api/v3/(tests|interviews|users|teams|templates|"
+                r"interview_templates|questions|audit_log)"
+            ): _PAGE,
+            r"/x/api/v3/environments": {"environments": [_ENVIRONMENT_OBJ]},
+            r".*/(inviters|candidates|candidates/search|users/search)": _PAGE,
+            r"/x/api/v3/teams/[^/]+/users": _PAGE,
+            r"/scim/v2/(Users|Groups)": _SCIM_PAGE,
+            r".*/transcript": {"messages": []},
+            r"/x/api/v3/tests/[^/]+/candidates/[^/]+/pdf": {
+                "url": "https://example.com/r.pdf"
+            },
+            r"/x/api/v3/tests/[^/]+/candidates/[^/]+": _CANDIDATE_OBJ,
+            r"/x/api/v3/tests/[^/]+": _TEST_OBJ,
+            r"/x/api/v3/interviews/[^/]+": _INTERVIEW_OBJ,
+            r"/x/api/v3/interview_templates/[^/]+": _INTERVIEW_TEMPLATE_OBJ,
+            r"/x/api/v3/environments/[^/]+": {
+                "environment": {
+                    **_ENVIRONMENT_OBJ,
+                    "active": True,
+                    "sample_project_url": "https://example.com/project.zip",
+                },
+            },
+            r"/x/api/v3/questions/[^/]+": _QUESTION_OBJ,
+            r"/x/api/v3/templates/[^/]+": _TEMPLATE_OBJ,
+            r"/x/api/v3/users/[^/]+": _USER_OBJ,
+            r"/x/api/v3/teams/[^/]+/users/[^/]+": _MEMBERSHIP_OBJ,
+            r"/x/api/v3/teams/[^/]+": _TEAM_OBJ,
+            r"/scim/v2/Users/[^/]+": _SCIM_USER_OBJ,
+            r"/scim/v2/Groups/[^/]+": _SCIM_TEAM_OBJ,
+        },
+        "POST": {
+            r"/x/api/v3/tests": _TEST_OBJ,
+            r"/x/api/v3/interviews": _INTERVIEW_OBJ,
+            r"/x/api/v3/interview_templates": _INTERVIEW_TEMPLATE_OBJ,
+            r"/x/api/v3/questions": _QUESTION_OBJ,
+            r"/x/api/v3/questions/[^/]+/upload_project_zip": {
+                "file_url": "https://example.com/project.zip",
+                "file_path": "question_projects/q1/project.zip",
+            },
+            r"/x/api/v3/questions/[^/]+/testcases": {"id": 1},
+            r"/x/api/v3/users": _USER_OBJ,
+            r"/x/api/v3/teams": _TEAM_OBJ,
+            r"/x/api/v3/teams/[^/]+/users/[^/]+": _MEMBERSHIP_OBJ,
+            r"/x/api/v3/tests/[^/]+/candidates": _CANDIDATE_INVITE_OBJ,
+            r"/x/api/v3/ats/codepair": _INTERVIEW_OBJ,
+            r"/x/api/v3/ats/codescreen": _CANDIDATE_INVITE_OBJ,
+            r"/scim/v2/Users": _SCIM_USER_OBJ,
+            r"/scim/v2/Groups": _SCIM_TEAM_OBJ,
+        },
+        "PUT": {
+            r"/x/api/v3/interview_templates/[^/]+": _INTERVIEW_TEMPLATE_OBJ,
+            r"/x/api/v3/interviews/[^/]+": _INTERVIEW_OBJ,
+            r"/x/api/v3/tests/[^/]+/candidates/[^/]+": _CANDIDATE_OBJ,
+            r"/x/api/v3/questions/[^/]+/(custom_codestubs|generate)": {},
+            r"/x/api/v3/questions/q-with-body": _QUESTION_OBJ,
+            r"/scim/v2/Users/[^/]+": _SCIM_USER_OBJ,
+        },
+        "PATCH": {
+            r"/scim/v2/Users/[^/]+": _SCIM_MESSAGE_OBJ,
+            r"/scim/v2/Groups/[^/]+": _SCIM_GROUP_MESSAGE_OBJ,
+        },
+    }
+    # Both the v3 and SCIM hosts use these routes. Register specific
+    # responses first so the fallback routes do not hide them.
     with respx.mock(assert_all_called=False) as router:
-        _ = router.route().mock(side_effect=_response_for)
+        for method, paths in responses.items():
+            for path, payload in paths.items():
+                _ = router.route(
+                    method=method,
+                    path__regex=f"^{path}$",
+                ).respond(status_code=200, json=payload)
+        _ = router.route(method="POST", path__regex=r".*/archive$").respond(
+            status_code=204,
+        )
+        _ = router.route(method__in=["PUT", "DELETE"]).respond(status_code=204)
+        _ = router.route().respond(status_code=200, json={})
         yield router
 
 
