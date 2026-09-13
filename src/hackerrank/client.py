@@ -294,7 +294,7 @@ def _list_params(
 def _question_body(
     *,
     name: str | None,
-    type: str | None,  # noqa: A002  # pylint: disable=redefined-builtin
+    question_type: str | None,
     internal_notes: str | None,
     languages: builtins.list[str] | None,
     problem_statement: str | None,
@@ -319,7 +319,7 @@ def _question_body(
     return _drop_none(
         {
             "name": name,
-            "type": type,
+            "type": question_type,
             "internal_notes": internal_notes,
             "languages": (list(languages) if languages is not None else None),
             "problem_statement": problem_statement,
@@ -1080,7 +1080,7 @@ class QuestionsNamespace(_Namespace):
         """
         body = _question_body(
             name=name,
-            type=type,
+            question_type=type,
             internal_notes=internal_notes,
             languages=languages,
             problem_statement=problem_statement,
@@ -1186,7 +1186,7 @@ class QuestionsNamespace(_Namespace):
         """
         body = _question_body(
             name=name,
-            type=type,
+            question_type=type,
             internal_notes=internal_notes,
             languages=languages,
             problem_statement=problem_statement,
