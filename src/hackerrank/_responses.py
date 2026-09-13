@@ -2,6 +2,7 @@
 
 from typing import TypeGuard
 
+from beartype import beartype
 from beartype.door import TypeHint
 
 from hackerrank import _dict_types
