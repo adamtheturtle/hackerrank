@@ -139,31 +139,27 @@ class TestAsyncCloseOwnership:
 
     @staticmethod
     @pytest.mark.asyncio
-    async def test_close_does_not_close_external_transport() -> None:
-        """A custom async transport is not closed by ``aclose``."""
-
-        class _CustomTransport:
-            """A minimal async transport that never gets closed."""
-
-            async def __call__(
-                self,
-                *,
-                method: str,
-                url: str,
-                headers: dict[str, str],
-                params: dict[str, str | int] | None,
-                json: object | None,
-                files: object | None,
-            ) -> TransportResponse:  # pragma: no cover
-                """Make a request."""
-                del method, url, headers, params, json, files
-                raise NotImplementedError
-
-        client = AsyncHackerRank(
-            api_key="test-key",
-            transport=_CustomTransport(),
-        )
-        await client.aclose()
+    async def test_close_does_not_close_transport_callable() -> None:
+        """A transport callable remains usable after ``aclose``."""
+        with respx.mock(assert_all_called=True) as router:
+            _ = router.get(
+                url="https://www.hackerrank.com/x/api/v3/tests",
+            ).mock(
+                return_value=httpx.Response(status_code=200, json={"data": []})
+            )
+            async with AsyncHTTPXTransport() as transport:
+                client = AsyncHackerRank(
+                    api_key="test-key",
+                    transport=transport.__call__,
+                )
+                await client.aclose()
+                other_client = AsyncHackerRank(
+                    api_key="test-key",
+                    transport=transport.__call__,
+                )
+                result = await other_client.tests.list()
+                await other_client.aclose()
+                assert not bool(result.data)
 
 
 class TestHackerRankErrorRegistry:

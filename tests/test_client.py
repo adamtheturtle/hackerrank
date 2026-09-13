@@ -138,29 +138,25 @@ class TestHackerRank:
     @staticmethod
     def test_close_transport_without_close() -> None:
         """Closing works when the transport has no close method."""
-
-        class _NoCloseTransport:
-            """A transport without a close method."""
-
-            def __call__(
-                self,
-                *,
-                method: str,
-                url: str,
-                headers: dict[str, str],
-                params: dict[str, str | int] | None,
-                json: object | None,
-                files: object | None,
-            ) -> TransportResponse:  # pragma: no cover
-                """Make a request."""
-                del method, url, headers, params, json, files
-                raise NotImplementedError
-
-        client = HackerRank(
-            api_key="test-key",
-            transport=_NoCloseTransport(),
-        )
-        client.close()
+        with (
+            respx.mock(assert_all_called=True) as router,
+            HTTPXTransport() as transport,
+        ):
+            _ = router.get(
+                url="https://www.hackerrank.com/x/api/v3/tests",
+            ).mock(
+                return_value=httpx.Response(status_code=200, json={"data": []})
+            )
+            client = HackerRank(
+                api_key="test-key",
+                transport=transport.__call__,
+            )
+            client.close()
+            with HackerRank(
+                api_key="test-key",
+                transport=transport.__call__,
+            ) as other_client:
+                assert not bool(other_client.tests.list().data)
 
     @staticmethod
     def test_namespaces_are_attached() -> None:
