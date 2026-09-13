@@ -63,13 +63,14 @@ class TestAsyncHackerRank:
         assert client.scim.base_url == "https://scim.example.com/v2"
 
     @staticmethod
-    def test_falsy_transport_is_preserved() -> None:
+    @pytest.mark.asyncio
+    async def test_falsy_transport_is_preserved() -> None:
         """A falsy custom transport is not replaced by the default."""
 
         class _FalsyTransport:
             """A transport whose ``__bool__`` returns ``False``."""
 
-            def __bool__(self) -> bool:  # pragma: no cover
+            def __bool__(self) -> bool:
                 """Report as falsy."""
                 return False
 
@@ -82,14 +83,21 @@ class TestAsyncHackerRank:
                 params: dict[str, str | int] | None,
                 json: Mapping[str, JSONValue] | None,
                 files: MultipartFiles,
-            ) -> TransportResponse:  # pragma: no cover
+            ) -> TransportResponse:
                 """Make a request."""
                 del method, url, headers, params, json, files
-                raise NotImplementedError
+                return TransportResponse(
+                    status_code=HTTPStatus.OK,
+                    headers={},
+                    content=b'{"data": [], "total": 0}',
+                )
 
         transport = _FalsyTransport()
+        assert not bool(transport)
         client = AsyncHackerRank(api_key="test-key", transport=transport)
         assert client.users.transport is transport
+
+        assert (await client.users.list()).total == 0
 
     @staticmethod
     def test_namespaces_are_attached() -> None:

@@ -75,7 +75,7 @@ class TestHackerRank:
         class _FalsyTransport:
             """A transport whose ``__bool__`` returns ``False``."""
 
-            def __bool__(self) -> bool:  # pragma: no cover
+            def __bool__(self) -> bool:
                 """Report as falsy."""
                 return False
 
@@ -88,14 +88,21 @@ class TestHackerRank:
                 params: dict[str, str | int] | None,
                 json: Mapping[str, JSONValue] | None,
                 files: MultipartFiles,
-            ) -> TransportResponse:  # pragma: no cover
+            ) -> TransportResponse:
                 """Make a request."""
                 del method, url, headers, params, json, files
-                raise NotImplementedError
+                return TransportResponse(
+                    status_code=HTTPStatus.OK,
+                    headers={},
+                    content=b'{"data": [], "total": 0}',
+                )
 
         transport = _FalsyTransport()
+        assert not bool(transport)
         client = HackerRank(api_key="test-key", transport=transport)
         assert client.users.transport is transport
+
+        assert (client.users.list()).total == 0
 
     @staticmethod
     def test_default_scim_base_url() -> None:
