@@ -58,9 +58,7 @@ Run ``pytest``:
 Changelog entries
 -----------------
 
-Add one news fragment per user-facing change, as
-:file:`newsfragments/<issue-number>.change.rst`, containing a single
-sentence in the past or present tense.
+Add one news fragment per user-facing change, as :file:`newsfragments/<issue-number>.change.rst`, containing a single sentence in the past or present tense.
 
 ``towncrier`` collects fragments by that exact filename pattern at release time and silently ignores anything else, including a fragment filed in a subdirectory, so a fragment with the wrong name never reaches the changelog.
 A test guards against this.
