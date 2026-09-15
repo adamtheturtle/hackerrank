@@ -85,8 +85,8 @@ class TestSCIMPage:
         assert page.start_index == 1
 
 
-class TestFromDict:  # pylint: disable=too-many-public-methods
-    """Tests for the ``from_dict`` constructors."""
+class TestInterviewFromDict:
+    """Tests for interview ``from_dict`` constructors."""
 
     @staticmethod
     def test_interview_from_minimal_dict() -> None:
@@ -141,6 +141,10 @@ class TestFromDict:  # pylint: disable=too-many-public-methods
         assert interview.to == "2026-08-19T02:09:27+0000"
         assert interview.started_at == "2026-08-18T01:09:27+0000"
         assert interview.ai_assistant_available is True
+
+
+class TestAssessmentFromDict:
+    """Tests for assessment ``from_dict`` constructors."""
 
     @staticmethod
     def test_test_from_dict() -> None:
@@ -229,6 +233,10 @@ class TestFromDict:  # pylint: disable=too-many-public-methods
             environment.sample_project_url == "https://example.com/project.zip"
         )
 
+
+class TestOrganizationFromDict:
+    """Tests for organization ``from_dict`` constructors."""
+
     @staticmethod
     def test_user_from_dict() -> None:
         """``User.from_dict`` populates the dataclass."""
@@ -314,6 +322,10 @@ class TestFromDict:  # pylint: disable=too-many-public-methods
             },
         )
         assert log.action == "create"
+
+
+class TestCandidateFromDict:
+    """Tests for candidate ``from_dict`` constructors."""
 
     @staticmethod
     def test_test_candidate_from_dict() -> None:
@@ -438,6 +450,10 @@ class TestFromDict:  # pylint: disable=too-many-public-methods
         )
         assert attempt.percentage_score == expected_percentage
         assert attempt.attempt_endtime == "2024-02-01T01:00:00Z"
+
+
+class TestIntegrationModels:
+    """Tests for ATS, SCIM, and update-body models."""
 
     @staticmethod
     def test_ats_codepair_from_dict() -> None:
