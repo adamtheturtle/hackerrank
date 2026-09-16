@@ -98,6 +98,58 @@ class TestSyncEndpoints:
             scorecard_id=2,
         )
         sync_client.interview_templates.delete(template_id="template-1")
+        _ = sync_client.interview_templates.add_questions(
+            template_id="template-1",
+            question_ids=[2687118],
+        )
+        _ = sync_client.interview_templates.remove_question(
+            template_id="template-1",
+            question_id=2687118,
+        )
+
+    @staticmethod
+    def test_template_questions_contract() -> None:
+        """Send the documented add and remove question requests."""
+        requests: list[httpx.Request] = []
+
+        def template_response(request: httpx.Request) -> httpx.Response:
+            """Record a request and return a live-shaped response."""
+            requests.append(request)
+            return httpx.Response(
+                status_code=200,
+                json={
+                    "id": "12345",
+                    "name": "Frontend Developer Interview Template",
+                    "questions": [111166] if request.method == "PUT" else [],
+                },
+            )
+
+        base = "https://www.hackerrank.com/x/api/v3/interview_templates/12345"
+        with respx.mock(assert_all_called=True) as router:
+            _ = router.put(url=f"{base}/add_questions").mock(
+                side_effect=template_response,
+            )
+            _ = router.delete(
+                url=f"{base}/remove_question",
+                params={"question_id": "111166"},
+            ).mock(side_effect=template_response)
+            with HackerRank(api_key="test-key") as client:
+                added = client.interview_templates.add_questions(
+                    template_id=12345,
+                    question_ids=[111166],
+                )
+                removed = client.interview_templates.remove_question(
+                    template_id=12345,
+                    question_id=111166,
+                )
+
+        assert json.loads(s=requests[0].content) == {
+            "question_ids": [111166],
+        }
+        assert added.questions == [111166]
+        assert requests[1].url.params["question_id"] == "111166"
+        assert not requests[1].content
+        assert removed.questions == []
 
     @staticmethod
     def test_explicit_sharing_roles(sync_client: HackerRank) -> None:
@@ -833,6 +885,59 @@ class TestAsyncEndpoints:
         await async_client.interview_templates.delete(
             template_id="template-1",
         )
+        await async_client.interview_templates.add_questions(
+            template_id="template-1",
+            question_ids=[2687118],
+        )
+        await async_client.interview_templates.remove_question(
+            template_id="template-1",
+            question_id=2687118,
+        )
+
+    @staticmethod
+    @pytest.mark.asyncio
+    async def test_template_questions_contract() -> None:
+        """Send the documented add and remove question requests."""
+        requests: list[httpx.Request] = []
+
+        def template_response(request: httpx.Request) -> httpx.Response:
+            """Record a request and return a live-shaped response."""
+            requests.append(request)
+            return httpx.Response(
+                status_code=200,
+                json={
+                    "id": "12345",
+                    "name": "Frontend Developer Interview Template",
+                    "questions": [111166] if request.method == "PUT" else [],
+                },
+            )
+
+        base = "https://www.hackerrank.com/x/api/v3/interview_templates/12345"
+        with respx.mock(assert_all_called=True) as router:
+            _ = router.put(url=f"{base}/add_questions").mock(
+                side_effect=template_response,
+            )
+            _ = router.delete(
+                url=f"{base}/remove_question",
+                params={"question_id": "111166"},
+            ).mock(side_effect=template_response)
+            async with AsyncHackerRank(api_key="test-key") as client:
+                added = await client.interview_templates.add_questions(
+                    template_id=12345,
+                    question_ids=[111166],
+                )
+                removed = await client.interview_templates.remove_question(
+                    template_id=12345,
+                    question_id=111166,
+                )
+
+        assert json.loads(s=requests[0].content) == {
+            "question_ids": [111166],
+        }
+        assert added.questions == [111166]
+        assert requests[1].url.params["question_id"] == "111166"
+        assert not requests[1].content
+        assert removed.questions == []
 
     @staticmethod
     @pytest.mark.asyncio

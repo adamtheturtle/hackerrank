@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from http import HTTPStatus
 from pathlib import Path
 from typing import NotRequired, TypedDict
@@ -43,6 +44,19 @@ def _load_checked_in_spec() -> _OpenAPISpec:
     return adapter.validate_json(_OPENAPI_PATH.read_text(encoding="utf-8"))
 
 
+def _load_checked_in_document() -> object:
+    """Load the repository's ``openapi.json`` without dropping any keys.
+
+    ``_load_checked_in_spec`` validates only the fields the structural
+    tests inspect and discards the rest, so it is not suitable for a
+    whole-document comparison against the served spec.
+
+    Returns:
+        The parsed OpenAPI document, exactly as checked in.
+    """
+    return json.loads(s=_OPENAPI_PATH.read_text(encoding="utf-8"))
+
+
 def _assert_remote_openapi_matches_checked_in(*, url: str) -> None:
     """Fetch ``url`` and assert semantic equality with the checked-in
     schema.
@@ -50,7 +64,7 @@ def _assert_remote_openapi_matches_checked_in(*, url: str) -> None:
     Args:
         url: URL of an OpenAPI document to compare.
     """
-    checked = normalize_openapi(spec=_load_checked_in_spec())
+    checked = normalize_openapi(spec=_load_checked_in_document())
     response = httpx.get(url=url, timeout=30.0)
     _ = response.raise_for_status()
     live = normalize_openapi(spec=response.json())
@@ -176,6 +190,14 @@ class TestCheckedInOpenAPI:
         }
 
     @staticmethod
+    def test_includes_interview_template_question_endpoints() -> None:
+        """The refreshed schema documents template question management."""
+        paths = _load_checked_in_spec()["paths"]
+        template = "/x/api/v3/interview_templates/{template_id}"
+        assert f"{template}/add_questions" in paths
+        assert f"{template}/remove_question" in paths
+
+    @staticmethod
     def test_includes_current_interview_fields() -> None:
         """Interview create/update schemas include current live fields."""
         definitions = _load_checked_in_spec()["definitions"]
@@ -194,7 +216,7 @@ class TestCheckedInOpenAPI:
             _ = router.get(url=_MOCK_OPENAPI_URL).mock(
                 return_value=httpx.Response(
                     status_code=HTTPStatus.OK,
-                    json=_load_checked_in_spec(),
+                    json=_load_checked_in_document(),
                 ),
             )
             _assert_remote_openapi_matches_checked_in(url=_MOCK_OPENAPI_URL)
