@@ -148,7 +148,7 @@ class TestSyncEndpoints:
         }
         assert added.questions == [111166]
         assert requests[1].url.params["question_id"] == "111166"
-        assert not requests[1].content
+        assert requests[1].content == b""
         assert removed.questions == []
 
     @staticmethod
@@ -936,7 +936,7 @@ class TestAsyncEndpoints:
         }
         assert added.questions == [111166]
         assert requests[1].url.params["question_id"] == "111166"
-        assert not requests[1].content
+        assert requests[1].content == b""
         assert removed.questions == []
 
     @staticmethod
