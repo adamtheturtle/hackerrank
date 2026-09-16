@@ -1,1 +1,0 @@
-Add ``interview_templates.add_questions`` and ``interview_templates.remove_question`` to both clients, matching the newly documented HackerRank endpoints, and refresh ``openapi.json`` from the served spec.

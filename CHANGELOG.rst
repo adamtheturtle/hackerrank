@@ -3,6 +3,17 @@ Changelog
 
 .. towncrier release notes start
 
+2026.09.16
+----------
+
+- Validate interview API response shapes before constructing client models.
+
+- Type shared page fixtures and captured request bodies as JSON values.
+
+- Restored the missing ``beartype`` import so the client modules load successfully.
+
+- Add ``interview_templates.add_questions`` and ``interview_templates.remove_question`` to both clients, matching the newly documented HackerRank endpoints, and refresh ``openapi.json`` from the served spec.
+
 2026.09.07
 ----------
 
