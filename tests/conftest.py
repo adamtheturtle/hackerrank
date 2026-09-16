@@ -176,11 +176,19 @@ def fixture_stub_router() -> Generator[respx.MockRouter]:
         },
         "PUT": {
             r"/x/api/v3/interview_templates/[^/]+": _INTERVIEW_TEMPLATE_OBJ,
+            r"/x/api/v3/interview_templates/[^/]+/add_questions": (
+                _INTERVIEW_TEMPLATE_OBJ
+            ),
             r"/x/api/v3/interviews/[^/]+": _INTERVIEW_OBJ,
             r"/x/api/v3/tests/[^/]+/candidates/[^/]+": _CANDIDATE_OBJ,
             r"/x/api/v3/questions/[^/]+/(custom_codestubs|generate)": {},
             r"/x/api/v3/questions/q-with-body": _QUESTION_OBJ,
             r"/scim/v2/Users/[^/]+": _SCIM_USER_OBJ,
+        },
+        "DELETE": {
+            r"/x/api/v3/interview_templates/[^/]+/remove_question": (
+                _INTERVIEW_TEMPLATE_OBJ
+            ),
         },
         "PATCH": {
             r"/scim/v2/Users/[^/]+": _SCIM_MESSAGE_OBJ,

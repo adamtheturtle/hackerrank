@@ -902,7 +902,71 @@ class InterviewTemplatesNamespace(_Namespace):
             repeatable=True,
         )
 
+    def add_questions(
+        self,
+        *,
+        template_id: int | str,
+        question_ids: Sequence[int],
+    ) -> InterviewTemplate:
+        """Add questions to an interview template.
 
+        Safe to retry: a question already on the template is not added
+        twice.
+
+        Args:
+            template_id: The id of the template.
+            question_ids: The ids of the questions to add. Each must be
+                accessible to the current user.
+
+        Returns:
+            The updated interview template.
+        """
+        response = self._request(
+            method="PUT",
+            url=(f"{_API_V3}/interview_templates/{template_id}/add_questions"),
+            json={"question_ids": list(question_ids)},
+            params=None,
+            files=None,
+            repeatable=True,
+        )
+        return InterviewTemplate.from_dict(
+            data=response_data(response.json(), InterviewTemplateDict)
+        )
+
+    def remove_question(
+        self,
+        *,
+        template_id: int | str,
+        question_id: int,
+    ) -> InterviewTemplate:
+        """Remove a question from an interview template.
+
+        Safe to retry: the question is gone from the template either
+        way.
+
+        Args:
+            template_id: The id of the template.
+            question_id: The id of the question to remove.
+
+        Returns:
+            The updated interview template.
+        """
+        response = self._request(
+            method="DELETE",
+            url=(
+                f"{_API_V3}/interview_templates/{template_id}/remove_question"
+            ),
+            params={"question_id": question_id},
+            json=None,
+            files=None,
+            repeatable=True,
+        )
+        return InterviewTemplate.from_dict(
+            data=response_data(response.json(), InterviewTemplateDict)
+        )
+
+
+@beartype
 @beartype
 class EnvironmentsNamespace(_Namespace):
     """Namespace for project-question environment operations."""
