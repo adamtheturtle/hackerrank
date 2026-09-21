@@ -9,7 +9,7 @@ import pytest
 import respx
 
 import hackerrank.async_client as async_client_module
-from hackerrank._retries import MultipartFiles
+from hackerrank._request_types import MultipartFiles
 from hackerrank.async_client import AsyncHackerRank
 from hackerrank.transports import (
     DEFAULT_TIMEOUT_SECONDS,

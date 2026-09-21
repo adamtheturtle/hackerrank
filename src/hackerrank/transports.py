@@ -11,7 +11,7 @@ import httpx
 import httpx2
 from beartype import BeartypeConf, beartype
 
-from hackerrank._retries import MultipartFiles
+from hackerrank._request_types import MultipartFiles
 from hackerrank.types import JSONValue
 
 DEFAULT_TIMEOUT_SECONDS = 60.0

@@ -9,7 +9,7 @@ import pytest
 import respx
 
 import hackerrank.client as client_module
-from hackerrank._retries import MultipartFiles
+from hackerrank._request_types import MultipartFiles
 from hackerrank.client import HackerRank
 from hackerrank.exceptions import (
     AuthenticationError,

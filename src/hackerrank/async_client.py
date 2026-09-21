@@ -1,14 +1,10 @@
 """Async HackerRank for Work API client."""
 
-import asyncio
 import builtins
 from collections.abc import Mapping, Sequence
-from http import HTTPStatus
 from types import TracebackType
 from typing import BinaryIO, Self
 
-import httpx
-import httpx2
 from beartype import beartype
 
 from hackerrank._dict_types import (
@@ -31,6 +27,7 @@ from hackerrank._dict_types import (
     UserDict,
     UserTeamMembershipDict,
 )
+from hackerrank._request_types import MultipartFiles
 from hackerrank._responses import (
     environment_response,
     interview_items,
@@ -38,14 +35,7 @@ from hackerrank._responses import (
     response_data,
     response_items,
 )
-from hackerrank._retries import (
-    RETRY_STATUS_CODES,
-    MultipartFiles,
-    delay_seconds,
-    log_retry,
-    rewind_files,
-)
-from hackerrank.exceptions import HackerRankError
+from hackerrank._retries import async_request_with_retries
 from hackerrank.transports import (
     AsyncHTTPX2Transport,
     AsyncHTTPXTransport,
@@ -340,44 +330,19 @@ class _AsyncNamespace:
                 or redirect status code.
         """
         full_url = self.base_url + url
-        attempts = (1 + self.retries) if repeatable else 1
-        attempt = 0
-        while True:
-            attempt += 1
-            retriable = attempt < attempts
-            try:
-                response = await self.transport(
-                    method=method,
-                    url=full_url,
-                    headers=self.headers,
-                    params=params,
-                    json=json,
-                    files=files,
-                )
-            except (httpx.TransportError, httpx2.TransportError) as exc:
-                if not (retriable and rewind_files(files=files)):
-                    raise
-                headers = None
-                reason = type(exc).__name__
-            else:
-                if response.status_code not in RETRY_STATUS_CODES or not (
-                    retriable and rewind_files(files=files)
-                ):
-                    if response.status_code >= HTTPStatus.MULTIPLE_CHOICES:
-                        raise HackerRankError.from_response(response=response)
-                    return response
-                headers = response.headers
-                reason = f"HTTP {response.status_code}"
-            delay = delay_seconds(attempt=attempt, headers=headers)
-            log_retry(
+        return await async_request_with_retries(
+            request=lambda: self.transport(
                 method=method,
                 url=full_url,
-                attempt=attempt,
-                attempts=attempts,
-                delay=delay,
-                reason=reason,
-            )
-            await asyncio.sleep(delay=delay)
+                headers=self.headers,
+                params=params,
+                json=json,
+                files=files,
+            ),
+            retries=self.retries,
+            repeatable=repeatable,
+            files=files,
+        )
 
 
 @beartype
