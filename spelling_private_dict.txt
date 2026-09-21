@@ -61,6 +61,7 @@ params
 pluggable
 plugins
 pragma
+pre
 py
 pyrefly
 pyright
