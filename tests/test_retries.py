@@ -13,7 +13,8 @@ import httpx
 import httpx2
 import pytest
 
-from hackerrank._retries import MultipartFiles, rewind_files
+from hackerrank._request_types import MultipartFiles
+from hackerrank._retries import rewind_files
 from hackerrank.async_client import AsyncHackerRank
 from hackerrank.client import HackerRank
 from hackerrank.exceptions import (
@@ -653,7 +654,7 @@ class TestLogging:
             _ = client.tests.list()
         (record,) = caplog.records
         assert "HTTP 502" in record.getMessage()
-        assert "attempt 1 of 2" in record.getMessage()
+        assert "in 0.5 seconds" in record.getMessage()
 
     @staticmethod
     def test_transport_error_retry_names_the_error(

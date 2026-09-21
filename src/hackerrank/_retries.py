@@ -1,13 +1,51 @@
 """Helpers for retrying requests which are safe to repeat."""
 
+import asyncio
 import logging
-from collections.abc import Iterator, Mapping
+import time
+from collections.abc import Awaitable, Callable, Iterator, Mapping
 from http import HTTPStatus
-from typing import BinaryIO, Protocol
+from typing import Protocol
 
+import httpx
+import httpx2
 from beartype import beartype
+from tenacity import (
+    RetryCallState,
+    before_sleep_log,
+    retry,
+    retry_if_exception,
+    stop_after_attempt,
+    wait_exception,
+)
+
+from hackerrank._request_types import MultipartContent, MultipartFiles
+from hackerrank.exceptions import HackerRankError
+from hackerrank.transports import TransportResponse
 
 _LOGGER = logging.getLogger(name="hackerrank")
+
+
+class _RetryLogger:
+    """Adapt the standard logger to Tenacity's narrower protocol."""
+
+    @staticmethod
+    def log(
+        level: int,
+        message: str,
+        /,
+        *args: object,
+        **kwargs: object,
+    ) -> None:
+        """Write Tenacity's already-formatted retry message."""
+        del args, kwargs
+        _LOGGER.log(level, message)
+
+
+_log_before_sleep = before_sleep_log(
+    logger=_RetryLogger(),
+    log_level=logging.WARNING,
+)
 
 BACKOFF_BASE_SECONDS = 0.5
 """The delay before the first retry, doubled for each retry after it."""
@@ -40,9 +78,21 @@ class _SeekableStream(Protocol):
         ...  # pylint: disable=unnecessary-ellipsis
 
 
-type MultipartContent = BinaryIO | bytes
-type MultipartFile = tuple[str, MultipartContent, str]
-type MultipartFiles = Mapping[str, MultipartFile] | None
+type Request = Callable[[], TransportResponse]
+type AsyncRequest = Callable[[], Awaitable[TransportResponse]]
+
+_TRANSPORT_ERRORS = (httpx.TransportError, httpx2.TransportError)
+
+
+@beartype
+def _is_retryable(exception: BaseException) -> bool:
+    """Return whether an exception represents a transient failure."""
+    if isinstance(exception, _TRANSPORT_ERRORS):
+        return True
+    return (
+        isinstance(exception, HackerRankError)
+        and exception.status_code in RETRY_STATUS_CODES
+    )
 
 
 @beartype
@@ -106,6 +156,24 @@ def rewind_files(*, files: MultipartFiles) -> bool:
 
 
 @beartype
+def _files_are_repeatable(*, files: MultipartFiles) -> bool:
+    """Return whether every multipart file can be repeated.
+
+    Unlike :func:`rewind_files`, this check does not move any stream.
+
+    Args:
+        files: Files to send as multipart form-data.
+
+    Returns:
+        Whether every file can be sent again.
+    """
+    return all(
+        _content_is_repeatable(content=content)
+        for content in _file_contents(files=files)
+    )
+
+
+@beartype
 def _retry_after_seconds(*, headers: Mapping[str, str]) -> float | None:
     """Read a delay from a ``Retry-After`` header.
 
@@ -158,32 +226,159 @@ def delay_seconds(*, attempt: int, headers: Mapping[str, str] | None) -> float:
 
 
 @beartype
-def log_retry(
-    *,
-    method: str,
-    url: str,
-    attempt: int,
-    attempts: int,
-    delay: float,
-    reason: str,
-) -> None:
-    """Log that a request is about to be retried.
+def _wait_seconds(*, attempt: int, exception: BaseException) -> float:
+    """Return the delay before Tenacity's next attempt.
 
     Args:
-        method: The HTTP method.
-        url: The full URL.
-        attempt: The number of the attempt which just failed,
-            counting from ``1``.
-        attempts: The total number of attempts which will be made.
-        delay: The number of seconds before the next attempt.
-        reason: What went wrong.
+        attempt: The number of the attempt which just failed.
+        exception: The transient exception from that attempt.
+
+    Returns:
+        The delay in seconds.
     """
-    _LOGGER.warning(
-        "Retrying %s %s in %.1fs after %s (attempt %d of %d).",
-        method,
-        url,
-        delay,
-        reason,
-        attempt,
-        attempts,
+    headers = (
+        exception.response.headers
+        if isinstance(exception, HackerRankError)
+        else None
     )
+    return delay_seconds(attempt=attempt, headers=headers)
+
+
+@beartype
+def _before_sleep(
+    *,
+    retry_state: RetryCallState,
+    files: MultipartFiles,
+) -> None:
+    """Rewind uploads and use Tenacity's standard retry logging.
+
+    Args:
+        retry_state: Tenacity's state after the failed attempt.
+        files: Multipart files to rewind.
+    """
+    _ = rewind_files(files=files)
+    _log_before_sleep(retry_state)
+
+
+@beartype
+def _attempts(*, retries: int, repeatable: bool, files: MultipartFiles) -> int:
+    """Return the number of request attempts which are safe to make.
+
+    Args:
+        retries: The number of retries requested by the caller.
+        repeatable: Whether repeating the API operation is safe.
+        files: Multipart files which may need to be sent again.
+
+    Returns:
+        One attempt for an unsafe operation or body, otherwise one plus the
+        requested number of retries.
+    """
+    if not repeatable or not _files_are_repeatable(files=files):
+        return 1
+    return max(1, 1 + retries)
+
+
+@beartype
+def request_with_retries(
+    *,
+    request: Request,
+    retries: int,
+    repeatable: bool,
+    files: MultipartFiles,
+) -> TransportResponse:
+    """Run a synchronous request under the shared retry policy.
+
+    Args:
+        request: The zero-argument request operation.
+        retries: The number of retries requested by the caller.
+        repeatable: Whether repeating the API operation is safe.
+        files: Multipart files which may need to be sent again.
+
+    Returns:
+        The successful response.
+    """
+    attempts = _attempts(
+        retries=retries,
+        repeatable=repeatable,
+        files=files,
+    )
+    attempt = 0
+
+    def _wait(exception: BaseException) -> float:
+        """Calculate the delay after the current attempt."""
+        return _wait_seconds(attempt=attempt, exception=exception)
+
+    @retry(
+        sleep=time.sleep,
+        stop=stop_after_attempt(max_attempt_number=attempts),
+        wait=wait_exception(predicate=_wait),
+        retry=retry_if_exception(predicate=_is_retryable),
+        before_sleep=lambda state: _before_sleep(
+            retry_state=state,
+            files=files,
+        ),
+        reraise=True,
+    )
+    def _send() -> TransportResponse:
+        """Send once, representing a transient response as an error."""
+        nonlocal attempt
+        attempt += 1
+        response = request()
+        if response.status_code >= HTTPStatus.MULTIPLE_CHOICES:
+            raise HackerRankError.from_response(response=response)
+        return response
+
+    return _send()
+
+
+@beartype
+async def async_request_with_retries(
+    *,
+    request: AsyncRequest,
+    retries: int,
+    repeatable: bool,
+    files: MultipartFiles,
+) -> TransportResponse:
+    """Run an asynchronous request under the shared retry policy.
+
+    Args:
+        request: The zero-argument async request operation.
+        retries: The number of retries requested by the caller.
+        repeatable: Whether repeating the API operation is safe.
+        files: Multipart files which may need to be sent again.
+
+    Returns:
+        The successful response.
+    """
+    attempts = _attempts(
+        retries=retries,
+        repeatable=repeatable,
+        files=files,
+    )
+    attempt = 0
+
+    def _wait(exception: BaseException) -> float:
+        """Calculate the delay after the current attempt."""
+        return _wait_seconds(attempt=attempt, exception=exception)
+
+    @retry(
+        sleep=asyncio.sleep,
+        stop=stop_after_attempt(max_attempt_number=attempts),
+        wait=wait_exception(predicate=_wait),
+        retry=retry_if_exception(predicate=_is_retryable),
+        before_sleep=lambda state: _before_sleep(
+            retry_state=state,
+            files=files,
+        ),
+        reraise=True,
+    )
+    async def _send() -> TransportResponse:
+        """Send once, representing a transient response as an error."""
+        nonlocal attempt
+        attempt += 1
+        response = await request()
+        if response.status_code >= HTTPStatus.MULTIPLE_CHOICES:
+            raise HackerRankError.from_response(response=response)
+        return response
+
+    return await _send()
