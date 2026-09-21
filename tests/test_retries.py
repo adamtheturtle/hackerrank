@@ -682,6 +682,22 @@ class TestAsyncRetries:
 
     @staticmethod
     @pytest.mark.asyncio
+    async def test_non_transient_status_is_not_repeated() -> None:
+        """An async request error which cannot improve is raised once."""
+        transport = _AsyncScriptedTransport(
+            script=[_error(status_code=HTTPStatus.BAD_REQUEST)],
+        )
+        client = AsyncHackerRank(
+            api_key="key",
+            transport=transport,
+            retries=3,
+        )
+        with pytest.raises(expected_exception=HackerRankError):
+            await client.tests.list()
+        assert transport.methods == ["GET"]
+
+    @staticmethod
+    @pytest.mark.asyncio
     async def test_repeatable_request_is_retried(
         sleeps: list[float],
     ) -> None:
