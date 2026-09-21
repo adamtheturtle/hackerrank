@@ -135,6 +135,12 @@ def _retry_after_seconds(*, headers: Mapping[str, str]) -> float | None:
 def delay_seconds(*, attempt: int, headers: Mapping[str, str] | None) -> float:
     """The delay before the next attempt.
 
+    pre: attempt >= 1
+    post[]:
+        _ >= 0.0
+        headers is None or _retry_after_seconds(headers=headers) is None or _ == _retry_after_seconds(headers=headers)
+        (headers is not None and _retry_after_seconds(headers=headers) is not None) or _ == BACKOFF_BASE_SECONDS * 2.0 ** (attempt - 1)
+
     Args:
         attempt: The number of the attempt which just failed,
             counting from ``1``.
