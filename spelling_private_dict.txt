@@ -60,6 +60,7 @@ noqa
 params
 pluggable
 plugins
+pre
 pragma
 py
 pyrefly
