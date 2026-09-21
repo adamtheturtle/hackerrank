@@ -60,8 +60,8 @@ noqa
 params
 pluggable
 plugins
-pre
 pragma
+pre
 py
 pyrefly
 pyright
