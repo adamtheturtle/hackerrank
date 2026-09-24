@@ -109,7 +109,7 @@ class Transport(Protocol):
             A ``TransportResponse`` populated from the HTTP
             response.
         """
-        ...  # pylint: disable=unnecessary-ellipsis
+        ...
 
 
 @beartype(conf=BeartypeConf(is_pep484_tower=True))
@@ -306,7 +306,7 @@ class AsyncTransport(Protocol):
             A ``TransportResponse`` populated from the HTTP
             response.
         """
-        ...  # pylint: disable=unnecessary-ellipsis
+        ...
 
 
 @beartype(conf=BeartypeConf(is_pep484_tower=True))
