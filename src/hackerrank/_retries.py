@@ -71,11 +71,11 @@ class _SeekableStream(Protocol):
 
     def seek(self, offset: int, _whence: int, /) -> int:
         """Move to a byte offset in the stream."""
-        ...  # pylint: disable=unnecessary-ellipsis
+        ...
 
     def seekable(self) -> bool:
         """Return whether the stream supports seeking."""
-        ...  # pylint: disable=unnecessary-ellipsis
+        ...
 
 
 type Request = Callable[[], TransportResponse]
