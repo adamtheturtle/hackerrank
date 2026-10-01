@@ -1,7 +1,9 @@
 """Async HackerRank for Work API client."""
 
+import asyncio
 import builtins
 from collections.abc import Mapping, Sequence
+from pathlib import Path
 from types import TracebackType
 from typing import BinaryIO, Self
 
@@ -27,6 +29,7 @@ from hackerrank._dict_types import (
     UserDict,
     UserTeamMembershipDict,
 )
+from hackerrank._project_archive import project_archive
 from hackerrank._request_types import MultipartFiles
 from hackerrank._responses import (
     environment_response,
@@ -1282,6 +1285,37 @@ class AsyncQuestionsNamespace(_AsyncNamespace):
                 data=response_data(response.json(), QuestionDict)
             )
         return None
+
+    async def upload_project_directory(
+        self,
+        *,
+        question_id: str,
+        directory: Path,
+    ) -> dict[str, JSONValue]:
+        """Upload a prepared project directory for a fullstack question.
+
+        File operations and compression run in a worker thread.
+
+        Safe to retry: uploading again replaces the project archive.
+
+        Args:
+            question_id: The id of the question.
+            directory: Directory containing the files to upload. All files,
+                including hidden files, are included with relative paths.
+                Prepare a staging directory to filter or transform files.
+
+        Returns:
+            The raw API response, including ``file_url`` and ``file_path``.
+
+        Raises:
+            NotADirectoryError: If the directory does not exist or is a file.
+            ValueError: If the directory contains a symbolic link.
+        """
+        archive = await asyncio.to_thread(project_archive, directory=directory)
+        return await self.upload_project_zip(
+            question_id=question_id,
+            file=archive,
+        )
 
     async def upload_project_zip(
         self,

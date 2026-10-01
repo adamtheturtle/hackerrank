@@ -29,6 +29,50 @@ Generate an API token from the `HackerRank for Work tokens page`_ and pass it to
    interview = client.interviews.create(title="My Interview")
    _ = sys.stdout.write(interview.url)
 
+Project directory uploads
+-------------------------
+
+Use ``client.questions.upload_project_directory(question_id=..., directory=Path(...))`` to upload a prepared directory for a fullstack question.
+The client includes every file, including hidden files, with its relative path and original bytes.
+It builds a ZIP in memory and delegates to ``upload_project_zip``, preserving the API response and retry behavior.
+No temporary archive is created.
+The asynchronous method performs file operations and compression in a worker thread.
+Missing directories and regular files raise :class:`NotADirectoryError`.
+Symbolic links within the directory raise :class:`ValueError`.
+An empty directory produces an empty ZIP.
+
+Filtering and transformations belong in the caller.
+Use :func:`shutil.copytree` with an ``ignore`` callback and :class:`tempfile.TemporaryDirectory` to prepare and clean up a staging directory.
+Already-prepared directories can be uploaded directly without copying.
+
+.. code-block:: python
+
+   """Filter a directory, then upload the staged files."""
+
+   from pathlib import Path
+   from shutil import copytree, ignore_patterns
+   from tempfile import TemporaryDirectory
+
+   from hackerrank.client import HackerRank
+
+   with TemporaryDirectory() as temporary:
+       source = Path(temporary) / "source"
+       source.mkdir()
+       _ = (source / "main.py").write_text(
+           data="print('Hello')\n", encoding="utf-8"
+       )
+       directory = Path(
+           copytree(
+               src=source,
+               dst=Path(temporary) / "upload",
+               ignore=ignore_patterns("node_modules", "__pycache__", "*.pyc"),
+           )
+       )
+       with HackerRank(api_key="your-api-key") as client:
+           _response = client.questions.upload_project_directory(
+               question_id="q1", directory=directory
+           )
+
 HTTPX2 transports
 -----------------
 
