@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pytest
 import respx
 from openapi_mock import add_openapi_to_respx
 from pydantic import TypeAdapter, ValidationError
+from pyprojroot import find_root, has_file
 
 if TYPE_CHECKING:
     from collections.abc import Generator
@@ -192,19 +194,19 @@ def _prepare_openapi_spec(
 
 
 @pytest.fixture(name="mock_hackerrank_api")
-def fixture_mock_hackerrank_api(
-    request: pytest.FixtureRequest,
-) -> Generator[respx.MockRouter]:
+def fixture_mock_hackerrank_api() -> Generator[respx.MockRouter]:
     """Provide a respx mock router backed by the OpenAPI spec.
-
-    Args:
-        request: The pytest request, used to locate the
-            ``openapi.json`` file in the project root.
 
     Yields:
         The configured respx mock router.
     """
-    openapi_spec_path = request.config.rootpath / "openapi.json"
+    openapi_spec_path = (
+        find_root(
+            criterion=has_file(file="pyproject.toml"),
+            start=Path(__file__).resolve(),
+        )
+        / "openapi.json"
+    )
     spec_text = openapi_spec_path.read_text(encoding="utf-8")
     openapi_spec = TypeAdapter(type=dict[str, _JSONValue]).validate_json(
         spec_text,
