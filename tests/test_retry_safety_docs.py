@@ -101,72 +101,68 @@ def _side_effecting(*, module: Path) -> dict[str, tuple[bool, str | None]]:
     return found
 
 
-class TestNoteOf:
-    """Tests for reading the note out of a docstring."""
-
-    @staticmethod
-    def test_finds_the_paragraph() -> None:
-        """The paragraph is returned joined onto one line."""
-        docstring = (
-            "Archive a test.\n"
-            "\n"
-            "Safe to retry: an archived test\n"
-            "stays archived.\n"
-            "\n"
-            "Args:\n"
-            "    test_id: The id of the test.\n"
-        )
-        note = _note_of(docstring=docstring)
-        assert note == "Safe to retry: an archived test stays archived."
-
-    @staticmethod
-    def test_no_note() -> None:
-        """A docstring without a note reads as ``None``."""
-        assert _note_of(docstring="List the tests.\n") is None
+# Tests for reading the note out of a docstring.
 
 
-class TestRetrySafetyIsDocumented:
-    """Tests for the retry-safety note on each side-effecting method."""
+def test_finds_the_paragraph() -> None:
+    """The paragraph is returned joined onto one line."""
+    docstring = (
+        "Archive a test.\n"
+        "\n"
+        "Safe to retry: an archived test\n"
+        "stays archived.\n"
+        "\n"
+        "Args:\n"
+        "    test_id: The id of the test.\n"
+    )
+    note = _note_of(docstring=docstring)
+    assert note == "Safe to retry: an archived test stays archived."
 
-    @staticmethod
-    def test_every_method_says_whether_it_is_safe() -> None:
-        """Each side-effecting method's docstring answers the question."""
-        documented = {
-            f"{module.stem}:{key}": note is not None
-            for module in _MODULES
-            for key, (_, note) in _side_effecting(module=module).items()
-        }
-        assert documented == dict.fromkeys(documented, True)
 
-    @staticmethod
-    def test_the_note_matches_the_repeatable_argument() -> None:
-        """The prose and the ``repeatable`` argument agree.
+def test_no_note() -> None:
+    """A docstring without a note reads as ``None``."""
+    assert _note_of(docstring="List the tests.\n") is None
 
-        A method documented as safe to retry is one the library will
-        retry when ``retries`` is set, and the other way around.
-        """
-        said = {}
-        marked = {}
-        for module in _MODULES:
-            for key, (repeatable, note) in _side_effecting(
-                module=module,
-            ).items():
-                note_text = note if note is not None else ""
-                said[f"{module.stem}:{key}"] = not note_text.startswith(
-                    _UNSAFE,
-                )
-                marked[f"{module.stem}:{key}"] = repeatable
-        assert said == marked
 
-    @staticmethod
-    def test_the_sync_and_async_notes_match() -> None:
-        """A call is documented the same way in both clients."""
-        sync = {
-            key: note
-            for key, (_, note) in _side_effecting(module=_SYNC).items()
-        }
-        asynchronous = {
-            key: note
-            for key, (_, note) in _side_effecting(module=_ASYNC).items()
-        }
-        assert sync == asynchronous
+# Tests for the retry-safety note on each side-effecting method.
+
+
+def test_every_method_says_whether_it_is_safe() -> None:
+    """Each side-effecting method's docstring answers the question."""
+    documented = {
+        f"{module.stem}:{key}": note is not None
+        for module in _MODULES
+        for key, (_, note) in _side_effecting(module=module).items()
+    }
+    assert documented == dict.fromkeys(documented, True)
+
+
+def test_the_note_matches_the_repeatable_argument() -> None:
+    """The prose and the ``repeatable`` argument agree.
+
+    A method documented as safe to retry is one the library will
+    retry when ``retries`` is set, and the other way around.
+    """
+    said = {}
+    marked = {}
+    for module in _MODULES:
+        for key, (repeatable, note) in _side_effecting(
+            module=module,
+        ).items():
+            note_text = note if note is not None else ""
+            said[f"{module.stem}:{key}"] = not note_text.startswith(
+                _UNSAFE,
+            )
+            marked[f"{module.stem}:{key}"] = repeatable
+    assert said == marked
+
+
+def test_the_sync_and_async_notes_match() -> None:
+    """A call is documented the same way in both clients."""
+    sync = {
+        key: note for key, (_, note) in _side_effecting(module=_SYNC).items()
+    }
+    asynchronous = {
+        key: note for key, (_, note) in _side_effecting(module=_ASYNC).items()
+    }
+    assert sync == asynchronous

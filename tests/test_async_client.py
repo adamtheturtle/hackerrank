@@ -20,276 +20,233 @@ from hackerrank.transports import (
 )
 from hackerrank.types import JSONValue
 
-
-class TestAsyncHackerRank:
-    """Tests for ``AsyncHackerRank``."""
-
-    @staticmethod
-    def test_default_base_url() -> None:
-        """The default base URL is the HackerRank app."""
-        client = AsyncHackerRank(api_key="test-key")
-        assert client.base_url == "https://www.hackerrank.com"
-
-    @staticmethod
-    def test_default_scim_base_url() -> None:
-        """SCIM uses its own host, distinct from the v3 base URL."""
-        client = AsyncHackerRank(api_key="test-key")
-        assert (
-            client.scim_base_url == "https://services.hackerrank.com/scim/v2"
-        )
-        assert client.scim.base_url == client.scim_base_url
-
-    @staticmethod
-    def test_custom_scim_base_url() -> None:
-        """A custom SCIM base URL can be provided."""
-        client = AsyncHackerRank(
-            api_key="test-key",
-            scim_base_url="https://scim.example.com/v2",
-        )
-        assert client.scim_base_url == "https://scim.example.com/v2"
-        assert client.scim.base_url == "https://scim.example.com/v2"
-
-    @staticmethod
-    def test_trailing_slash_base_urls_are_normalized() -> None:
-        """Trailing slashes are stripped from custom base URLs."""
-        client = AsyncHackerRank(
-            api_key="test-key",
-            base_url="https://custom.example.com/",
-            scim_base_url="https://scim.example.com/v2/",
-        )
-        assert client.base_url == "https://custom.example.com"
-        assert client.users.base_url == "https://custom.example.com"
-        assert client.scim_base_url == "https://scim.example.com/v2"
-        assert client.scim.base_url == "https://scim.example.com/v2"
-
-    @staticmethod
-    @pytest.mark.asyncio
-    async def test_falsy_transport_is_preserved() -> None:
-        """A falsy custom transport is not replaced by the default."""
-
-        class _FalsyTransport:
-            """A transport whose ``__bool__`` returns ``False``."""
-
-            def __bool__(self) -> bool:
-                """Report as falsy."""
-                return False
-
-            async def __call__(
-                self,
-                *,
-                method: str,
-                url: str,
-                headers: dict[str, str],
-                params: dict[str, str | int] | None,
-                json: Mapping[str, JSONValue] | None,
-                files: MultipartFiles,
-            ) -> TransportResponse:
-                """Make a request."""
-                del method, url, headers, params, json, files
-                return TransportResponse(
-                    status_code=HTTPStatus.OK,
-                    headers={},
-                    content=b'{"data": [], "total": 0}',
-                )
-
-        transport = _FalsyTransport()
-        assert not bool(transport)
-        client = AsyncHackerRank(api_key="test-key", transport=transport)
-        assert client.users.transport is transport
-
-        assert (await client.users.list()).total == 0
-
-    @staticmethod
-    def test_namespaces_are_attached() -> None:
-        """The async client exposes the expected namespaces."""
-        client = AsyncHackerRank(api_key="test-key")
-        assert isinstance(
-            client.interviews,
-            async_client_module.AsyncInterviewsNamespace,
-        )
-        assert isinstance(
-            client.interview_templates,
-            async_client_module.AsyncInterviewTemplatesNamespace,
-        )
-        assert isinstance(
-            client.environments,
-            async_client_module.AsyncEnvironmentsNamespace,
-        )
-        assert isinstance(
-            client.questions,
-            async_client_module.AsyncQuestionsNamespace,
-        )
-        assert isinstance(
-            client.tests,
-            async_client_module.AsyncTestsNamespace,
-        )
-        assert isinstance(
-            client.tests.candidates,
-            async_client_module.AsyncTestCandidatesNamespace,
-        )
-        assert isinstance(
-            client.templates,
-            async_client_module.AsyncTemplatesNamespace,
-        )
-        assert isinstance(
-            client.candidates,
-            async_client_module.AsyncCandidatesNamespace,
-        )
-        assert isinstance(
-            client.users,
-            async_client_module.AsyncUsersNamespace,
-        )
-        assert isinstance(
-            client.teams,
-            async_client_module.AsyncTeamsNamespace,
-        )
-        assert isinstance(
-            client.teams.memberships,
-            async_client_module.AsyncTeamMembershipsNamespace,
-        )
-        assert isinstance(
-            client.audit_logs,
-            async_client_module.AsyncAuditLogsNamespace,
-        )
-        assert isinstance(client.ats, async_client_module.AsyncATSNamespace)
-        assert isinstance(
-            client.ats.codepair,
-            async_client_module.AsyncATSCodePairNamespace,
-        )
-        assert isinstance(
-            client.ats.codescreen,
-            async_client_module.AsyncATSCodeScreenNamespace,
-        )
-        assert isinstance(client.scim, async_client_module.AsyncSCIMNamespace)
-        assert isinstance(
-            client.scim.users,
-            async_client_module.AsyncSCIMUsersNamespace,
-        )
-        assert isinstance(
-            client.scim.groups,
-            async_client_module.AsyncSCIMGroupsNamespace,
-        )
-
-    @staticmethod
-    @pytest.mark.asyncio
-    async def test_async_context_manager() -> None:
-        """The async client can be used as a context manager."""
-        async with AsyncHackerRank(api_key="test-key") as client:
-            assert isinstance(client, AsyncHackerRank)
-
-    @staticmethod
-    @pytest.mark.asyncio
-    async def test_aclose() -> None:
-        """The async client can be closed."""
-        client = AsyncHackerRank(api_key="test-key")
-        await client.aclose()
+# Tests for ``AsyncHackerRank``.
 
 
-class TestAsyncListEndpoints:
-    """Async list endpoint smoke tests."""
-
-    @staticmethod
-    @pytest.mark.asyncio
-    async def test_list_tests(
-        async_hackerrank_client: AsyncHackerRank,
-    ) -> None:
-        """The async tests list endpoint returns a page."""
-        try:
-            result = await async_hackerrank_client.tests.list()
-        finally:
-            await async_hackerrank_client.aclose()
-        assert result.total >= 0
-
-    @staticmethod
-    @pytest.mark.asyncio
-    async def test_list_users(
-        async_hackerrank_client: AsyncHackerRank,
-    ) -> None:
-        """The async users list endpoint returns a page."""
-        try:
-            result = await async_hackerrank_client.users.list()
-        finally:
-            await async_hackerrank_client.aclose()
-        assert result.total >= 0
+def test_default_base_url() -> None:
+    """The default base URL is the HackerRank app."""
+    client = AsyncHackerRank(api_key="test-key")
+    assert client.base_url == "https://www.hackerrank.com"
 
 
-class TestAsyncHTTPXTransport:
-    """Tests for ``AsyncHTTPXTransport``."""
+def test_default_scim_base_url() -> None:
+    """SCIM uses its own host, distinct from the v3 base URL."""
+    client = AsyncHackerRank(api_key="test-key")
+    assert client.scim_base_url == "https://services.hackerrank.com/scim/v2"
+    assert client.scim.base_url == client.scim_base_url
 
-    @staticmethod
-    @pytest.mark.asyncio
-    @pytest.mark.parametrize(
-        argnames=("configured_timeout", "expected"),
-        argvalues=[
-            (None, httpx.Timeout(timeout=DEFAULT_TIMEOUT_SECONDS)),
-            (120.0, httpx.Timeout(timeout=120.0)),
-            (120, httpx.Timeout(timeout=120.0)),
-            (
-                httpx.Timeout(timeout=5.0, read=300.0),
-                httpx.Timeout(timeout=5.0, read=300.0),
-            ),
-        ],
+
+def test_custom_scim_base_url() -> None:
+    """A custom SCIM base URL can be provided."""
+    client = AsyncHackerRank(
+        api_key="test-key",
+        scim_base_url="https://scim.example.com/v2",
     )
-    async def test_timeout(
-        configured_timeout: object,
-        expected: httpx.Timeout,
-    ) -> None:
-        """The configured timeout reaches the outgoing request.
+    assert client.scim_base_url == "https://scim.example.com/v2"
+    assert client.scim.base_url == "https://scim.example.com/v2"
 
-        Args:
-            configured_timeout: The timeout to give to the
-                transport, or ``None`` to leave it at its default.
-            expected: The timeout expected on the request.
-        """
-        if configured_timeout is None:
-            transport = AsyncHTTPXTransport()
-        else:
-            assert isinstance(configured_timeout, (httpx.Timeout, float, int))
-            transport = AsyncHTTPXTransport(timeout=configured_timeout)
-        url = "https://timeout.example.com/thing"
-        with respx.mock:
-            route = respx.get(url=url).mock(
-                return_value=httpx.Response(status_code=200, json={}),
+
+def test_trailing_slash_base_urls_are_normalized() -> None:
+    """Trailing slashes are stripped from custom base URLs."""
+    client = AsyncHackerRank(
+        api_key="test-key",
+        base_url="https://custom.example.com/",
+        scim_base_url="https://scim.example.com/v2/",
+    )
+    assert client.base_url == "https://custom.example.com"
+    assert client.users.base_url == "https://custom.example.com"
+    assert client.scim_base_url == "https://scim.example.com/v2"
+    assert client.scim.base_url == "https://scim.example.com/v2"
+
+
+@pytest.mark.asyncio
+async def test_falsy_transport_is_preserved() -> None:
+    """A falsy custom transport is not replaced by the default."""
+
+    class _FalsyTransport:
+        """A transport whose ``__bool__`` returns ``False``."""
+
+        def __bool__(self) -> bool:
+            """Report as falsy."""
+            return False
+
+        async def __call__(
+            self,
+            *,
+            method: str,
+            url: str,
+            headers: dict[str, str],
+            params: dict[str, str | int] | None,
+            json: Mapping[str, JSONValue] | None,
+            files: MultipartFiles,
+        ) -> TransportResponse:
+            """Make a request."""
+            del method, url, headers, params, json, files
+            return TransportResponse(
+                status_code=HTTPStatus.OK,
+                headers={},
+                content=b'{"data": [], "total": 0}',
             )
-            try:
-                await transport(
-                    method="GET",
-                    url=url,
-                    headers={},
-                    params=None,
-                    json=None,
-                    files=None,
-                )
-            finally:
-                await transport.aclose()
-        request = route.calls.last.request
-        assert request.extensions["timeout"] == expected.as_dict()
+
+    transport = _FalsyTransport()
+    assert not bool(transport)
+    client = AsyncHackerRank(api_key="test-key", transport=transport)
+    assert client.users.transport is transport
+
+    assert (await client.users.list()).total == 0
 
 
-class TestAsyncHTTPX2Transport:
-    """Tests for ``AsyncHTTPX2Transport``."""
+def test_namespaces_are_attached() -> None:
+    """The async client exposes the expected namespaces."""
+    client = AsyncHackerRank(api_key="test-key")
+    assert isinstance(
+        client.interviews,
+        async_client_module.AsyncInterviewsNamespace,
+    )
+    assert isinstance(
+        client.interview_templates,
+        async_client_module.AsyncInterviewTemplatesNamespace,
+    )
+    assert isinstance(
+        client.environments,
+        async_client_module.AsyncEnvironmentsNamespace,
+    )
+    assert isinstance(
+        client.questions,
+        async_client_module.AsyncQuestionsNamespace,
+    )
+    assert isinstance(
+        client.tests,
+        async_client_module.AsyncTestsNamespace,
+    )
+    assert isinstance(
+        client.tests.candidates,
+        async_client_module.AsyncTestCandidatesNamespace,
+    )
+    assert isinstance(
+        client.templates,
+        async_client_module.AsyncTemplatesNamespace,
+    )
+    assert isinstance(
+        client.candidates,
+        async_client_module.AsyncCandidatesNamespace,
+    )
+    assert isinstance(
+        client.users,
+        async_client_module.AsyncUsersNamespace,
+    )
+    assert isinstance(
+        client.teams,
+        async_client_module.AsyncTeamsNamespace,
+    )
+    assert isinstance(
+        client.teams.memberships,
+        async_client_module.AsyncTeamMembershipsNamespace,
+    )
+    assert isinstance(
+        client.audit_logs,
+        async_client_module.AsyncAuditLogsNamespace,
+    )
+    assert isinstance(client.ats, async_client_module.AsyncATSNamespace)
+    assert isinstance(
+        client.ats.codepair,
+        async_client_module.AsyncATSCodePairNamespace,
+    )
+    assert isinstance(
+        client.ats.codescreen,
+        async_client_module.AsyncATSCodeScreenNamespace,
+    )
+    assert isinstance(client.scim, async_client_module.AsyncSCIMNamespace)
+    assert isinstance(
+        client.scim.users,
+        async_client_module.AsyncSCIMUsersNamespace,
+    )
+    assert isinstance(
+        client.scim.groups,
+        async_client_module.AsyncSCIMGroupsNamespace,
+    )
 
-    @staticmethod
-    @pytest.mark.asyncio
-    async def test_is_async_transport() -> None:
-        """AsyncHTTPX2Transport satisfies the AsyncTransport protocol."""
-        async with AsyncHTTPX2Transport() as transport:
-            assert isinstance(transport, AsyncTransport)
 
-    @staticmethod
-    @pytest.mark.asyncio
-    async def test_timeout_and_response(httpx2_mock: respx.Router) -> None:
-        """A native async HTTPX2 request produces a transport response."""
-        timeout = httpx2.Timeout(timeout=12.5)
-        url = "https://api.example/x/api/v3/tests"
-        route = httpx2_mock.get(url=url).respond(
-            status_code=HTTPStatus.OK,
-            headers={"X-Family": "httpx2"},
-            content=b'{"data": []}',
+@pytest.mark.asyncio
+async def test_async_context_manager() -> None:
+    """The async client can be used as a context manager."""
+    async with AsyncHackerRank(api_key="test-key") as client:
+        assert isinstance(client, AsyncHackerRank)
+
+
+@pytest.mark.asyncio
+async def test_aclose() -> None:
+    """The async client can be closed."""
+    client = AsyncHackerRank(api_key="test-key")
+    await client.aclose()
+
+
+# Async list endpoint smoke tests.
+
+
+@pytest.mark.asyncio
+async def test_list_tests(
+    async_hackerrank_client: AsyncHackerRank,
+) -> None:
+    """The async tests list endpoint returns a page."""
+    try:
+        result = await async_hackerrank_client.tests.list()
+    finally:
+        await async_hackerrank_client.aclose()
+    assert result.total >= 0
+
+
+@pytest.mark.asyncio
+async def test_list_users(
+    async_hackerrank_client: AsyncHackerRank,
+) -> None:
+    """The async users list endpoint returns a page."""
+    try:
+        result = await async_hackerrank_client.users.list()
+    finally:
+        await async_hackerrank_client.aclose()
+    assert result.total >= 0
+
+
+# Tests for ``AsyncHTTPXTransport``.
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    argnames=("configured_timeout", "expected"),
+    argvalues=[
+        (None, httpx.Timeout(timeout=DEFAULT_TIMEOUT_SECONDS)),
+        (120.0, httpx.Timeout(timeout=120.0)),
+        (120, httpx.Timeout(timeout=120.0)),
+        (
+            httpx.Timeout(timeout=5.0, read=300.0),
+            httpx.Timeout(timeout=5.0, read=300.0),
+        ),
+    ],
+)
+async def test_timeout(
+    configured_timeout: object,
+    expected: httpx.Timeout,
+) -> None:
+    """The configured timeout reaches the outgoing request.
+
+    Args:
+        configured_timeout: The timeout to give to the
+            transport, or ``None`` to leave it at its default.
+        expected: The timeout expected on the request.
+    """
+    if configured_timeout is None:
+        transport = AsyncHTTPXTransport()
+    else:
+        assert isinstance(configured_timeout, (httpx.Timeout, float, int))
+        transport = AsyncHTTPXTransport(timeout=configured_timeout)
+    url = "https://timeout.example.com/thing"
+    with respx.mock:
+        route = respx.get(url=url).mock(
+            return_value=httpx.Response(status_code=200, json={}),
         )
-
-        async with AsyncHTTPX2Transport(timeout=timeout) as transport:
-            response = await transport(
+        try:
+            await transport(
                 method="GET",
                 url=url,
                 headers={},
@@ -297,38 +254,74 @@ class TestAsyncHTTPX2Transport:
                 json=None,
                 files=None,
             )
+        finally:
+            await transport.aclose()
+    request = route.calls.last.request
+    assert request.extensions["timeout"] == expected.as_dict()
 
-        assert response.status_code == HTTPStatus.OK
-        assert response.headers["x-family"] == "httpx2"
-        assert response.json() == {"data": []}
-        assert route.calls.last.request.extensions["timeout"] == (
-            timeout.as_dict()
+
+# Tests for ``AsyncHTTPX2Transport``.
+
+
+@pytest.mark.asyncio
+async def test_is_async_transport() -> None:
+    """AsyncHTTPX2Transport satisfies the AsyncTransport protocol."""
+    async with AsyncHTTPX2Transport() as transport:
+        assert isinstance(transport, AsyncTransport)
+
+
+@pytest.mark.asyncio
+async def test_timeout_and_response(httpx2_mock: respx.Router) -> None:
+    """A native async HTTPX2 request produces a transport response."""
+    timeout = httpx2.Timeout(timeout=12.5)
+    url = "https://api.example/x/api/v3/tests"
+    route = httpx2_mock.get(url=url).respond(
+        status_code=HTTPStatus.OK,
+        headers={"X-Family": "httpx2"},
+        content=b'{"data": []}',
+    )
+
+    async with AsyncHTTPX2Transport(timeout=timeout) as transport:
+        response = await transport(
+            method="GET",
+            url=url,
+            headers={},
+            params=None,
+            json=None,
+            files=None,
         )
 
-    @staticmethod
-    @pytest.mark.asyncio
-    async def test_hackerrank_uses_httpx2(
-        httpx2_mock: respx.Router,
-    ) -> None:
-        """AsyncHackerRank parses a response sent through HTTPX2."""
-        _ = httpx2_mock.get(
-            url="https://www.hackerrank.com/x/api/v3/tests"
-        ).respond(
-            status_code=HTTPStatus.OK,
-            json={
-                "data": [],
-                "page_total": 0,
-                "offset": 0,
-                "previous": "",
-                "next": "",
-                "first": "",
-                "last": "",
-                "total": 0,
-            },
-        )
+    assert response.status_code == HTTPStatus.OK
+    assert response.headers["x-family"] == "httpx2"
+    assert response.json() == {"data": []}
+    assert route.calls.last.request.extensions["timeout"] == (
+        timeout.as_dict()
+    )
 
-        async with AsyncHackerRank(
-            api_key="test-key",
-            transport=AsyncHTTPX2Transport(),
-        ) as client:
-            assert (await client.tests.list()).total == 0
+
+@pytest.mark.asyncio
+async def test_hackerrank_uses_httpx2(
+    httpx2_mock: respx.Router,
+) -> None:
+    """AsyncHackerRank parses a response sent through HTTPX2."""
+    _ = httpx2_mock.get(
+        url="https://www.hackerrank.com/x/api/v3/tests"
+    ).respond(
+        status_code=HTTPStatus.OK,
+        json={
+            "data": [],
+            "page_total": 0,
+            "offset": 0,
+            "previous": "",
+            "next": "",
+            "first": "",
+            "last": "",
+            "total": 0,
+        },
+    )
+
+    async with AsyncHackerRank(
+        api_key="test-key",
+        transport=AsyncHTTPX2Transport(),
+    ) as client:
+        assert (await client.tests.list()).total == 0

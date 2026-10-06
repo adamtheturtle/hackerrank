@@ -47,338 +47,332 @@ _TEST_PAYLOAD = {
 }
 
 
-class TestSyncResponseShapes:
-    """Sync client parsing against documented live shapes."""
+# Sync client parsing against documented live shapes.
 
-    @staticmethod
-    def test_interview_create_accepts_object_interviewers() -> None:
-        """Interview create sends and parses object-form interviewers."""
-        requests: list[httpx.Request] = []
 
-        def interview_response(request: httpx.Request) -> httpx.Response:
-            """Record the request and return a live-shaped interview."""
-            requests.append(request)
-            return httpx.Response(status_code=201, json=_INTERVIEW_PAYLOAD)
+def test_interview_create_accepts_object_interviewers() -> None:
+    """Interview create sends and parses object-form interviewers."""
+    requests: list[httpx.Request] = []
 
-        with respx.mock(assert_all_called=True) as router:
-            _ = router.post(
-                url="https://www.hackerrank.com/x/api/v3/interviews",
-            ).mock(side_effect=interview_response)
-            with HackerRank(api_key="test-key") as client:
-                created = client.interviews.create(
-                    title="Example",
-                    interviewers=[
-                        {"email": "a@example.com", "name": "A"},
-                    ],
-                )
+    def interview_response(request: httpx.Request) -> httpx.Response:
+        """Record the request and return a live-shaped interview."""
+        requests.append(request)
+        return httpx.Response(status_code=201, json=_INTERVIEW_PAYLOAD)
 
-        assert json.loads(s=requests[0].content)["interviewers"] == [
-            {"email": "a@example.com", "name": "A"},
-        ]
-        assert created.interviewers is not None
-        assert isinstance(created.interviewers[0], Interviewer)
-        assert created.from_ == "2026-08-19T01:09:27+0000"
-        assert created.to == "2026-08-19T02:09:27+0000"
-        assert created.started_at == "2026-08-18T01:09:27+0000"
-        assert created.ai_assistant_available is True
-
-    @staticmethod
-    def test_interview_update_returns_interview() -> None:
-        """Interview update returns the documented InterviewShow body."""
-        with respx.mock(assert_all_called=True) as router:
-            _ = router.put(
-                url="https://www.hackerrank.com/x/api/v3/interviews/i",
-            ).mock(
-                return_value=httpx.Response(
-                    status_code=200,
-                    json=_INTERVIEW_PAYLOAD,
-                ),
+    with respx.mock(assert_all_called=True) as router:
+        _ = router.post(
+            url="https://www.hackerrank.com/x/api/v3/interviews",
+        ).mock(side_effect=interview_response)
+        with HackerRank(api_key="test-key") as client:
+            created = client.interviews.create(
+                title="Example",
+                interviewers=[
+                    {"email": "a@example.com", "name": "A"},
+                ],
             )
-            with HackerRank(api_key="test-key") as client:
-                updated = client.interviews.update(
-                    interview_id="i",
-                    title="Updated",
-                    from_="2024-01-01T00:00:00Z",
-                    to="2024-01-01T01:00:00Z",
-                    notes="n",
-                    resume_url="https://example.test/resume",
-                    result_url="https://example.test/result",
-                    candidate={"email": "c@example.com"},
-                    send_email=True,
-                    metadata={},
-                    interview_template_id=1,
-                )
 
-        assert isinstance(updated, Interview)
-        assert updated.id == "289187"
-        assert updated.title == "Interview"
+    assert json.loads(s=requests[0].content)["interviewers"] == [
+        {"email": "a@example.com", "name": "A"},
+    ]
+    assert created.interviewers is not None
+    assert isinstance(created.interviewers[0], Interviewer)
+    assert created.from_ == "2026-08-19T01:09:27+0000"
+    assert created.to == "2026-08-19T02:09:27+0000"
+    assert created.started_at == "2026-08-18T01:09:27+0000"
+    assert created.ai_assistant_available is True
 
-    @staticmethod
-    def test_test_create_accepts_object_candidate_details() -> None:
-        """Test create sends object-form candidate_details."""
-        requests: list[httpx.Request] = []
 
-        def test_response(request: httpx.Request) -> httpx.Response:
-            """Record the request and return a live-shaped test."""
-            requests.append(request)
-            return httpx.Response(status_code=201, json=_TEST_PAYLOAD)
-
-        with respx.mock(assert_all_called=True) as router:
-            _ = router.post(
-                url="https://www.hackerrank.com/x/api/v3/tests",
-            ).mock(side_effect=test_response)
-            with HackerRank(api_key="test-key") as client:
-                created = client.tests.create(
-                    name="Example",
-                    duration=60,
-                    role_ids=["role"],
-                    experience=["0-2 years"],
-                    candidate_details=[
-                        {"predefined_label": "full_name", "required": True},
-                    ],
-                )
-
-        assert json.loads(s=requests[0].content)["candidate_details"] == [
-            {"predefined_label": "full_name", "required": True},
-        ]
-        assert isinstance(created, Test)
-        assert created.sections == {"section-1": {"name": "Core"}}
-
-    @staticmethod
-    def test_candidate_invite_keeps_test_link_and_integer_id() -> None:
-        """Candidate invite returns test_link and integer id."""
-        with respx.mock(assert_all_called=True) as router:
-            _ = router.post(
-                url=("https://www.hackerrank.com/x/api/v3/tests/t/candidates"),
-            ).mock(
-                return_value=httpx.Response(
-                    status_code=200,
-                    json=_INVITE_PAYLOAD,
-                ),
+def test_interview_update_returns_interview() -> None:
+    """Interview update returns the documented InterviewShow body."""
+    with respx.mock(assert_all_called=True) as router:
+        _ = router.put(
+            url="https://www.hackerrank.com/x/api/v3/interviews/i",
+        ).mock(
+            return_value=httpx.Response(
+                status_code=200,
+                json=_INTERVIEW_PAYLOAD,
+            ),
+        )
+        with HackerRank(api_key="test-key") as client:
+            updated = client.interviews.update(
+                interview_id="i",
+                title="Updated",
+                from_="2024-01-01T00:00:00Z",
+                to="2024-01-01T01:00:00Z",
+                notes="n",
+                resume_url="https://example.test/resume",
+                result_url="https://example.test/result",
+                candidate={"email": "c@example.com"},
+                send_email=True,
+                metadata={},
+                interview_template_id=1,
             )
-            with HackerRank(api_key="test-key") as client:
-                invite = client.tests.candidates.invite(
-                    test_id="t",
-                    email="a@example.com",
-                )
 
-        assert isinstance(invite, CandidateInvite)
-        assert invite.test_link == "https://example.test/invite"
-        invite_id = 10000
-        assert invite.id == invite_id
-
-    @staticmethod
-    def test_candidate_update_returns_candidate() -> None:
-        """Candidate update returns the documented TestCandidateShow
-        body.
-        """
-        with respx.mock(assert_all_called=True) as router:
-            _ = router.put(
-                url=(
-                    "https://www.hackerrank.com/x/api/v3/tests/t/candidates/c"
-                ),
-            ).mock(
-                return_value=httpx.Response(
-                    status_code=200,
-                    json=_CANDIDATE_PAYLOAD,
-                ),
-            )
-            with HackerRank(api_key="test-key") as client:
-                updated = client.tests.candidates.update(
-                    test_id="t",
-                    candidate_id="c",
-                    full_name="Updated",
-                    ats_state=0,
-                    invite_valid_from="2024-01-01T00:00:00Z",
-                    invite_valid_to="2024-01-02T00:00:00Z",
-                    invite_metadata={},
-                    evaluator_email="e@example.com",
-                    test_finish_url="https://example.test/finish",
-                    test_result_url="https://example.test/result",
-                    webhook_authentication={},
-                    accept_result_updates=False,
-                    tags=["t"],
-                    accommodations={},
-                )
-
-        assert updated.full_name == "Updated"
-        assert updated.added_time == "30"
-
-    @staticmethod
-    def test_ats_invites_use_correct_response_models() -> None:
-        """ATS CodePair returns Interview; CodeScreen returns invite."""
-        with respx.mock(assert_all_called=True) as router:
-            _ = router.post(
-                url="https://www.hackerrank.com/x/api/v3/ats/codepair",
-            ).mock(
-                return_value=httpx.Response(
-                    status_code=200,
-                    json=_INTERVIEW_PAYLOAD,
-                ),
-            )
-            _ = router.post(
-                url="https://www.hackerrank.com/x/api/v3/ats/codescreen",
-            ).mock(
-                return_value=httpx.Response(
-                    status_code=200,
-                    json=_INVITE_PAYLOAD,
-                ),
-            )
-            with HackerRank(api_key="test-key") as client:
-                codepair = client.ats.codepair.invite(
-                    title="Interview",
-                    requisition_id="req-1",
-                    candidate_id="cand-1",
-                )
-                codescreen = client.ats.codescreen.invite(
-                    test_id="t",
-                    email="a@example.com",
-                    requisition_id="req-1",
-                    candidate_id="cand-1",
-                )
-
-        assert isinstance(codepair, Interview)
-        assert codepair.id == "289187"
-        assert codepair.url == "https://example.test/interview"
-        assert isinstance(codescreen, CandidateInvite)
-        assert codescreen.test_link == "https://example.test/invite"
+    assert isinstance(updated, Interview)
+    assert updated.id == "289187"
+    assert updated.title == "Interview"
 
 
-class TestAsyncResponseShapes:
-    """Async client parsing against documented live shapes."""
+def test_test_create_accepts_object_candidate_details() -> None:
+    """Test create sends object-form candidate_details."""
+    requests: list[httpx.Request] = []
 
-    @staticmethod
-    @pytest.mark.asyncio
-    async def test_async_interview_and_invite_shapes() -> None:
-        """Async create/update/invite paths match sync response models."""
-        with respx.mock(assert_all_called=True) as router:
-            _ = router.post(
-                url="https://www.hackerrank.com/x/api/v3/interviews",
-            ).mock(
-                return_value=httpx.Response(
-                    status_code=201,
-                    json=_INTERVIEW_PAYLOAD,
-                ),
-            )
-            _ = router.put(
-                url="https://www.hackerrank.com/x/api/v3/interviews/i",
-            ).mock(
-                return_value=httpx.Response(
-                    status_code=200,
-                    json=_INTERVIEW_PAYLOAD,
-                ),
-            )
-            _ = router.post(
-                url=("https://www.hackerrank.com/x/api/v3/tests/t/candidates"),
-            ).mock(
-                return_value=httpx.Response(
-                    status_code=200,
-                    json=_INVITE_PAYLOAD,
-                ),
-            )
-            _ = router.put(
-                url=(
-                    "https://www.hackerrank.com/x/api/v3/tests/t/candidates/c"
-                ),
-            ).mock(
-                return_value=httpx.Response(
-                    status_code=200,
-                    json=_CANDIDATE_PAYLOAD,
-                ),
-            )
-            _ = router.post(
-                url="https://www.hackerrank.com/x/api/v3/tests",
-            ).mock(
-                return_value=httpx.Response(
-                    status_code=201,
-                    json=_TEST_PAYLOAD,
-                ),
-            )
-            _ = router.post(
-                url="https://www.hackerrank.com/x/api/v3/ats/codepair",
-            ).mock(
-                return_value=httpx.Response(
-                    status_code=200,
-                    json=_INTERVIEW_PAYLOAD,
-                ),
-            )
-            _ = router.post(
-                url="https://www.hackerrank.com/x/api/v3/ats/codescreen",
-            ).mock(
-                return_value=httpx.Response(
-                    status_code=200,
-                    json=_INVITE_PAYLOAD,
-                ),
-            )
-            async with AsyncHackerRank(api_key="test-key") as client:
-                created = await client.interviews.create(
-                    title="Example",
-                    interviewers=[
-                        {"email": "a@example.com", "name": "A"},
-                    ],
-                )
-                updated = await client.interviews.update(
-                    interview_id="i",
-                    title="Updated",
-                    from_="2024-01-01T00:00:00Z",
-                    to="2024-01-01T01:00:00Z",
-                    notes="n",
-                    resume_url="https://example.test/resume",
-                    result_url="https://example.test/result",
-                    candidate={"email": "c@example.com"},
-                    send_email=True,
-                    metadata={},
-                    interview_template_id=1,
-                )
-                invite = await client.tests.candidates.invite(
-                    test_id="t",
-                    email="a@example.com",
-                )
-                candidate = await client.tests.candidates.update(
-                    test_id="t",
-                    candidate_id="c",
-                    full_name="Updated",
-                    ats_state=0,
-                    invite_valid_from="2024-01-01T00:00:00Z",
-                    invite_valid_to="2024-01-02T00:00:00Z",
-                    invite_metadata={},
-                    evaluator_email="e@example.com",
-                    test_finish_url="https://example.test/finish",
-                    test_result_url="https://example.test/result",
-                    webhook_authentication={},
-                    accept_result_updates=False,
-                    tags=["t"],
-                    accommodations={},
-                )
-                test = await client.tests.create(
-                    name="Example",
-                    duration=60,
-                    role_ids=["role"],
-                    experience=["0-2 years"],
-                    candidate_details=[
-                        {"predefined_label": "full_name", "required": True},
-                    ],
-                )
-                codepair = await client.ats.codepair.invite(
-                    title="Interview",
-                    requisition_id="req-1",
-                    candidate_id="cand-1",
-                )
-                codescreen = await client.ats.codescreen.invite(
-                    test_id="t",
-                    email="a@example.com",
-                    requisition_id="req-1",
-                    candidate_id="cand-1",
-                )
+    def test_response(request: httpx.Request) -> httpx.Response:
+        """Record the request and return a live-shaped test."""
+        requests.append(request)
+        return httpx.Response(status_code=201, json=_TEST_PAYLOAD)
 
-        assert created.interviewers is not None
-        assert isinstance(created.interviewers[0], Interviewer)
-        assert created.ai_assistant_available is True
-        assert isinstance(updated, Interview)
-        assert invite.test_link == "https://example.test/invite"
-        invite_id = 10000
-        assert invite.id == invite_id
-        assert candidate.added_time == "30"
-        assert test.sections == {"section-1": {"name": "Core"}}
-        assert isinstance(codepair, Interview)
-        assert isinstance(codescreen, CandidateInvite)
+    with respx.mock(assert_all_called=True) as router:
+        _ = router.post(
+            url="https://www.hackerrank.com/x/api/v3/tests",
+        ).mock(side_effect=test_response)
+        with HackerRank(api_key="test-key") as client:
+            created = client.tests.create(
+                name="Example",
+                duration=60,
+                role_ids=["role"],
+                experience=["0-2 years"],
+                candidate_details=[
+                    {"predefined_label": "full_name", "required": True},
+                ],
+            )
+
+    assert json.loads(s=requests[0].content)["candidate_details"] == [
+        {"predefined_label": "full_name", "required": True},
+    ]
+    assert isinstance(created, Test)
+    assert created.sections == {"section-1": {"name": "Core"}}
+
+
+def test_candidate_invite_keeps_test_link_and_integer_id() -> None:
+    """Candidate invite returns test_link and integer id."""
+    with respx.mock(assert_all_called=True) as router:
+        _ = router.post(
+            url=("https://www.hackerrank.com/x/api/v3/tests/t/candidates"),
+        ).mock(
+            return_value=httpx.Response(
+                status_code=200,
+                json=_INVITE_PAYLOAD,
+            ),
+        )
+        with HackerRank(api_key="test-key") as client:
+            invite = client.tests.candidates.invite(
+                test_id="t",
+                email="a@example.com",
+            )
+
+    assert isinstance(invite, CandidateInvite)
+    assert invite.test_link == "https://example.test/invite"
+    invite_id = 10000
+    assert invite.id == invite_id
+
+
+def test_candidate_update_returns_candidate() -> None:
+    """Candidate update returns the documented TestCandidateShow
+    body.
+    """
+    with respx.mock(assert_all_called=True) as router:
+        _ = router.put(
+            url=("https://www.hackerrank.com/x/api/v3/tests/t/candidates/c"),
+        ).mock(
+            return_value=httpx.Response(
+                status_code=200,
+                json=_CANDIDATE_PAYLOAD,
+            ),
+        )
+        with HackerRank(api_key="test-key") as client:
+            updated = client.tests.candidates.update(
+                test_id="t",
+                candidate_id="c",
+                full_name="Updated",
+                ats_state=0,
+                invite_valid_from="2024-01-01T00:00:00Z",
+                invite_valid_to="2024-01-02T00:00:00Z",
+                invite_metadata={},
+                evaluator_email="e@example.com",
+                test_finish_url="https://example.test/finish",
+                test_result_url="https://example.test/result",
+                webhook_authentication={},
+                accept_result_updates=False,
+                tags=["t"],
+                accommodations={},
+            )
+
+    assert updated.full_name == "Updated"
+    assert updated.added_time == "30"
+
+
+def test_ats_invites_use_correct_response_models() -> None:
+    """ATS CodePair returns Interview; CodeScreen returns invite."""
+    with respx.mock(assert_all_called=True) as router:
+        _ = router.post(
+            url="https://www.hackerrank.com/x/api/v3/ats/codepair",
+        ).mock(
+            return_value=httpx.Response(
+                status_code=200,
+                json=_INTERVIEW_PAYLOAD,
+            ),
+        )
+        _ = router.post(
+            url="https://www.hackerrank.com/x/api/v3/ats/codescreen",
+        ).mock(
+            return_value=httpx.Response(
+                status_code=200,
+                json=_INVITE_PAYLOAD,
+            ),
+        )
+        with HackerRank(api_key="test-key") as client:
+            codepair = client.ats.codepair.invite(
+                title="Interview",
+                requisition_id="req-1",
+                candidate_id="cand-1",
+            )
+            codescreen = client.ats.codescreen.invite(
+                test_id="t",
+                email="a@example.com",
+                requisition_id="req-1",
+                candidate_id="cand-1",
+            )
+
+    assert isinstance(codepair, Interview)
+    assert codepair.id == "289187"
+    assert codepair.url == "https://example.test/interview"
+    assert isinstance(codescreen, CandidateInvite)
+    assert codescreen.test_link == "https://example.test/invite"
+
+
+# Async client parsing against documented live shapes.
+
+
+@pytest.mark.asyncio
+async def test_async_interview_and_invite_shapes() -> None:
+    """Async create/update/invite paths match sync response models."""
+    with respx.mock(assert_all_called=True) as router:
+        _ = router.post(
+            url="https://www.hackerrank.com/x/api/v3/interviews",
+        ).mock(
+            return_value=httpx.Response(
+                status_code=201,
+                json=_INTERVIEW_PAYLOAD,
+            ),
+        )
+        _ = router.put(
+            url="https://www.hackerrank.com/x/api/v3/interviews/i",
+        ).mock(
+            return_value=httpx.Response(
+                status_code=200,
+                json=_INTERVIEW_PAYLOAD,
+            ),
+        )
+        _ = router.post(
+            url=("https://www.hackerrank.com/x/api/v3/tests/t/candidates"),
+        ).mock(
+            return_value=httpx.Response(
+                status_code=200,
+                json=_INVITE_PAYLOAD,
+            ),
+        )
+        _ = router.put(
+            url=("https://www.hackerrank.com/x/api/v3/tests/t/candidates/c"),
+        ).mock(
+            return_value=httpx.Response(
+                status_code=200,
+                json=_CANDIDATE_PAYLOAD,
+            ),
+        )
+        _ = router.post(
+            url="https://www.hackerrank.com/x/api/v3/tests",
+        ).mock(
+            return_value=httpx.Response(
+                status_code=201,
+                json=_TEST_PAYLOAD,
+            ),
+        )
+        _ = router.post(
+            url="https://www.hackerrank.com/x/api/v3/ats/codepair",
+        ).mock(
+            return_value=httpx.Response(
+                status_code=200,
+                json=_INTERVIEW_PAYLOAD,
+            ),
+        )
+        _ = router.post(
+            url="https://www.hackerrank.com/x/api/v3/ats/codescreen",
+        ).mock(
+            return_value=httpx.Response(
+                status_code=200,
+                json=_INVITE_PAYLOAD,
+            ),
+        )
+        async with AsyncHackerRank(api_key="test-key") as client:
+            created = await client.interviews.create(
+                title="Example",
+                interviewers=[
+                    {"email": "a@example.com", "name": "A"},
+                ],
+            )
+            updated = await client.interviews.update(
+                interview_id="i",
+                title="Updated",
+                from_="2024-01-01T00:00:00Z",
+                to="2024-01-01T01:00:00Z",
+                notes="n",
+                resume_url="https://example.test/resume",
+                result_url="https://example.test/result",
+                candidate={"email": "c@example.com"},
+                send_email=True,
+                metadata={},
+                interview_template_id=1,
+            )
+            invite = await client.tests.candidates.invite(
+                test_id="t",
+                email="a@example.com",
+            )
+            candidate = await client.tests.candidates.update(
+                test_id="t",
+                candidate_id="c",
+                full_name="Updated",
+                ats_state=0,
+                invite_valid_from="2024-01-01T00:00:00Z",
+                invite_valid_to="2024-01-02T00:00:00Z",
+                invite_metadata={},
+                evaluator_email="e@example.com",
+                test_finish_url="https://example.test/finish",
+                test_result_url="https://example.test/result",
+                webhook_authentication={},
+                accept_result_updates=False,
+                tags=["t"],
+                accommodations={},
+            )
+            test = await client.tests.create(
+                name="Example",
+                duration=60,
+                role_ids=["role"],
+                experience=["0-2 years"],
+                candidate_details=[
+                    {"predefined_label": "full_name", "required": True},
+                ],
+            )
+            codepair = await client.ats.codepair.invite(
+                title="Interview",
+                requisition_id="req-1",
+                candidate_id="cand-1",
+            )
+            codescreen = await client.ats.codescreen.invite(
+                test_id="t",
+                email="a@example.com",
+                requisition_id="req-1",
+                candidate_id="cand-1",
+            )
+
+    assert created.interviewers is not None
+    assert isinstance(created.interviewers[0], Interviewer)
+    assert created.ai_assistant_available is True
+    assert isinstance(updated, Interview)
+    assert invite.test_link == "https://example.test/invite"
+    invite_id = 10000
+    assert invite.id == invite_id
+    assert candidate.added_time == "30"
+    assert test.sections == {"section-1": {"name": "Core"}}
+    assert isinstance(codepair, Interview)
+    assert isinstance(codescreen, CandidateInvite)

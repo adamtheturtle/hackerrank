@@ -358,36 +358,34 @@ def _async_calls(
     ]
 
 
-class TestSyncRejectBareStringLists:
-    """Sync client rejects bare strings for list fields."""
-
-    @staticmethod
-    def test_rejects_bare_string_for_list_fields() -> None:
-        """Each affected sync field raises a beartype violation."""
-        client = HackerRank(api_key="test-key")
-        try:
-            for _field_name, call in _sync_calls(client=client):
-                with pytest.raises(
-                    expected_exception=BeartypeCallHintParamViolation
-                ):
-                    _ = call()
-        finally:
-            client.close()
+# Sync client rejects bare strings for list fields.
 
 
-class TestAsyncRejectBareStringLists:
-    """Async client rejects bare strings for list fields."""
+def test_sync_rejects_bare_string_for_list_fields() -> None:
+    """Each affected sync field raises a beartype violation."""
+    client = HackerRank(api_key="test-key")
+    try:
+        for _field_name, call in _sync_calls(client=client):
+            with pytest.raises(
+                expected_exception=BeartypeCallHintParamViolation
+            ):
+                _ = call()
+    finally:
+        client.close()
 
-    @staticmethod
-    @pytest.mark.asyncio
-    async def test_rejects_bare_string_for_list_fields() -> None:
-        """Each affected async field raises a beartype violation."""
-        client = AsyncHackerRank(api_key="test-key")
-        try:
-            for _field_name, call in _async_calls(client=client):
-                with pytest.raises(
-                    expected_exception=BeartypeCallHintParamViolation
-                ):
-                    await call()
-        finally:
-            await client.aclose()
+
+# Async client rejects bare strings for list fields.
+
+
+@pytest.mark.asyncio
+async def test_async_rejects_bare_string_for_list_fields() -> None:
+    """Each affected async field raises a beartype violation."""
+    client = AsyncHackerRank(api_key="test-key")
+    try:
+        for _field_name, call in _async_calls(client=client):
+            with pytest.raises(
+                expected_exception=BeartypeCallHintParamViolation
+            ):
+                await call()
+    finally:
+        await client.aclose()
