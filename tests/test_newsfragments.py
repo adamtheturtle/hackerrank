@@ -14,9 +14,6 @@ _NEWSFRAGMENTS = _ROOT / "newsfragments"
 _FRAGMENT_NAME = re.compile(pattern=r"^\d+\.change\.rst$")
 
 
-# Tests for the contents of the ``newsfragments`` directory.
-
-
 def test_fragments_are_discoverable() -> None:
     """Every fragment is named the way ``towncrier`` expects."""
     fragments = [

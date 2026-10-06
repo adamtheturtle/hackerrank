@@ -69,11 +69,11 @@ def _last_route_json(*, route: respx.Route) -> dict[str, JSONValue]:
     )
 
 
-# Interview list query parameters.
-
-
 def test_interview_list_params_sync_sends_documented_filters() -> None:
-    """Sync list forwards documented interview filters."""
+    """Sync list forwards documented interview filters.
+
+    Interview list query parameters.
+    """
     with respx.mock(assert_all_called=True) as router:
         route = router.get(url=f"{_BASE}/interviews").respond(
             status_code=200,
@@ -105,7 +105,10 @@ def test_interview_list_params_sync_sends_documented_filters() -> None:
 
 @pytest.mark.asyncio
 async def test_interview_list_params_async_sends_documented_filters() -> None:
-    """Async list forwards documented interview filters."""
+    """Async list forwards documented interview filters.
+
+    Interview list query parameters.
+    """
     with respx.mock(assert_all_called=True) as router:
         route = router.get(url=f"{_BASE}/interviews").respond(
             status_code=200,
@@ -135,11 +138,11 @@ async def test_interview_list_params_async_sends_documented_filters() -> None:
     assert params["ended_at"] == "2024-01-01..2024-01-02"
 
 
-# Question list query parameters.
-
-
 def test_question_list_params_sync_sends_documented_filters() -> None:
-    """Sync question list joins list filters as CSV."""
+    """Sync question list joins list filters as CSV.
+
+    Question list query parameters.
+    """
     with respx.mock(assert_all_called=True) as router:
         route = router.get(url=f"{_BASE}/questions").respond(
             status_code=200,
@@ -169,7 +172,10 @@ def test_question_list_params_sync_sends_documented_filters() -> None:
 
 @pytest.mark.asyncio
 async def test_question_list_params_async_sends_documented_filters() -> None:
-    """Async question list joins list filters as CSV."""
+    """Async question list joins list filters as CSV.
+
+    Question list query parameters.
+    """
     with respx.mock(assert_all_called=True) as router:
         route = router.get(url=f"{_BASE}/questions").respond(
             status_code=200,
@@ -197,11 +203,11 @@ async def test_question_list_params_async_sends_documented_filters() -> None:
     assert params["languages"] == "javascript"
 
 
-# Interview-template and invite-template list filters.
-
-
 def test_sync_interview_template_filter() -> None:
-    """Sync interview-template list sends ``filter``."""
+    """Sync interview-template list sends ``filter``.
+
+    Interview-template and invite-template list filters.
+    """
     with respx.mock(assert_all_called=True) as router:
         route = router.get(
             url=f"{_BASE}/interview_templates",
@@ -216,7 +222,10 @@ def test_sync_interview_template_filter() -> None:
 
 
 def test_sync_invite_template_access() -> None:
-    """Sync invite-template list sends ``access``."""
+    """Sync invite-template list sends ``access``.
+
+    Interview-template and invite-template list filters.
+    """
     with respx.mock(assert_all_called=True) as router:
         route = router.get(url=f"{_BASE}/templates").respond(
             status_code=200,
@@ -236,7 +245,10 @@ def test_sync_invite_template_access() -> None:
 
 @pytest.mark.asyncio
 async def test_async_template_filters() -> None:
-    """Async template lists send documented filters."""
+    """Async template lists send documented filters.
+
+    Interview-template and invite-template list filters.
+    """
     with respx.mock(assert_all_called=True) as router:
         interview_route = router.get(
             url=f"{_BASE}/interview_templates",
@@ -255,11 +267,11 @@ async def test_async_template_filters() -> None:
     assert invite_params["access"] == "shared"
 
 
-# Interview create/update body fields.
-
-
 def test_sync_create_ai_assistant() -> None:
-    """Sync create sends ``ai_assistant_available``."""
+    """Sync create sends ``ai_assistant_available``.
+
+    Interview create/update body fields.
+    """
     with respx.mock(assert_all_called=True) as router:
         route = router.post(url=f"{_BASE}/interviews").respond(
             status_code=200,
@@ -276,7 +288,10 @@ def test_sync_create_ai_assistant() -> None:
 
 
 def test_sync_update_interviewers_and_ai() -> None:
-    """Sync update sends interviewers, replace flag, and AI."""
+    """Sync update sends interviewers, replace flag, and AI.
+
+    Interview create/update body fields.
+    """
     with respx.mock(assert_all_called=True) as router:
         route = router.put(url=f"{_BASE}/interviews/iv1").respond(
             status_code=200,
@@ -332,7 +347,10 @@ def test_sync_update_interviewers_and_ai() -> None:
 
 @pytest.mark.asyncio
 async def test_async_create_and_update_fields() -> None:
-    """Async create/update send documented interview fields."""
+    """Async create/update send documented interview fields.
+
+    Interview create/update body fields.
+    """
     with respx.mock(assert_all_called=True) as router:
         create_route = router.post(
             url=f"{_BASE}/interviews",
@@ -370,11 +388,11 @@ async def test_async_create_and_update_fields() -> None:
     assert update_body["ai_assistant_available"] is False
 
 
-# Candidate invite ``ats_state`` body field.
-
-
 def test_sync_invite_sends_ats_state() -> None:
-    """Sync invite serializes ``ats_state``."""
+    """Sync invite serializes ``ats_state``.
+
+    Candidate invite ``ats_state`` body field.
+    """
     with respx.mock(assert_all_called=True) as router:
         route = router.post(
             url=f"{_BASE}/tests/t1/candidates",
@@ -400,7 +418,10 @@ def test_sync_invite_sends_ats_state() -> None:
 
 @pytest.mark.asyncio
 async def test_async_invite_sends_ats_state() -> None:
-    """Async invite serializes ``ats_state``."""
+    """Async invite serializes ``ats_state``.
+
+    Candidate invite ``ats_state`` body field.
+    """
     with respx.mock(assert_all_called=True) as router:
         route = router.post(
             url=f"{_BASE}/tests/t1/candidates",

@@ -358,9 +358,6 @@ def _async_calls(
     ]
 
 
-# Sync client rejects bare strings for list fields.
-
-
 def test_sync_rejects_bare_string_for_list_fields() -> None:
     """Each affected sync field raises a beartype violation."""
     client = HackerRank(api_key="test-key")
@@ -372,9 +369,6 @@ def test_sync_rejects_bare_string_for_list_fields() -> None:
                 _ = call()
     finally:
         client.close()
-
-
-# Async client rejects bare strings for list fields.
 
 
 @pytest.mark.asyncio

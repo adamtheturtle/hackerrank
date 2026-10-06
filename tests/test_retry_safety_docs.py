@@ -101,9 +101,6 @@ def _side_effecting(*, module: Path) -> dict[str, tuple[bool, str | None]]:
     return found
 
 
-# Tests for reading the note out of a docstring.
-
-
 def test_finds_the_paragraph() -> None:
     """The paragraph is returned joined onto one line."""
     docstring = (
@@ -122,9 +119,6 @@ def test_finds_the_paragraph() -> None:
 def test_no_note() -> None:
     """A docstring without a note reads as ``None``."""
     assert _note_of(docstring="List the tests.\n") is None
-
-
-# Tests for the retry-safety note on each side-effecting method.
 
 
 def test_every_method_says_whether_it_is_safe() -> None:

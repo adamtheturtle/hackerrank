@@ -1,0 +1,1 @@
+"""Client edge cases tests."""

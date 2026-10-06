@@ -47,9 +47,6 @@ _TEST_PAYLOAD = {
 }
 
 
-# Sync client parsing against documented live shapes.
-
-
 def test_interview_create_accepts_object_interviewers() -> None:
     """Interview create sends and parses object-form interviewers."""
     requests: list[httpx.Request] = []
@@ -239,9 +236,6 @@ def test_ats_invites_use_correct_response_models() -> None:
     assert codepair.url == "https://example.test/interview"
     assert isinstance(codescreen, CandidateInvite)
     assert codescreen.test_link == "https://example.test/invite"
-
-
-# Async client parsing against documented live shapes.
 
 
 @pytest.mark.asyncio

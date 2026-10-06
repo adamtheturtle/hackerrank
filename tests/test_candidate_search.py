@@ -65,9 +65,6 @@ _MULTI_ATTEMPT_PAGE = {
 }
 
 
-# Sync client coverage for ``candidates.search``.
-
-
 def test_sync_search_pagination_and_multi_attempt_payload() -> None:
     """Search returns pagination metadata and nested attempts."""
     with respx.mock(assert_all_called=True) as router:
@@ -119,9 +116,6 @@ def test_sync_search_pagination_and_multi_attempt_payload() -> None:
     assert second.attempt_id == "654321"
     assert second.score is None
     assert second.attempt_endtime is None
-
-
-# Async client coverage for ``candidates.search``.
 
 
 @pytest.mark.asyncio

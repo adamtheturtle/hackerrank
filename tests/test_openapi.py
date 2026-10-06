@@ -71,9 +71,6 @@ def _assert_remote_openapi_matches_checked_in(*, url: str) -> None:
     assert checked == live
 
 
-# Unit tests for ``normalize_openapi``.
-
-
 def test_strips_examples_and_normalizes_datetime_defaults() -> None:
     """Example and date-time default differences do not affect
     equality.
@@ -156,9 +153,6 @@ def test_preserves_non_container_scalars() -> None:
     assert normalize_openapi(spec=number) == number
     assert normalize_openapi(spec=True) is True
     assert normalize_openapi(spec=None) is None
-
-
-# Non-network assertions about the checked-in schema.
 
 
 def test_includes_global_candidate_search() -> None:

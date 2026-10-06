@@ -73,11 +73,11 @@ def _tests_update() -> TestsUpdate:
     )
 
 
-# ``UserUpdate`` construction and client serialization.
-
-
 def test_user_update_body_omission_rejected_by_constructor() -> None:
-    """Missing required fields raise ``TypeError`` at construction."""
+    """Missing required fields raise ``TypeError`` at construction.
+
+    ``UserUpdate`` construction and client serialization.
+    """
     user_update_ctor: Any = UserUpdate  # pyrefly: ignore [explicit-any]
     with pytest.raises(expected_exception=TypeError):
         # Intentionally incomplete to assert required kwargs.
@@ -87,7 +87,10 @@ def test_user_update_body_omission_rejected_by_constructor() -> None:
 def test_user_update_body_omission_rejected_by_beartype(
     sync_client: HackerRank,
 ) -> None:
-    """Passing a bare mapping to ``users.update`` is rejected."""
+    """Passing a bare mapping to ``users.update`` is rejected.
+
+    ``UserUpdate`` construction and client serialization.
+    """
     with pytest.raises(expected_exception=BeartypeCallHintParamViolation):
         sync_client.users.update(
             user_id="u1",
@@ -96,7 +99,10 @@ def test_user_update_body_omission_rejected_by_beartype(
 
 
 def test_user_update_body_to_dict_serializes_all_required_fields() -> None:
-    """``to_dict`` includes every required ``UserUpdate`` key."""
+    """``to_dict`` includes every required ``UserUpdate`` key.
+
+    ``UserUpdate`` construction and client serialization.
+    """
     body = _user_update().to_dict()
     assert body == {
         "firstname": "Alice",
@@ -118,7 +124,10 @@ def test_user_update_body_to_dict_serializes_all_required_fields() -> None:
 
 
 def test_user_update_body_sync_update_sends_serialized_body() -> None:
-    """Sync ``users.update`` sends the serialized body."""
+    """Sync ``users.update`` sends the serialized body.
+
+    ``UserUpdate`` construction and client serialization.
+    """
     requests: list[httpx.Request] = []
 
     def capture(request: httpx.Request) -> httpx.Response:
@@ -138,7 +147,10 @@ def test_user_update_body_sync_update_sends_serialized_body() -> None:
 
 @pytest.mark.asyncio
 async def test_user_update_body_async_update_sends_serialized_body() -> None:
-    """Async ``users.update`` sends the serialized body."""
+    """Async ``users.update`` sends the serialized body.
+
+    ``UserUpdate`` construction and client serialization.
+    """
     requests: list[httpx.Request] = []
 
     def capture(request: httpx.Request) -> httpx.Response:
@@ -162,6 +174,8 @@ async def test_user_update_body_async_omission_rejected_by_beartype(
 ) -> None:
     """Passing a bare mapping to async ``users.update`` is
     rejected.
+
+    ``UserUpdate`` construction and client serialization.
     """
     with pytest.raises(expected_exception=BeartypeCallHintParamViolation):
         await async_client.users.update(
@@ -170,11 +184,11 @@ async def test_user_update_body_async_omission_rejected_by_beartype(
         )
 
 
-# ``TestsUpdate`` construction and client serialization.
-
-
 def test_tests_update_body_omission_rejected_by_constructor() -> None:
-    """Missing required fields raise ``TypeError`` at construction."""
+    """Missing required fields raise ``TypeError`` at construction.
+
+    ``TestsUpdate`` construction and client serialization.
+    """
     tests_update_ctor: Any = TestsUpdate  # pyrefly: ignore [explicit-any]
     with pytest.raises(expected_exception=TypeError):
         # Intentionally incomplete to assert required kwargs.
@@ -184,7 +198,10 @@ def test_tests_update_body_omission_rejected_by_constructor() -> None:
 def test_tests_update_body_omission_rejected_by_beartype(
     sync_client: HackerRank,
 ) -> None:
-    """Passing a bare mapping to ``tests.update`` is rejected."""
+    """Passing a bare mapping to ``tests.update`` is rejected.
+
+    ``TestsUpdate`` construction and client serialization.
+    """
     with pytest.raises(expected_exception=BeartypeCallHintParamViolation):
         sync_client.tests.update(
             test_id="t1",
@@ -193,7 +210,10 @@ def test_tests_update_body_omission_rejected_by_beartype(
 
 
 def test_tests_update_body_to_dict_serializes_all_required_fields() -> None:
-    """``to_dict`` includes every required ``TestsUpdate`` key."""
+    """``to_dict`` includes every required ``TestsUpdate`` key.
+
+    ``TestsUpdate`` construction and client serialization.
+    """
     body = _tests_update().to_dict()
     assert set(body) == {
         "name",
@@ -231,7 +251,10 @@ def test_tests_update_body_to_dict_serializes_all_required_fields() -> None:
 
 
 def test_tests_update_body_sync_update_sends_serialized_body() -> None:
-    """Sync ``tests.update`` sends the serialized body."""
+    """Sync ``tests.update`` sends the serialized body.
+
+    ``TestsUpdate`` construction and client serialization.
+    """
     requests: list[httpx.Request] = []
 
     def capture(request: httpx.Request) -> httpx.Response:
@@ -251,7 +274,10 @@ def test_tests_update_body_sync_update_sends_serialized_body() -> None:
 
 @pytest.mark.asyncio
 async def test_tests_update_body_async_update_sends_serialized_body() -> None:
-    """Async ``tests.update`` sends the serialized body."""
+    """Async ``tests.update`` sends the serialized body.
+
+    ``TestsUpdate`` construction and client serialization.
+    """
     requests: list[httpx.Request] = []
 
     def capture(request: httpx.Request) -> httpx.Response:
@@ -275,6 +301,8 @@ async def test_tests_update_body_async_omission_rejected_by_beartype(
 ) -> None:
     """Passing a bare mapping to async ``tests.update`` is
     rejected.
+
+    ``TestsUpdate`` construction and client serialization.
     """
     with pytest.raises(expected_exception=BeartypeCallHintParamViolation):
         await async_client.tests.update(
