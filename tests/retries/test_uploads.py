@@ -7,7 +7,8 @@ from typing import override
 
 from hackerrank._retries import rewind_files
 from hackerrank.client import HackerRank
-from tests.retries.helpers import ZIP_BODY, ScriptedTransport, error, ok
+from tests.retries.responses import ZIP_BODY, error, ok
+from tests.retries.transports import ScriptedTransport
 
 
 def test_file_object_is_rewound_between_attempts(tmp_path: Path) -> None:

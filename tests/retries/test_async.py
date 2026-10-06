@@ -15,7 +15,8 @@ from hackerrank.exceptions import (
 )
 from hackerrank.transports import TransportResponse
 from hackerrank.types import JSONValue
-from tests.retries.helpers import PAGE_BODY, ZIP_BODY, ScriptedCalls, error, ok
+from tests.retries.responses import PAGE_BODY, ZIP_BODY, error, ok
+from tests.retries.transports import ScriptedCalls
 
 
 class _AsyncScriptedTransport(ScriptedCalls):

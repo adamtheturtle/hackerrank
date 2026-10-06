@@ -1,65 +1,11 @@
-"""Shared helpers for retries tests."""
+"""Scripted transports for retry tests."""
 
 import io
 from collections.abc import Iterator, Mapping, Sequence
 
 from hackerrank._request_types import MultipartFiles
-from hackerrank.client import HackerRank
 from hackerrank.transports import TransportResponse
 from hackerrank.types import JSONValue
-
-PAGE_BODY = (
-    b'{"data": [], "page_total": 0, "offset": 0, "previous": "",'
-    b' "next": "", "first": "", "last": "", "total": 0}'
-)
-ZIP_BODY = b'{"file_url": "https://example.com/project.zip"}'
-
-
-def response(
-    *,
-    status_code: int,
-    headers: dict[str, str],
-    content: bytes,
-) -> TransportResponse:
-    """Build a transport response.
-
-    Args:
-        status_code: The HTTP status code.
-        headers: The response headers.
-        content: The response body.
-
-    Returns:
-        The transport response.
-    """
-    return TransportResponse(
-        status_code=status_code,
-        headers=headers,
-        content=content,
-    )
-
-
-def ok(*, content: bytes) -> TransportResponse:
-    """Build a ``200 OK`` transport response.
-
-    Args:
-        content: The response body.
-
-    Returns:
-        The transport response.
-    """
-    return response(status_code=200, headers={}, content=content)
-
-
-def error(*, status_code: int) -> TransportResponse:
-    """Build an error transport response with no headers.
-
-    Args:
-        status_code: The HTTP status code.
-
-    Returns:
-        The transport response.
-    """
-    return response(status_code=status_code, headers={}, content=b"{}")
 
 
 def file_parts(*, files: MultipartFiles) -> Iterator[object]:
@@ -165,17 +111,3 @@ class ScriptedTransport(ScriptedCalls):
         """
         del headers, params, json
         return self._next(method=method, url=url, files=files)
-
-
-def create_question(*, client: HackerRank) -> None:
-    """Create a question, which is never safe to repeat.
-
-    Args:
-        client: The client to create the question with.
-    """
-    _ = client.questions.create(
-        name="Q",
-        type="code",
-        problem_statement="Do the thing.",
-        recommended_duration=10,
-    )

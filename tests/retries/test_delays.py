@@ -9,13 +9,8 @@ from hackerrank.exceptions import (
     HackerRankError,
     RateLimitError,
 )
-from tests.retries.helpers import (
-    PAGE_BODY,
-    ScriptedTransport,
-    error,
-    ok,
-    response,
-)
+from tests.retries.responses import PAGE_BODY, error, ok, response
+from tests.retries.transports import ScriptedTransport
 
 
 def test_backoff_is_exponential(sleeps: list[float]) -> None:

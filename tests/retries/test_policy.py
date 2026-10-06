@@ -10,13 +10,9 @@ from hackerrank.exceptions import (
     NotFoundError,
     RedirectError,
 )
-from tests.retries.helpers import (
-    PAGE_BODY,
-    ScriptedTransport,
-    create_question,
-    error,
-    ok,
-)
+from tests.retries.questions import create_question
+from tests.retries.responses import PAGE_BODY, error, ok
+from tests.retries.transports import ScriptedTransport
 
 
 def test_default_makes_one_attempt() -> None:

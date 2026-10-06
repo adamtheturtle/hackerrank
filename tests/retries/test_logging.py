@@ -7,7 +7,8 @@ import httpx
 import pytest
 
 from hackerrank.client import HackerRank
-from tests.retries.helpers import PAGE_BODY, ScriptedTransport, error, ok
+from tests.retries.responses import PAGE_BODY, error, ok
+from tests.retries.transports import ScriptedTransport
 
 
 def test_retry_is_logged(caplog: pytest.LogCaptureFixture) -> None:

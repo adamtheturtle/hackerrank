@@ -19,7 +19,7 @@ from hackerrank.client import HackerRank
 from hackerrank.transports import (
     TransportResponse,
 )
-from tests.client_edge_cases.helpers import BASE_URL
+from tests.client_edge_cases.constants import BASE_URL
 
 if TYPE_CHECKING:
     import respx

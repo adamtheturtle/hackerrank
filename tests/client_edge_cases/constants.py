@@ -1,4 +1,4 @@
-"""Shared helpers for client edge cases tests."""
+"""Constants for client edge-case tests."""
 
 from __future__ import annotations
 

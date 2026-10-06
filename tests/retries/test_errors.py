@@ -5,12 +5,9 @@ import httpx2
 import pytest
 
 from hackerrank.client import HackerRank
-from tests.retries.helpers import (
-    PAGE_BODY,
-    ScriptedTransport,
-    create_question,
-    ok,
-)
+from tests.retries.questions import create_question
+from tests.retries.responses import PAGE_BODY, ok
+from tests.retries.transports import ScriptedTransport
 
 
 def test_transport_error_is_retried(sleeps: list[float]) -> None:
