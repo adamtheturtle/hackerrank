@@ -73,213 +73,239 @@ def _tests_update() -> TestsUpdate:
     )
 
 
-class TestUserUpdateBody:
-    """``UserUpdate`` construction and client serialization."""
+def test_user_update_body_omission_rejected_by_constructor() -> None:
+    """Missing required fields raise ``TypeError`` at construction.
 
-    @staticmethod
-    def test_omission_rejected_by_constructor() -> None:
-        """Missing required fields raise ``TypeError`` at construction."""
-        user_update_ctor: Any = UserUpdate  # pyrefly: ignore [explicit-any]
-        with pytest.raises(expected_exception=TypeError):
-            # Intentionally incomplete to assert required kwargs.
-            user_update_ctor(firstname="Alice")  # pylint: disable=no-value-for-parameter
-
-    @staticmethod
-    def test_omission_rejected_by_beartype(
-        sync_client: HackerRank,
-    ) -> None:
-        """Passing a bare mapping to ``users.update`` is rejected."""
-        with pytest.raises(expected_exception=BeartypeCallHintParamViolation):
-            sync_client.users.update(
-                user_id="u1",
-                body=_BAD_BODY,
-            )
-
-    @staticmethod
-    def test_to_dict_serializes_all_required_fields() -> None:
-        """``to_dict`` includes every required ``UserUpdate`` key."""
-        body = _user_update().to_dict()
-        assert body == {
-            "firstname": "Alice",
-            "lastname": "A",
-            "country": "US",
-            "role": "recruiter",
-            "phone": "555",
-            "questions_permission": 1,
-            "tests_permission": 1,
-            "interviews_permission": 1,
-            "candidates_permission": 1,
-            "shared_questions_permission": 1,
-            "shared_tests_permission": 1,
-            "shared_interviews_permission": 1,
-            "shared_candidates_permission": 1,
-            "company_admin": False,
-            "team_admin": False,
-        }
-
-    @staticmethod
-    def test_sync_update_sends_serialized_body() -> None:
-        """Sync ``users.update`` sends the serialized body."""
-        requests: list[httpx.Request] = []
-
-        def capture(request: httpx.Request) -> httpx.Response:
-            """Record the request and return an empty success."""
-            requests.append(request)
-            return httpx.Response(status_code=200, json={})
-
-        with respx.mock(assert_all_called=True) as router:
-            _ = router.put(
-                url="https://www.hackerrank.com/x/api/v3/users/u1",
-            ).mock(side_effect=capture)
-            with HackerRank(api_key="test-key") as client:
-                client.users.update(user_id="u1", body=_user_update())
-
-        assert json.loads(s=requests[0].content) == _user_update().to_dict()
-
-    @staticmethod
-    @pytest.mark.asyncio
-    async def test_async_update_sends_serialized_body() -> None:
-        """Async ``users.update`` sends the serialized body."""
-        requests: list[httpx.Request] = []
-
-        def capture(request: httpx.Request) -> httpx.Response:
-            """Record the request and return an empty success."""
-            requests.append(request)
-            return httpx.Response(status_code=200, json={})
-
-        with respx.mock(assert_all_called=True) as router:
-            _ = router.put(
-                url="https://www.hackerrank.com/x/api/v3/users/u1",
-            ).mock(side_effect=capture)
-            async with AsyncHackerRank(api_key="test-key") as client:
-                await client.users.update(user_id="u1", body=_user_update())
-
-        assert json.loads(s=requests[0].content) == _user_update().to_dict()
-
-    @staticmethod
-    @pytest.mark.asyncio
-    async def test_async_omission_rejected_by_beartype(
-        async_client: AsyncHackerRank,
-    ) -> None:
-        """Passing a bare mapping to async ``users.update`` is
-        rejected.
-        """
-        with pytest.raises(expected_exception=BeartypeCallHintParamViolation):
-            await async_client.users.update(
-                user_id="u1",
-                body=_BAD_BODY,
-            )
+    ``UserUpdate`` construction and client serialization.
+    """
+    user_update_ctor: Any = UserUpdate  # pyrefly: ignore [explicit-any]
+    with pytest.raises(expected_exception=TypeError):
+        # Intentionally incomplete to assert required kwargs.
+        user_update_ctor(firstname="Alice")  # pylint: disable=no-value-for-parameter
 
 
-class TestTestsUpdateBody:
-    """``TestsUpdate`` construction and client serialization."""
+def test_user_update_body_omission_rejected_by_beartype(
+    sync_client: HackerRank,
+) -> None:
+    """Passing a bare mapping to ``users.update`` is rejected.
 
-    @staticmethod
-    def test_omission_rejected_by_constructor() -> None:
-        """Missing required fields raise ``TypeError`` at construction."""
-        tests_update_ctor: Any = TestsUpdate  # pyrefly: ignore [explicit-any]
-        with pytest.raises(expected_exception=TypeError):
-            # Intentionally incomplete to assert required kwargs.
-            tests_update_ctor(name="T")  # pylint: disable=no-value-for-parameter
+    ``UserUpdate`` construction and client serialization.
+    """
+    with pytest.raises(expected_exception=BeartypeCallHintParamViolation):
+        sync_client.users.update(
+            user_id="u1",
+            body=_BAD_BODY,
+        )
 
-    @staticmethod
-    def test_omission_rejected_by_beartype(
-        sync_client: HackerRank,
-    ) -> None:
-        """Passing a bare mapping to ``tests.update`` is rejected."""
-        with pytest.raises(expected_exception=BeartypeCallHintParamViolation):
-            sync_client.tests.update(
-                test_id="t1",
-                body=_BAD_BODY,
-            )
 
-    @staticmethod
-    def test_to_dict_serializes_all_required_fields() -> None:
-        """``to_dict`` includes every required ``TestsUpdate`` key."""
-        body = _tests_update().to_dict()
-        assert set(body) == {
-            "name",
-            "starttime",
-            "endtime",
-            "duration",
-            "instructions",
-            "locked",
-            "draft",
-            "languages",
-            "candidate_details",
-            "custom_acknowledge_text",
-            "cutoff_score",
-            "master_password",
-            "hide_compile_test",
-            "tags",
-            "role_ids",
-            "experience",
-            "questions",
-            "mcq_incorrect_score",
-            "mcq_correct_score",
-            "shuffle_questions",
-            "test_admins",
-            "hide_template",
-            "enable_acknowledgement",
-            "enable_proctoring",
-            "enable_advanced_proctoring",
-            "enable_secure_assessment_mode",
-            "enable_ml_plagiarism_analysis",
-            "enable_photo_identification",
-            "ide_config",
-        }
-        assert body["name"] == "new"
-        assert body["languages"] == ["python"]
+def test_user_update_body_to_dict_serializes_all_required_fields() -> None:
+    """``to_dict`` includes every required ``UserUpdate`` key.
 
-    @staticmethod
-    def test_sync_update_sends_serialized_body() -> None:
-        """Sync ``tests.update`` sends the serialized body."""
-        requests: list[httpx.Request] = []
+    ``UserUpdate`` construction and client serialization.
+    """
+    body = _user_update().to_dict()
+    assert body == {
+        "firstname": "Alice",
+        "lastname": "A",
+        "country": "US",
+        "role": "recruiter",
+        "phone": "555",
+        "questions_permission": 1,
+        "tests_permission": 1,
+        "interviews_permission": 1,
+        "candidates_permission": 1,
+        "shared_questions_permission": 1,
+        "shared_tests_permission": 1,
+        "shared_interviews_permission": 1,
+        "shared_candidates_permission": 1,
+        "company_admin": False,
+        "team_admin": False,
+    }
 
-        def capture(request: httpx.Request) -> httpx.Response:
-            """Record the request and return an empty success."""
-            requests.append(request)
-            return httpx.Response(status_code=200, json={})
 
-        with respx.mock(assert_all_called=True) as router:
-            _ = router.put(
-                url="https://www.hackerrank.com/x/api/v3/tests/t1",
-            ).mock(side_effect=capture)
-            with HackerRank(api_key="test-key") as client:
-                client.tests.update(test_id="t1", body=_tests_update())
+def test_user_update_body_sync_update_sends_serialized_body() -> None:
+    """Sync ``users.update`` sends the serialized body.
 
-        assert json.loads(s=requests[0].content) == _tests_update().to_dict()
+    ``UserUpdate`` construction and client serialization.
+    """
+    requests: list[httpx.Request] = []
 
-    @staticmethod
-    @pytest.mark.asyncio
-    async def test_async_update_sends_serialized_body() -> None:
-        """Async ``tests.update`` sends the serialized body."""
-        requests: list[httpx.Request] = []
+    def capture(request: httpx.Request) -> httpx.Response:
+        """Record the request and return an empty success."""
+        requests.append(request)
+        return httpx.Response(status_code=200, json={})
 
-        def capture(request: httpx.Request) -> httpx.Response:
-            """Record the request and return an empty success."""
-            requests.append(request)
-            return httpx.Response(status_code=200, json={})
+    with respx.mock(assert_all_called=True) as router:
+        _ = router.put(
+            url="https://www.hackerrank.com/x/api/v3/users/u1",
+        ).mock(side_effect=capture)
+        with HackerRank(api_key="test-key") as client:
+            client.users.update(user_id="u1", body=_user_update())
 
-        with respx.mock(assert_all_called=True) as router:
-            _ = router.put(
-                url="https://www.hackerrank.com/x/api/v3/tests/t1",
-            ).mock(side_effect=capture)
-            async with AsyncHackerRank(api_key="test-key") as client:
-                await client.tests.update(test_id="t1", body=_tests_update())
+    assert json.loads(s=requests[0].content) == _user_update().to_dict()
 
-        assert json.loads(s=requests[0].content) == _tests_update().to_dict()
 
-    @staticmethod
-    @pytest.mark.asyncio
-    async def test_async_omission_rejected_by_beartype(
-        async_client: AsyncHackerRank,
-    ) -> None:
-        """Passing a bare mapping to async ``tests.update`` is
-        rejected.
-        """
-        with pytest.raises(expected_exception=BeartypeCallHintParamViolation):
-            await async_client.tests.update(
-                test_id="t1",
-                body=_BAD_BODY,
-            )
+@pytest.mark.asyncio
+async def test_user_update_body_async_update_sends_serialized_body() -> None:
+    """Async ``users.update`` sends the serialized body.
+
+    ``UserUpdate`` construction and client serialization.
+    """
+    requests: list[httpx.Request] = []
+
+    def capture(request: httpx.Request) -> httpx.Response:
+        """Record the request and return an empty success."""
+        requests.append(request)
+        return httpx.Response(status_code=200, json={})
+
+    with respx.mock(assert_all_called=True) as router:
+        _ = router.put(
+            url="https://www.hackerrank.com/x/api/v3/users/u1",
+        ).mock(side_effect=capture)
+        async with AsyncHackerRank(api_key="test-key") as client:
+            await client.users.update(user_id="u1", body=_user_update())
+
+    assert json.loads(s=requests[0].content) == _user_update().to_dict()
+
+
+@pytest.mark.asyncio
+async def test_user_update_body_async_omission_rejected_by_beartype(
+    async_client: AsyncHackerRank,
+) -> None:
+    """Passing a bare mapping to async ``users.update`` is
+    rejected.
+
+    ``UserUpdate`` construction and client serialization.
+    """
+    with pytest.raises(expected_exception=BeartypeCallHintParamViolation):
+        await async_client.users.update(
+            user_id="u1",
+            body=_BAD_BODY,
+        )
+
+
+def test_tests_update_body_omission_rejected_by_constructor() -> None:
+    """Missing required fields raise ``TypeError`` at construction.
+
+    ``TestsUpdate`` construction and client serialization.
+    """
+    tests_update_ctor: Any = TestsUpdate  # pyrefly: ignore [explicit-any]
+    with pytest.raises(expected_exception=TypeError):
+        # Intentionally incomplete to assert required kwargs.
+        tests_update_ctor(name="T")  # pylint: disable=no-value-for-parameter
+
+
+def test_tests_update_body_omission_rejected_by_beartype(
+    sync_client: HackerRank,
+) -> None:
+    """Passing a bare mapping to ``tests.update`` is rejected.
+
+    ``TestsUpdate`` construction and client serialization.
+    """
+    with pytest.raises(expected_exception=BeartypeCallHintParamViolation):
+        sync_client.tests.update(
+            test_id="t1",
+            body=_BAD_BODY,
+        )
+
+
+def test_tests_update_body_to_dict_serializes_all_required_fields() -> None:
+    """``to_dict`` includes every required ``TestsUpdate`` key.
+
+    ``TestsUpdate`` construction and client serialization.
+    """
+    body = _tests_update().to_dict()
+    assert set(body) == {
+        "name",
+        "starttime",
+        "endtime",
+        "duration",
+        "instructions",
+        "locked",
+        "draft",
+        "languages",
+        "candidate_details",
+        "custom_acknowledge_text",
+        "cutoff_score",
+        "master_password",
+        "hide_compile_test",
+        "tags",
+        "role_ids",
+        "experience",
+        "questions",
+        "mcq_incorrect_score",
+        "mcq_correct_score",
+        "shuffle_questions",
+        "test_admins",
+        "hide_template",
+        "enable_acknowledgement",
+        "enable_proctoring",
+        "enable_advanced_proctoring",
+        "enable_secure_assessment_mode",
+        "enable_ml_plagiarism_analysis",
+        "enable_photo_identification",
+        "ide_config",
+    }
+    assert body["name"] == "new"
+    assert body["languages"] == ["python"]
+
+
+def test_tests_update_body_sync_update_sends_serialized_body() -> None:
+    """Sync ``tests.update`` sends the serialized body.
+
+    ``TestsUpdate`` construction and client serialization.
+    """
+    requests: list[httpx.Request] = []
+
+    def capture(request: httpx.Request) -> httpx.Response:
+        """Record the request and return an empty success."""
+        requests.append(request)
+        return httpx.Response(status_code=200, json={})
+
+    with respx.mock(assert_all_called=True) as router:
+        _ = router.put(
+            url="https://www.hackerrank.com/x/api/v3/tests/t1",
+        ).mock(side_effect=capture)
+        with HackerRank(api_key="test-key") as client:
+            client.tests.update(test_id="t1", body=_tests_update())
+
+    assert json.loads(s=requests[0].content) == _tests_update().to_dict()
+
+
+@pytest.mark.asyncio
+async def test_tests_update_body_async_update_sends_serialized_body() -> None:
+    """Async ``tests.update`` sends the serialized body.
+
+    ``TestsUpdate`` construction and client serialization.
+    """
+    requests: list[httpx.Request] = []
+
+    def capture(request: httpx.Request) -> httpx.Response:
+        """Record the request and return an empty success."""
+        requests.append(request)
+        return httpx.Response(status_code=200, json={})
+
+    with respx.mock(assert_all_called=True) as router:
+        _ = router.put(
+            url="https://www.hackerrank.com/x/api/v3/tests/t1",
+        ).mock(side_effect=capture)
+        async with AsyncHackerRank(api_key="test-key") as client:
+            await client.tests.update(test_id="t1", body=_tests_update())
+
+    assert json.loads(s=requests[0].content) == _tests_update().to_dict()
+
+
+@pytest.mark.asyncio
+async def test_tests_update_body_async_omission_rejected_by_beartype(
+    async_client: AsyncHackerRank,
+) -> None:
+    """Passing a bare mapping to async ``tests.update`` is
+    rejected.
+
+    ``TestsUpdate`` construction and client serialization.
+    """
+    with pytest.raises(expected_exception=BeartypeCallHintParamViolation):
+        await async_client.tests.update(
+            test_id="t1",
+            body=_BAD_BODY,
+        )

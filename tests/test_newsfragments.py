@@ -14,32 +14,26 @@ _NEWSFRAGMENTS = _ROOT / "newsfragments"
 _FRAGMENT_NAME = re.compile(pattern=r"^\d+\.change\.rst$")
 
 
-class TestNewsfragmentNames:
-    """Tests for the contents of the ``newsfragments`` directory."""
+def test_fragments_are_discoverable() -> None:
+    """Every fragment is named the way ``towncrier`` expects."""
+    fragments = [
+        path for path in _NEWSFRAGMENTS.iterdir() if path.name != ".gitkeep"
+    ]
+    misnamed = [
+        path.name
+        for path in fragments
+        if not bool(_FRAGMENT_NAME.match(string=path.name))
+    ]
+    assert not bool(misnamed)
 
-    @staticmethod
-    def test_fragments_are_discoverable() -> None:
-        """Every fragment is named the way ``towncrier`` expects."""
-        fragments = [
-            path
-            for path in _NEWSFRAGMENTS.iterdir()
-            if path.name != ".gitkeep"
-        ]
-        misnamed = [
-            path.name
-            for path in fragments
-            if not bool(_FRAGMENT_NAME.match(string=path.name))
-        ]
-        assert not bool(misnamed)
 
-    @staticmethod
-    def test_no_subdirectories() -> None:
-        """No fragment hides in a subdirectory.
+def test_no_subdirectories() -> None:
+    """No fragment hides in a subdirectory.
 
-        ``towncrier`` reads a subdirectory as a *section*, not as a
-        fragment type, so fragments filed in one are never rendered.
-        """
-        subdirectories = [
-            path.name for path in _NEWSFRAGMENTS.iterdir() if path.is_dir()
-        ]
-        assert not bool(subdirectories)
+    ``towncrier`` reads a subdirectory as a *section*, not as a
+    fragment type, so fragments filed in one are never rendered.
+    """
+    subdirectories = [
+        path.name for path in _NEWSFRAGMENTS.iterdir() if path.is_dir()
+    ]
+    assert not bool(subdirectories)

@@ -65,92 +65,84 @@ _MULTI_ATTEMPT_PAGE = {
 }
 
 
-class TestCandidateSearchSync:
-    """Sync client coverage for ``candidates.search``."""
-
-    @staticmethod
-    def test_search_pagination_and_multi_attempt_payload() -> None:
-        """Search returns pagination metadata and nested attempts."""
-        with respx.mock(assert_all_called=True) as router:
-            route = router.get(url=_SEARCH_URL).mock(
-                return_value=httpx.Response(
-                    status_code=HTTPStatus.OK,
-                    json=_MULTI_ATTEMPT_PAGE,
-                ),
+def test_sync_search_pagination_and_multi_attempt_payload() -> None:
+    """Search returns pagination metadata and nested attempts."""
+    with respx.mock(assert_all_called=True) as router:
+        route = router.get(url=_SEARCH_URL).mock(
+            return_value=httpx.Response(
+                status_code=HTTPStatus.OK,
+                json=_MULTI_ATTEMPT_PAGE,
+            ),
+        )
+        client = HackerRank(api_key="test-key")
+        try:
+            page = client.candidates.search(
+                query="jane",
+                limit=1,
+                offset=0,
             )
-            client = HackerRank(api_key="test-key")
-            try:
-                page = client.candidates.search(
-                    query="jane",
-                    limit=1,
-                    offset=0,
-                )
-            finally:
-                client.close()
+        finally:
+            client.close()
 
-        assert route.called
-        assert route.calls.last.request.url.params["query"] == "jane"
-        assert route.calls.last.request.url.params["limit"] == "1"
-        assert route.calls.last.request.url.params["offset"] == "0"
+    assert route.called
+    assert route.calls.last.request.url.params["query"] == "jane"
+    assert route.calls.last.request.url.params["limit"] == "1"
+    assert route.calls.last.request.url.params["offset"] == "0"
 
-        expected_total = 13
-        expected_attempts = 2
-        assert page.total == expected_total
-        assert page.page_total == 1
-        assert page.offset == 0
-        assert page.next.endswith("offset=1")
-        assert page.first.endswith("offset=0")
-        assert page.last.endswith("offset=12")
-        assert page.previous == ""
-        assert len(page) == 1
+    expected_total = 13
+    expected_attempts = 2
+    assert page.total == expected_total
+    assert page.page_total == 1
+    assert page.offset == 0
+    assert page.next.endswith("offset=1")
+    assert page.first.endswith("offset=0")
+    assert page.last.endswith("offset=12")
+    assert page.previous == ""
+    assert len(page) == 1
 
-        candidate = page[0]
-        assert candidate.uuid == "634da4e3-4a75-4e60-a8ab-81e9253d84fe"
-        assert candidate.name == "Jane Candidate"
-        assert candidate.email == "jane@example.com"
-        assert len(candidate.attempts) == expected_attempts
-        first, second = candidate.attempts
-        expected_score = 80.0
-        expected_percentage = 72.5
-        assert first.attempt_id == "123456"
-        assert first.test_id == "789012"
-        assert first.score == expected_score
-        assert first.percentage_score == expected_percentage
-        assert first.attempt_starttime == "2024-02-01T10:00:00Z"
-        assert second.attempt_id == "654321"
-        assert second.score is None
-        assert second.attempt_endtime is None
+    candidate = page[0]
+    assert candidate.uuid == "634da4e3-4a75-4e60-a8ab-81e9253d84fe"
+    assert candidate.name == "Jane Candidate"
+    assert candidate.email == "jane@example.com"
+    assert len(candidate.attempts) == expected_attempts
+    first, second = candidate.attempts
+    expected_score = 80.0
+    expected_percentage = 72.5
+    assert first.attempt_id == "123456"
+    assert first.test_id == "789012"
+    assert first.score == expected_score
+    assert first.percentage_score == expected_percentage
+    assert first.attempt_starttime == "2024-02-01T10:00:00Z"
+    assert second.attempt_id == "654321"
+    assert second.score is None
+    assert second.attempt_endtime is None
 
 
-class TestCandidateSearchAsync:
-    """Async client coverage for ``candidates.search``."""
-
-    @staticmethod
-    @pytest.mark.asyncio
-    async def test_search_pagination_and_multi_attempt_payload() -> None:
-        """Async search returns pagination metadata and nested
-        attempts.
-        """
-        with respx.mock(assert_all_called=True) as router:
-            route = router.get(url=_SEARCH_URL).mock(
-                return_value=httpx.Response(
-                    status_code=HTTPStatus.OK,
-                    json=_MULTI_ATTEMPT_PAGE,
-                ),
+@pytest.mark.asyncio
+async def test_async_search_pagination_and_multi_attempt_payload() -> None:
+    """Async search returns pagination metadata and nested
+    attempts.
+    """
+    with respx.mock(assert_all_called=True) as router:
+        route = router.get(url=_SEARCH_URL).mock(
+            return_value=httpx.Response(
+                status_code=HTTPStatus.OK,
+                json=_MULTI_ATTEMPT_PAGE,
+            ),
+        )
+        client = AsyncHackerRank(api_key="test-key")
+        try:
+            page = await client.candidates.search(
+                query="jane",
+                limit=1,
+                offset=0,
             )
-            client = AsyncHackerRank(api_key="test-key")
-            try:
-                page = await client.candidates.search(
-                    query="jane",
-                    limit=1,
-                    offset=0,
-                )
-            finally:
-                await client.aclose()
+        finally:
+            await client.aclose()
 
-        assert route.called
-        expected_total = 13
-        expected_attempts = 2
-        assert page.total == expected_total
-        assert len(page[0].attempts) == expected_attempts
-        assert page[0].attempts[0].report_url.endswith("/report")
+    assert route.called
+    expected_total = 13
+    expected_attempts = 2
+    assert page.total == expected_total
+    assert len(page[0].attempts) == expected_attempts
+    assert page[0].attempts[0].report_url.endswith("/report")

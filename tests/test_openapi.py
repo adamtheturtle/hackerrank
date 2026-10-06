@@ -71,36 +71,31 @@ def _assert_remote_openapi_matches_checked_in(*, url: str) -> None:
     assert checked == live
 
 
-class TestNormalizeOpenAPI:
-    """Unit tests for ``normalize_openapi``."""
-
-    @staticmethod
-    def test_strips_examples_and_normalizes_datetime_defaults() -> None:
-        """Example and date-time default differences do not affect
-        equality.
-        """
-        left: dict[str, object] = {
-            "paths": {
-                "/x/api/v3/candidates/search": {
-                    "get": {
-                        "description": "Search  candidates.",
-                        "parameters": [
-                            {
-                                "name": "query",
-                                "type": "string",
-                                "example": "alice@example.com",
-                            },
-                        ],
-                        "responses": {
-                            "200": {
-                                "schema": {
-                                    "properties": {
-                                        "created_at": {
-                                            "type": "string",
-                                            "format": "date-time",
-                                            "default": "2024-01-01T00:00:00Z",
-                                            "example": "2024-01-01T00:00:00Z",
-                                        },
+def test_strips_examples_and_normalizes_datetime_defaults() -> None:
+    """Example and date-time default differences do not affect
+    equality.
+    """
+    left: dict[str, object] = {
+        "paths": {
+            "/x/api/v3/candidates/search": {
+                "get": {
+                    "description": "Search  candidates.",
+                    "parameters": [
+                        {
+                            "name": "query",
+                            "type": "string",
+                            "example": "alice@example.com",
+                        },
+                    ],
+                    "responses": {
+                        "200": {
+                            "schema": {
+                                "properties": {
+                                    "created_at": {
+                                        "type": "string",
+                                        "format": "date-time",
+                                        "default": "2024-01-01T00:00:00Z",
+                                        "example": "2024-01-01T00:00:00Z",
                                     },
                                 },
                             },
@@ -108,32 +103,30 @@ class TestNormalizeOpenAPI:
                     },
                 },
             },
-            "x-examples": {"ignored": True},
-        }
-        right: dict[str, object] = {
-            "paths": {
-                "/x/api/v3/candidates/search": {
-                    "get": {
-                        "description": "Search candidates.",
-                        "parameters": [
-                            {
-                                "name": "query",
-                                "type": "string",
-                                "example": "bob@example.com",
-                            },
-                        ],
-                        "responses": {
-                            "200": {
-                                "schema": {
-                                    "properties": {
-                                        "created_at": {
-                                            "type": "string",
-                                            "format": "date-time",
-                                            "default": "2026-08-20T12:00:00Z",
-                                            "examples": [
-                                                "2026-08-20T12:00:00Z"
-                                            ],
-                                        },
+        },
+        "x-examples": {"ignored": True},
+    }
+    right: dict[str, object] = {
+        "paths": {
+            "/x/api/v3/candidates/search": {
+                "get": {
+                    "description": "Search candidates.",
+                    "parameters": [
+                        {
+                            "name": "query",
+                            "type": "string",
+                            "example": "bob@example.com",
+                        },
+                    ],
+                    "responses": {
+                        "200": {
+                            "schema": {
+                                "properties": {
+                                    "created_at": {
+                                        "type": "string",
+                                        "format": "date-time",
+                                        "default": "2026-08-20T12:00:00Z",
+                                        "examples": ["2026-08-20T12:00:00Z"],
                                     },
                                 },
                             },
@@ -141,85 +134,82 @@ class TestNormalizeOpenAPI:
                     },
                 },
             },
-            "x-examples": {"different": True},
-        }
-        assert normalize_openapi(spec=left) == normalize_openapi(spec=right)
-
-    @staticmethod
-    def test_structural_differences_remain() -> None:
-        """Genuine path/definition drift still fails equality."""
-        left: dict[str, object] = {"paths": {"/a": {"get": {}}}}
-        right: dict[str, object] = {"paths": {"/b": {"get": {}}}}
-        assert normalize_openapi(spec=left) != normalize_openapi(spec=right)
-
-    @staticmethod
-    def test_preserves_non_container_scalars() -> None:
-        """Non-string scalars pass through unchanged."""
-        number = 42
-        assert normalize_openapi(spec=number) == number
-        assert normalize_openapi(spec=True) is True
-        assert normalize_openapi(spec=None) is None
+        },
+        "x-examples": {"different": True},
+    }
+    assert normalize_openapi(spec=left) == normalize_openapi(spec=right)
 
 
-class TestCheckedInOpenAPI:
-    """Non-network assertions about the checked-in schema."""
+def test_structural_differences_remain() -> None:
+    """Genuine path/definition drift still fails equality."""
+    left: dict[str, object] = {"paths": {"/a": {"get": {}}}}
+    right: dict[str, object] = {"paths": {"/b": {"get": {}}}}
+    assert normalize_openapi(spec=left) != normalize_openapi(spec=right)
 
-    @staticmethod
-    def test_includes_global_candidate_search() -> None:
-        """The refreshed schema documents global candidate search."""
-        spec = _load_checked_in_spec()
-        paths = spec["paths"]
-        assert "/x/api/v3/candidates/search" in paths
-        definitions = spec["definitions"]
-        assert "CandidateSearchResult" in definitions
-        assert "CandidateSearchAttemptResult" in definitions
-        attempt_definition = definitions["CandidateSearchAttemptResult"]
-        assert "required" in attempt_definition
-        attempt_required = set(attempt_definition["required"])
-        assert attempt_required == {"attempt_id", "test_id", "report_url"}
-        result_definition = definitions["CandidateSearchResult"]
-        assert "required" in result_definition
-        result_required = set(result_definition["required"])
-        assert result_required == {
-            "uuid",
-            "name",
-            "email",
-            "created_at",
-            "updated_at",
-            "attempts",
-        }
 
-    @staticmethod
-    def test_includes_interview_template_question_endpoints() -> None:
-        """The refreshed schema documents template question management."""
-        paths = _load_checked_in_spec()["paths"]
-        template = "/x/api/v3/interview_templates/{template_id}"
-        assert f"{template}/add_questions" in paths
-        assert f"{template}/remove_question" in paths
+def test_preserves_non_container_scalars() -> None:
+    """Non-string scalars pass through unchanged."""
+    number = 42
+    assert normalize_openapi(spec=number) == number
+    assert normalize_openapi(spec=True) is True
+    assert normalize_openapi(spec=None) is None
 
-    @staticmethod
-    def test_includes_current_interview_fields() -> None:
-        """Interview create/update schemas include current live fields."""
-        definitions = _load_checked_in_spec()["definitions"]
-        for name in ("InterviewCreate", "InterviewUpdate"):
-            definition = definitions[name]
-            assert "properties" in definition
-            properties = definition["properties"]
-            assert "ai_assistant_available" in properties
-            assert "interviewers" in properties
-            assert "replace_interviewers" in properties
 
-    @staticmethod
-    def test_remote_document_matches_after_normalize() -> None:
-        """A mocked remote document matches after normalization."""
-        with respx.mock(assert_all_called=True) as router:
-            _ = router.get(url=_MOCK_OPENAPI_URL).mock(
-                return_value=httpx.Response(
-                    status_code=HTTPStatus.OK,
-                    json=_load_checked_in_document(),
-                ),
-            )
-            _assert_remote_openapi_matches_checked_in(url=_MOCK_OPENAPI_URL)
+def test_includes_global_candidate_search() -> None:
+    """The refreshed schema documents global candidate search."""
+    spec = _load_checked_in_spec()
+    paths = spec["paths"]
+    assert "/x/api/v3/candidates/search" in paths
+    definitions = spec["definitions"]
+    assert "CandidateSearchResult" in definitions
+    assert "CandidateSearchAttemptResult" in definitions
+    attempt_definition = definitions["CandidateSearchAttemptResult"]
+    assert "required" in attempt_definition
+    attempt_required = set(attempt_definition["required"])
+    assert attempt_required == {"attempt_id", "test_id", "report_url"}
+    result_definition = definitions["CandidateSearchResult"]
+    assert "required" in result_definition
+    result_required = set(result_definition["required"])
+    assert result_required == {
+        "uuid",
+        "name",
+        "email",
+        "created_at",
+        "updated_at",
+        "attempts",
+    }
+
+
+def test_includes_interview_template_question_endpoints() -> None:
+    """The refreshed schema documents template question management."""
+    paths = _load_checked_in_spec()["paths"]
+    template = "/x/api/v3/interview_templates/{template_id}"
+    assert f"{template}/add_questions" in paths
+    assert f"{template}/remove_question" in paths
+
+
+def test_includes_current_interview_fields() -> None:
+    """Interview create/update schemas include current live fields."""
+    definitions = _load_checked_in_spec()["definitions"]
+    for name in ("InterviewCreate", "InterviewUpdate"):
+        definition = definitions[name]
+        assert "properties" in definition
+        properties = definition["properties"]
+        assert "ai_assistant_available" in properties
+        assert "interviewers" in properties
+        assert "replace_interviewers" in properties
+
+
+def test_remote_document_matches_after_normalize() -> None:
+    """A mocked remote document matches after normalization."""
+    with respx.mock(assert_all_called=True) as router:
+        _ = router.get(url=_MOCK_OPENAPI_URL).mock(
+            return_value=httpx.Response(
+                status_code=HTTPStatus.OK,
+                json=_load_checked_in_document(),
+            ),
+        )
+        _assert_remote_openapi_matches_checked_in(url=_MOCK_OPENAPI_URL)
 
 
 @pytest.mark.network
