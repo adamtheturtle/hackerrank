@@ -8,23 +8,24 @@ _NEWSFRAGMENTS = _ROOT / "newsfragments"
 
 # ``towncrier`` builds this name from ``[tool.towncrier]`` in
 # ``pyproject.toml``: the fragment's issue number, then the ``directory``
-# of its type, then ``.rst``.  A fragment which does not match is
-# silently ignored at release time, so its entry never reaches the
-# changelog.
-_FRAGMENT_NAME = re.compile(pattern=r"^\d+\.change\.rst$")
+# of its type, then ``.md``. Orphan changes use a descriptive ``+name``.
+# The configuration rejects invalid names during release assembly.
+_FRAGMENT_NAME = re.compile(pattern=r"^(?:\d+|\+[\w-]+)\.change\.md$")
 
 
 def test_fragments_are_discoverable() -> None:
     """Every fragment is named the way ``towncrier`` expects."""
     fragments = [
-        path for path in _NEWSFRAGMENTS.iterdir() if path.name != ".gitkeep"
+        path
+        for path in _NEWSFRAGMENTS.iterdir()
+        if path.name not in {".gitkeep", "README.md"}
     ]
     misnamed = [
         path.name
         for path in fragments
         if not bool(_FRAGMENT_NAME.match(string=path.name))
     ]
-    assert not bool(misnamed)
+    assert misnamed == []
 
 
 def test_no_subdirectories() -> None:
@@ -36,4 +37,4 @@ def test_no_subdirectories() -> None:
     subdirectories = [
         path.name for path in _NEWSFRAGMENTS.iterdir() if path.is_dir()
     ]
-    assert not bool(subdirectories)
+    assert subdirectories == []
