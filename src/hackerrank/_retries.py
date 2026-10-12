@@ -32,14 +32,13 @@ class _RetryLogger:
     @staticmethod
     def log(
         level: int,
-        message: str,
-        /,
+        msg: str,
         *args: object,
         **kwargs: object,
     ) -> None:
         """Write Tenacity's already-formatted retry message."""
         del args, kwargs
-        _LOGGER.log(level, message)
+        _LOGGER.log(level, msg)
 
 
 _log_before_sleep = before_sleep_log(

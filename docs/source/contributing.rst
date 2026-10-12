@@ -58,9 +58,12 @@ Run ``pytest``:
 Changelog entries
 -----------------
 
-Add one news fragment per user-facing change, as :file:`newsfragments/<issue-number>.change.rst`, containing a single sentence in the past or present tense.
+Add one news fragment per user-facing change, as :file:`newsfragments/<issue-number>.change.md`, containing a single sentence in the past or present tense.
 
-``towncrier`` collects fragments by that exact filename pattern at release time and silently ignores anything else, including a fragment filed in a subdirectory, so a fragment with the wrong name never reaches the changelog.
+Write fragments in GitHub-compatible Markdown.
+Use ``+name.change.md`` for a change without an issue number.
+``towncrier`` rejects invalid fragment names at release time.
+Keep fragments in the top-level ``newsfragments`` directory.
 A test guards against this.
 
 Documentation
@@ -85,3 +88,10 @@ Performing a release
 --------------------
 
 See :doc:`release-process`.
+
+Release notes
+-------------
+
+Write user-facing changes as Markdown in ``newsfragments/<issue>.change.md``.
+Towncrier writes one Markdown file per version, used directly for GitHub release notes.
+Invalid fragment names fail release assembly.
