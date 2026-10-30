@@ -37,6 +37,17 @@ Generate an API token from the `HackerRank for Work tokens page`_ and pass it as
 
 .. _HackerRank for Work tokens page: https://www.hackerrank.com/work/settings/token
 
+Updating private notes
+----------------------
+
+Use ``client.questions.update_internal_notes(question_id=..., internal_notes=...)`` to change private interviewer notes.
+The same operation is available on ``AsyncHackerRank``.
+It reads current fields, skips equivalent notes, resends required fields unchanged, and reads back the saved question.
+It raises ``ValueError`` if required fields are absent or verification finds changes to other modeled fields.
+Pass ``notes_equal`` to supply a comparison callback for server serialization differences.
+The default compares exact text and treats absent notes as empty.
+HTML comparison policies and question-type restrictions remain with the caller.
+
 HTTPX2 transports
 -----------------
 
