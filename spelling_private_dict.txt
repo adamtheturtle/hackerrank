@@ -8,6 +8,7 @@ Towncrier
 Ubuntu
 Unprocessable
 Webhook
+Whitespace
 acknowledgement
 aclose
 api
@@ -98,4 +99,5 @@ unseekable
 untyped
 url
 webhook
+whitespace
 yml
