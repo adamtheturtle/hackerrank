@@ -531,6 +531,7 @@ class Question:
     file_path: str | None = None
     has_valid_stacks: bool | None = None
     fullstack_project_details: dict[str, JSONValue] | None = None
+    custom_system_prompt: str | None = None
 
     @classmethod
     def from_dict(cls, data: QuestionDict) -> Self:
@@ -566,6 +567,7 @@ class Question:
             file_url=data.get("file_url"),
             file_path=data.get("file_path"),
             has_valid_stacks=data.get("has_valid_stacks"),
+            custom_system_prompt=data.get("custom_system_prompt"),
             fullstack_project_details=data.get(
                 "fullstack_project_details",
             ),
