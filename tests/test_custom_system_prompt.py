@@ -4,22 +4,32 @@ shape.
 
 from __future__ import annotations
 
+import json
+
 import pytest
 import respx
+from beartype import beartype
 
 from hackerrank.async_client import AsyncHackerRank
 from hackerrank.client import HackerRank
-from hackerrank.types import Question
-from tests.test_documented_request_params import _last_route_json
+from hackerrank.types import JSONValue, Question
 
 _BASE = "https://www.hackerrank.com/x/api/v3/questions"
 _QUESTION = {"id": "q1", "type": "fullstack", "name": "Project"}
 _PROMPTS = [None, "", "  Give hints.\nDo not solve.  ", "\U0001f422" * 15_000]
 
 
+@beartype
+def _json_object(*, value: dict[str, JSONValue]) -> dict[str, JSONValue]:
+    """Check decoded JSON at the request boundary."""
+    return value
+
+
 def _assert_prompt(*, route: respx.Route, prompt: str | None) -> None:
     """Verify omission or exact top-level serialization."""
-    body = _last_route_json(route=route)
+    call: object = route.calls.last
+    assert isinstance(call, respx.models.Call)
+    body = _json_object(value=json.loads(s=call.request.content))
     if prompt is None:
         assert "custom_system_prompt" not in body
     else:
