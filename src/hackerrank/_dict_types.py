@@ -127,6 +127,7 @@ class QuestionDict(TypedDict):
     file_path: NotRequired[str]
     has_valid_stacks: NotRequired[bool]
     fullstack_project_details: NotRequired[dict[str, JSONValue]]
+    custom_system_prompt: NotRequired[str | None]
 
 
 class TestCandidateDetailFieldDict(TypedDict, total=False):

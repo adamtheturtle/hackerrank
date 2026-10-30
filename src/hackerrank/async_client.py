@@ -218,6 +218,9 @@ def _list_params(
     return params
 
 
+_MAX_CUSTOM_SYSTEM_PROMPT_LENGTH = 15_000
+
+
 @beartype
 def _question_body(
     *,
@@ -239,8 +242,15 @@ def _question_body(
     default_files: builtins.list[str] | None,
     configuration: Mapping[str, JSONValue] | None,
     testcases: Sequence[Mapping[str, JSONValue]] | None,
+    custom_system_prompt: str | None,
 ) -> dict[str, JSONValue]:
     """Build a JSON body for question create/update calls."""
+    if (
+        custom_system_prompt is not None
+        and len(custom_system_prompt) > _MAX_CUSTOM_SYSTEM_PROMPT_LENGTH
+    ):
+        msg = "custom_system_prompt must be at most 15,000 characters."
+        raise ValueError(msg)
     answer_value = (
         answer if isinstance(answer, int) or answer is None else list(answer)
     )
@@ -270,6 +280,7 @@ def _question_body(
             ),
             "configuration": configuration,
             "testcases": (list(testcases) if testcases is not None else None),
+            "custom_system_prompt": custom_system_prompt,
         },
     )
 
@@ -1139,6 +1150,7 @@ class AsyncQuestionsNamespace(_AsyncNamespace):
         default_files: builtins.list[str] | None = None,
         configuration: Mapping[str, JSONValue] | None = None,
         testcases: builtins.list[Mapping[str, JSONValue]] | None = None,
+        custom_system_prompt: str | None = None,
     ) -> Question:
         """Create a question.
 
@@ -1165,6 +1177,9 @@ class AsyncQuestionsNamespace(_AsyncNamespace):
             default_files: File paths opened by default.
             configuration: Project configuration.
             testcases: Project scoring test cases.
+            custom_system_prompt: AI assistant prompt for project questions,
+                up to 15,000 characters. None omits the field; an empty string
+                explicitly clears it. Whitespace is preserved.
 
         Returns:
             The created question.
@@ -1191,6 +1206,7 @@ class AsyncQuestionsNamespace(_AsyncNamespace):
                 default_files=default_files,
                 configuration=configuration,
                 testcases=testcases,
+                custom_system_prompt=custom_system_prompt,
             ),
             params=None,
             files=None,
@@ -1223,6 +1239,7 @@ class AsyncQuestionsNamespace(_AsyncNamespace):
         default_files: builtins.list[str] | None = None,
         configuration: Mapping[str, JSONValue] | None = None,
         testcases: builtins.list[Mapping[str, JSONValue]] | None = None,
+        custom_system_prompt: str | None = None,
     ) -> Question | None:
         """Update a question.
 
@@ -1248,6 +1265,9 @@ class AsyncQuestionsNamespace(_AsyncNamespace):
             default_files: New default file paths.
             configuration: Project configuration to merge.
             testcases: New project scoring test cases.
+            custom_system_prompt: AI assistant prompt for project questions,
+                up to 15,000 characters. None omits the field; an empty string
+                explicitly clears it. Whitespace is preserved.
 
         Returns:
             The updated question when returned by the API, otherwise
@@ -1275,6 +1295,7 @@ class AsyncQuestionsNamespace(_AsyncNamespace):
                 default_files=default_files,
                 configuration=configuration,
                 testcases=testcases,
+                custom_system_prompt=custom_system_prompt,
             ),
             params=None,
             files=None,
