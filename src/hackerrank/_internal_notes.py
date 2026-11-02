@@ -1,22 +1,8 @@
 """Prepare and verify updates that change only question notes."""
 
-from collections.abc import Callable
 from dataclasses import replace
 
 from hackerrank.types import JSONValue, Question
-
-
-def notes_match(
-    *,
-    actual: str | None,
-    expected: str,
-    notes_equal: Callable[[str, str], bool] | None,
-) -> bool:
-    """Compare notes using exact text or a caller's comparison policy."""
-    actual_text = "" if actual is None else actual
-    if notes_equal is None:
-        return actual_text == expected
-    return notes_equal(actual_text, expected)
 
 
 def check_question_id(*, question: Question, question_id: str) -> None:
@@ -74,14 +60,10 @@ def verify_internal_notes(
     before: Question,
     after: Question,
     internal_notes: str,
-    notes_equal: Callable[[str, str], bool] | None,
 ) -> None:
     """Verify saved notes and every other modeled question field."""
-    if not notes_match(
-        actual=after.internal_notes,
-        expected=internal_notes,
-        notes_equal=notes_equal,
-    ):
+    actual = "" if after.internal_notes is None else after.internal_notes
+    if actual != internal_notes:
         message = f"HackerRank did not retain notes for question {before.id}"
         raise ValueError(message)
     if _without_notes(question=before) != _without_notes(question=after):

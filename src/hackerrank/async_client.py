@@ -2,7 +2,7 @@
 
 import asyncio
 import builtins
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Mapping, Sequence
 from pathlib import Path
 from types import TracebackType
 from typing import BinaryIO, Self
@@ -32,7 +32,6 @@ from hackerrank._dict_types import (
 from hackerrank._internal_notes import (
     check_question_id,
     internal_notes_body,
-    notes_match,
     verify_internal_notes,
 )
 from hackerrank._project_archive import project_archive
@@ -1318,36 +1317,28 @@ class AsyncQuestionsNamespace(_AsyncNamespace):
         *,
         question_id: str,
         internal_notes: str,
-        notes_equal: Callable[[str, str], bool] | None = None,
     ) -> Question:
         """Update notes and verify that other question fields are
         preserved.
 
-        Reads the current question, skips equivalent notes, sends required
+        Reads the current question, sends the requested notes with required
         fields unchanged, and reads back the saved question.
+        Every call writes notes, including when the text is unchanged.
 
         Safe to retry: the request replaces notes and required fields.
 
         Args:
             question_id: The id of the question.
             internal_notes: Desired private interviewer notes.
-            notes_equal: Optional comparison of actual and desired text.
-                The default compares exact text. Absent notes are empty.
 
         Returns:
-            The current or verified updated question.
+            The verified updated question.
 
         Raises:
             ValueError: If required fields are absent or verification fails.
         """
         current = await self.get(question_id=question_id)
         check_question_id(question=current, question_id=question_id)
-        if notes_match(
-            actual=current.internal_notes,
-            expected=internal_notes,
-            notes_equal=notes_equal,
-        ):
-            return current
         _ = await self._request(
             method="PUT",
             url=f"{_API_V3}/questions/{question_id}",
@@ -1363,7 +1354,6 @@ class AsyncQuestionsNamespace(_AsyncNamespace):
             before=current,
             after=after,
             internal_notes=internal_notes,
-            notes_equal=notes_equal,
         )
         return after
 
