@@ -97,11 +97,11 @@ dev = [
     "sybil==10.1.0",
     "towncrier==26.9.0",
     "ty==0.0.95",
+    "types-tinycss2==1.5.1.20260414",
     "vale==3.26.0.1",
     "vulture==2.16",
     "yamlfix==1.19.1",
     "zizmor==1.31.1",
-    "types-tinycss2==1.5.1.20260414",
 ]
 crosshair = [ "crosshair-tool==0.0.112" ]
 release = [ "check-wheel-contents==0.6.3", "towncrier==26.9.0" ]
