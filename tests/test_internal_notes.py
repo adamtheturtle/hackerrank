@@ -209,3 +209,27 @@ async def test_absent_notes_are_empty(*, use_async: bool) -> None:
         expected_reads = 2
         assert get.call_count == expected_reads
         assert put.call_count == 1
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(argnames="use_async", argvalues=[False, True])
+async def test_html_readback_formatting(*, use_async: bool) -> None:
+    """Both clients accept the platform's harmless HTML serialization."""
+    before = _question()
+    requested = "<div><p>Driver&#8217;s rate</p><pre>  code\n</pre></div>"
+    saved = "<div>\n<p>Driver\u2019s rate</p>\n<pre>  code\n</pre>\n</div>"
+    after = {**before, "internal_notes": saved}
+    with respx.mock(assert_all_called=True) as router:
+        _ = router.get(url=_URL).mock(
+            side_effect=[
+                httpx.Response(status_code=200, json=before),
+                httpx.Response(status_code=200, json=after),
+            ]
+        )
+        put = router.put(url=_URL).respond(status_code=204)
+        result = await _update(use_async=use_async, notes=requested)
+        assert result.internal_notes == saved
+        assert (
+            json.loads(s=put.calls.last.request.content)["internal_notes"]
+            == requested
+        )

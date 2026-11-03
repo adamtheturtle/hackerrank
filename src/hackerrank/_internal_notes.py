@@ -2,6 +2,7 @@
 
 from dataclasses import replace
 
+from hackerrank._notes_html import notes_equal
 from hackerrank.types import JSONValue, Question
 
 
@@ -63,7 +64,7 @@ def verify_internal_notes(
 ) -> None:
     """Verify saved notes and every other modeled question field."""
     actual = "" if after.internal_notes is None else after.internal_notes
-    if actual != internal_notes:
+    if not notes_equal(expected=internal_notes, actual=actual):
         message = f"HackerRank did not retain notes for question {before.id}"
         raise ValueError(message)
     if _without_notes(question=before) != _without_notes(question=after):

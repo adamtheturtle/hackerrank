@@ -44,8 +44,10 @@ Use ``client.questions.update_internal_notes(question_id=..., internal_notes=...
 The same operation is available on ``AsyncHackerRank``.
 Every call writes the requested notes, resends required fields unchanged, and reads back the saved question.
 It raises ``ValueError`` if required fields are absent or verification finds changes to other modeled fields.
-The default compares exact text and treats absent notes as empty.
-HTML comparison policies and question-type restrictions remain with the caller.
+Verification accepts HTML entity spelling, attribute order, block indentation, and CSS declaration spacing changes.
+It preserves document structure, text, links, and exact code-block whitespace, and treats absent notes as empty.
+Plain text is compared exactly.
+Question-type restrictions remain with the caller.
 
 HTTPX2 transports
 -----------------
