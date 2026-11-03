@@ -92,7 +92,8 @@ def _normalized_html(value: str, /) -> str:
         if isinstance(style, str):
             tag["style"] = _style(style)
     for node in list(soup.descendants):
-        if type(node) is NavigableString and _formatting_space(node):
+        # Comments and other NavigableString subclasses are meaningful markup.
+        if type(node) is NavigableString and _formatting_space(node):  # pylint: disable=unidiomatic-typecheck
             _ = node.extract()
     return soup.decode()
 
