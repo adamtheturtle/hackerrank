@@ -42,12 +42,9 @@ Updating private notes
 
 Use ``client.questions.update_internal_notes(question_id=..., internal_notes=...)`` to change private interviewer notes.
 The same operation is available on ``AsyncHackerRank``.
-Every call writes the requested notes, resends required fields unchanged, and reads back the saved question.
-It raises ``ValueError`` if required fields are absent or verification finds changes to other modeled fields.
-Verification accepts HTML entity spelling, attribute order, block indentation, and CSS declaration spacing changes.
-It preserves document structure, text, links, and exact code-block whitespace, and treats absent notes as empty.
-Plain text is compared exactly.
-Question-type restrictions remain with the caller.
+Every call reads the current required question fields and writes the requested notes, including identical or empty notes.
+The operation returns the question supplied by the update response, or ``None`` for an empty response.
+It raises ``ValueError`` if fields required by the update request are absent.
 
 HTTPX2 transports
 -----------------

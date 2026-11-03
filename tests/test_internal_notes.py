@@ -1,4 +1,4 @@
-"""Notes-only updates preserve question state in both API clients."""
+"""Notes updates use required fields and return the API response."""
 
 import json
 
@@ -27,7 +27,7 @@ def _question() -> dict[str, JSONValue]:
         "languages": ["python3"],
         "tags": ["AI"],
         "options": ["choice"],
-        "answer": [1],
+        "answer": 0,
         "max_score": 100.0,
         "environment_id": 112,
         "custom_system_prompt": "  Keep this prompt.\n",
@@ -43,55 +43,47 @@ def _json_object(*, value: dict[str, JSONValue]) -> dict[str, JSONValue]:
     return value
 
 
-async def _update(
-    *,
-    use_async: bool,
-    notes: str,
-) -> Question:
-    """Exercise the same public operation through either transport."""
+async def _update(*, use_async: bool, notes: str) -> Question | None:
+    """Exercise the public operation through either transport."""
     if use_async:
         async with (
-            AsyncHTTPXTransport() as async_transport,
-            AsyncHackerRank(
-                api_key="test-key", transport=async_transport
-            ) as async_client,
+            AsyncHTTPXTransport() as transport,
+            AsyncHackerRank(api_key="test-key", transport=transport) as client,
         ):
-            return await async_client.questions.update_internal_notes(
-                question_id="q1",
-                internal_notes=notes,
+            return await client.questions.update_internal_notes(
+                question_id="q1", internal_notes=notes
             )
     with (
-        HTTPXTransport() as transport,
-        HackerRank(api_key="test-key", transport=transport) as client,
+        HTTPXTransport() as sync_transport,
+        HackerRank(
+            api_key="test-key", transport=sync_transport
+        ) as sync_client,
     ):
-        return client.questions.update_internal_notes(
-            question_id="q1",
-            internal_notes=notes,
+        return sync_client.questions.update_internal_notes(
+            question_id="q1", internal_notes=notes
         )
 
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(argnames="use_async", argvalues=[False, True])
 @pytest.mark.parametrize(argnames="nullable", argvalues=[False, True])
-async def test_notes_only_update(*, use_async: bool, nullable: bool) -> None:
-    """Read current state, send required fields only, and read back
-    notes.
-    """
-    before = _question()
-    after = {**before, "internal_notes": "New notes"}
+@pytest.mark.parametrize(argnames="response_body", argvalues=[False, True])
+async def test_notes_update(
+    *, use_async: bool, nullable: bool, response_body: bool
+) -> None:
+    """One GET supplies required fields, followed by the requested PUT."""
+    current = _question()
     if nullable:
         for field in ("languages", "tags", "options", "answer"):
-            del before[field]
-            after[field] = []
+            del current[field]
+    returned = {**current, "internal_notes": "Server-formatted notes"}
     with respx.mock(assert_all_called=True) as router:
-        get = router.get(url=_URL)
-        _ = get.mock(
-            side_effect=[
-                httpx.Response(status_code=200, json=before),
-                httpx.Response(status_code=200, json=after),
-            ]
+        get = router.get(url=_URL).respond(status_code=200, json=current)
+        put = router.put(url=_URL).mock(
+            return_value=httpx.Response(status_code=200, json=returned)
+            if response_body
+            else httpx.Response(status_code=204)
         )
-        put = router.put(url=_URL).respond(status_code=204)
         result = await _update(use_async=use_async, notes="New notes")
         body = _json_object(value=json.loads(s=put.calls.last.request.content))
         assert set(body) == {
@@ -112,124 +104,54 @@ async def test_notes_only_update(*, use_async: bool, nullable: bool) -> None:
             "problem_statement",
             "recommended_duration",
         ):
-            assert body[field] == before[field]
+            assert body[field] == current[field]
         for field in ("languages", "tags", "options", "answer"):
-            assert body[field] == before.get(field, [])
-        assert result.custom_system_prompt == "  Keep this prompt.\n"
-        expected_reads = 2
-        assert get.call_count == expected_reads
+            assert body[field] == current.get(field, [])
+        if response_body:
+            assert result is not None
+            assert result.internal_notes == "Server-formatted notes"
+        else:
+            assert result is None
+        assert get.call_count == 1
+        assert put.call_count == 1
 
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(argnames="use_async", argvalues=[False, True])
-async def test_unchanged_notes_are_written(*, use_async: bool) -> None:
-    """Identical notes still receive a PUT and a verified read-back."""
-    question = _question()
+@pytest.mark.parametrize(argnames="notes", argvalues=["Previous notes", ""])
+async def test_notes_are_always_written(
+    *, use_async: bool, notes: str
+) -> None:
+    """Unchanged and empty notes still produce an update request."""
     with respx.mock(assert_all_called=True) as router:
-        get = router.get(url=_URL).respond(status_code=200, json=question)
+        get = router.get(url=_URL).respond(status_code=200, json=_question())
         put = router.put(url=_URL).respond(status_code=204)
-        result = await _update(use_async=use_async, notes="Previous notes")
-        assert result.internal_notes == "Previous notes"
-        body = _json_object(value=json.loads(s=put.calls.last.request.content))
-        assert body["internal_notes"] == "Previous notes"
-        expected_reads = 2
-        assert get.call_count == expected_reads
+        assert await _update(use_async=use_async, notes=notes) is None
+        assert (
+            json.loads(s=put.calls.last.request.content)["internal_notes"]
+            == notes
+        )
+        assert get.call_count == 1
         assert put.call_count == 1
 
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize(argnames="use_async", argvalues=[False, True])
 @pytest.mark.parametrize(
-    argnames="invalid",
-    argvalues=["id", "problem_statement", "recommended_duration"],
+    argnames="missing", argvalues=["problem_statement", "recommended_duration"]
 )
-async def test_invalid_current_question_prevents_write(
-    *, use_async: bool, invalid: str
+async def test_required_fields_must_be_available(
+    *, use_async: bool, missing: str
 ) -> None:
-    """Reject mismatched identities and incomplete required fields."""
-    before = _question()
-    if invalid == "id":
-        before["id"] = "other"
-    else:
-        del before[invalid]
+    """The API-required update fields must be available to build the
+    body.
+    """
+    current = _question()
+    del current[missing]
     with respx.mock(assert_all_called=True) as router:
-        get = router.get(url=_URL).respond(status_code=200, json=before)
+        get = router.get(url=_URL).respond(status_code=200, json=current)
         with pytest.raises(
-            expected_exception=ValueError,
-            match="Expected question" if invalid == "id" else "lacks fields",
+            expected_exception=ValueError, match="lacks fields"
         ):
             _ = await _update(use_async=use_async, notes="New notes")
         assert get.call_count == 1
-
-
-@pytest.mark.asyncio
-@pytest.mark.parametrize(argnames="use_async", argvalues=[False, True])
-@pytest.mark.parametrize(
-    argnames="changed",
-    argvalues=["internal_notes", "custom_system_prompt", "answer"],
-)
-async def test_unexpected_readback_fails(
-    *, use_async: bool, changed: str
-) -> None:
-    """Check saved text and every modeled field, including scalar zero."""
-    before = {**_question(), "answer": 0}
-    after = {**before, "internal_notes": "New notes"}
-    after[changed] = [] if changed == "answer" else "Unexpected"
-    with respx.mock(assert_all_called=True) as router:
-        get = router.get(url=_URL)
-        _ = get.mock(
-            side_effect=[
-                httpx.Response(status_code=200, json=before),
-                httpx.Response(status_code=200, json=after),
-            ]
-        )
-        _ = router.put(url=_URL).respond(status_code=204)
-        with pytest.raises(
-            expected_exception=ValueError,
-            match="did not retain notes"
-            if changed == "internal_notes"
-            else "changed fields other than notes",
-        ):
-            _ = await _update(use_async=use_async, notes="New notes")
-
-
-@pytest.mark.asyncio
-@pytest.mark.parametrize(argnames="use_async", argvalues=[False, True])
-async def test_absent_notes_are_empty(*, use_async: bool) -> None:
-    """Clearing absent notes still writes and verifies an empty result."""
-    question = _question()
-    del question["internal_notes"]
-    with respx.mock(assert_all_called=True) as router:
-        get = router.get(url=_URL).respond(status_code=200, json=question)
-        put = router.put(url=_URL).respond(status_code=204)
-        result = await _update(use_async=use_async, notes="")
-        assert result.internal_notes is None
-        body = _json_object(value=json.loads(s=put.calls.last.request.content))
-        assert body["internal_notes"] == ""
-        expected_reads = 2
-        assert get.call_count == expected_reads
-        assert put.call_count == 1
-
-
-@pytest.mark.asyncio
-@pytest.mark.parametrize(argnames="use_async", argvalues=[False, True])
-async def test_html_readback_formatting(*, use_async: bool) -> None:
-    """Both clients accept the platform's harmless HTML serialization."""
-    before = _question()
-    requested = "<div><p>Driver&#8217;s rate</p><pre>  code\n</pre></div>"
-    saved = "<div>\n<p>Driver\u2019s rate</p>\n<pre>  code\n</pre>\n</div>"
-    after = {**before, "internal_notes": saved}
-    with respx.mock(assert_all_called=True) as router:
-        _ = router.get(url=_URL).mock(
-            side_effect=[
-                httpx.Response(status_code=200, json=before),
-                httpx.Response(status_code=200, json=after),
-            ]
-        )
-        put = router.put(url=_URL).respond(status_code=204)
-        result = await _update(use_async=use_async, notes=requested)
-        assert result.internal_notes == saved
-        assert (
-            json.loads(s=put.calls.last.request.content)["internal_notes"]
-            == requested
-        )
