@@ -28,11 +28,7 @@ from hackerrank._dict_types import (
     UserDict,
     UserTeamMembershipDict,
 )
-from hackerrank._internal_notes import (
-    check_question_id,
-    internal_notes_body,
-    verify_internal_notes,
-)
+from hackerrank._internal_notes import internal_notes_body
 from hackerrank._project_archive import project_archive
 from hackerrank._request_types import MultipartFiles
 from hackerrank._responses import (
@@ -1280,12 +1276,11 @@ class QuestionsNamespace(_Namespace):
         *,
         question_id: str,
         internal_notes: str,
-    ) -> Question:
-        """Update notes and verify that other question fields are
-        preserved.
+    ) -> Question | None:
+        """Update notes using the current required question fields.
 
-        Reads the current question, sends the requested notes with required
-        fields unchanged, and reads back the saved question.
+        Reads the current question and sends the requested notes with
+        required fields unchanged.
         Every call writes notes, including when the text is unchanged.
 
         Safe to retry: the request replaces notes and required fields.
@@ -1295,14 +1290,14 @@ class QuestionsNamespace(_Namespace):
             internal_notes: Desired private interviewer notes.
 
         Returns:
-            The verified updated question.
+            The updated question when returned by the API, otherwise
+            ``None``.
 
         Raises:
-            ValueError: If required fields are absent or verification fails.
+            ValueError: If required fields are absent.
         """
         current = self.get(question_id=question_id)
-        check_question_id(question=current, question_id=question_id)
-        _ = self._request(
+        response = self._request(
             method="PUT",
             url=f"{_API_V3}/questions/{question_id}",
             json=internal_notes_body(
@@ -1312,13 +1307,11 @@ class QuestionsNamespace(_Namespace):
             files=None,
             repeatable=True,
         )
-        after = self.get(question_id=question_id)
-        verify_internal_notes(
-            before=current,
-            after=after,
-            internal_notes=internal_notes,
-        )
-        return after
+        if bool(response.content):
+            return Question.from_dict(
+                data=response_data(response.json(), QuestionDict)
+            )
+        return None
 
     def upload_project_directory(
         self,

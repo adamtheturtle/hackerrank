@@ -1,16 +1,6 @@
-"""Prepare and verify updates that change only question notes."""
+"""Build required fields for question-note updates."""
 
-from dataclasses import replace
-
-from hackerrank._notes_html import notes_equal
 from hackerrank.types import JSONValue, Question
-
-
-def check_question_id(*, question: Question, question_id: str) -> None:
-    """Reject a response for a different question before any update."""
-    if question.id != question_id:
-        message = f"Expected question {question_id}, received {question.id}"
-        raise ValueError(message)
 
 
 def internal_notes_body(
@@ -40,33 +30,3 @@ def internal_notes_body(
         "options": [] if question.options is None else list(question.options),
         "answer": [] if question.answer is None else question.answer,
     }
-
-
-def _without_notes(*, question: Question) -> Question:
-    """Normalize optional required lists while retaining scalar
-    answers.
-    """
-    return replace(
-        question,
-        internal_notes=None,
-        languages=[] if question.languages is None else question.languages,
-        tags=[] if question.tags is None else question.tags,
-        options=[] if question.options is None else question.options,
-        answer=[] if question.answer is None else question.answer,
-    )
-
-
-def verify_internal_notes(
-    *,
-    before: Question,
-    after: Question,
-    internal_notes: str,
-) -> None:
-    """Verify saved notes and every other modeled question field."""
-    actual = "" if after.internal_notes is None else after.internal_notes
-    if not notes_equal(expected=internal_notes, actual=actual):
-        message = f"HackerRank did not retain notes for question {before.id}"
-        raise ValueError(message)
-    if _without_notes(question=before) != _without_notes(question=after):
-        message = f"Question {before.id} changed fields other than notes"
-        raise ValueError(message)
