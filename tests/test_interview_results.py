@@ -267,3 +267,44 @@ async def test_cursor_errors(
             ):
                 _ = sync_client.audit_logs.list_cursor(cursor="expired")
     assert error.value.status_code == status
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(argnames="asynchronous", argvalues=[False, True])
+async def test_invalid_audit_filters_and_initial_cursor(
+    *, asynchronous: bool
+) -> None:
+    """Reject ambiguous actors and object IDs without an object type."""
+    with respx.mock(assert_all_called=True) as router:
+        route = router.get(url=f"{_BASE}/audit_log/cursor").respond(
+            status_code=HTTPStatus.OK,
+            json={
+                "data": [],
+                "page_total": 0,
+                "has_more": False,
+                "next_cursor": None,
+            },
+        )
+        if asynchronous:
+            async with AsyncHackerRank(api_key="synthetic") as client:
+                with pytest.raises(
+                    expected_exception=ValueError, match="same user"
+                ):
+                    _ = await client.audit_logs.list(user="1", user_id="2")
+                with pytest.raises(
+                    expected_exception=ValueError, match="source_type"
+                ):
+                    _ = await client.audit_logs.list(source_id="1")
+                _ = await client.audit_logs.list_cursor()
+        else:
+            with HackerRank(api_key="synthetic") as sync_client:
+                with pytest.raises(
+                    expected_exception=ValueError, match="same user"
+                ):
+                    _ = sync_client.audit_logs.list(user="1", user_id="2")
+                with pytest.raises(
+                    expected_exception=ValueError, match="source_type"
+                ):
+                    _ = sync_client.audit_logs.list(source_id="1")
+                _ = sync_client.audit_logs.list_cursor()
+    assert len(route.calls.last.request.url.params) == 0

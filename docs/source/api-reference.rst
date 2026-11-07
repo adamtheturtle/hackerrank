@@ -20,3 +20,9 @@ API Reference
 .. automodule:: hackerrank.exceptions
    :undoc-members:
    :members:
+
+.. automodule:: hackerrank._interview_results
+   :members:
+
+.. automodule:: hackerrank.api
+   :members:

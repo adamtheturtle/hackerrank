@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 from http import HTTPStatus
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
 import respx
@@ -12,6 +13,9 @@ import respx
 from hackerrank.api import api_catalogue, api_operations
 from hackerrank.async_client import AsyncHackerRank
 from hackerrank.client import HackerRank
+
+if TYPE_CHECKING:
+    from hackerrank.types import JSONValue
 
 
 def test_catalogue_matches_every_documented_operation() -> None:
@@ -167,3 +171,68 @@ def test_query_normalization_and_separate_scim_credentials() -> None:
                 path_parameters={"test_id": "1", "candidate_id": "2"},
             )
     assert route.calls.last.request.url.params["format"] == "url"
+
+
+@pytest.mark.parametrize(
+    argnames=("operation", "path", "query", "body", "message"),
+    argvalues=[
+        ("unknown", None, None, None, "Unknown API operation"),
+        ("api_get_interview_artifacts", None, None, None, "Missing path"),
+        (
+            "api_get_interview_artifacts",
+            {"interview_id": ""},
+            None,
+            None,
+            "Missing path",
+        ),
+        ("api_search_users", None, None, None, "Missing query"),
+        ("api_create_user", None, None, None, "requires a JSON body"),
+        ("api_list_all_users", None, {"limit": {}}, None, "scalars"),
+    ],
+)
+def test_invalid_requests_fail_before_transport(
+    operation: str,
+    path: dict[str, str | int] | None,
+    query: dict[str, JSONValue] | None,
+    body: dict[str, JSONValue] | None,
+    message: str,
+) -> None:
+    """Reject missing inputs and non-scalar query fields before
+    sending.
+    """
+    with HackerRank(api_key="synthetic") as client:
+        with pytest.raises(expected_exception=ValueError, match=message):
+            _ = client.api.call(
+                operation=operation,
+                path_parameters=path,
+                query=query,
+                body=body,
+            )
+
+
+def test_query_preserves_scalar_types_and_arrays() -> None:
+    """Keep false, zero, CSV arrays and omitted null fields distinct."""
+    with respx.mock(assert_all_called=True) as router:
+        route = router.get(
+            url="https://www.hackerrank.com/x/api/v3/users"
+        ).respond(status_code=HTTPStatus.OK, json={})
+        with HackerRank(api_key="synthetic") as client:
+            _ = client.api.call(
+                operation="api_list_all_users",
+                query={"flags": [True, False, "text", 0, 1.5], "omit": None},
+            )
+    assert dict(route.calls.last.request.url.params) == {
+        "flags": "true,false,text,0,1.5"
+    }
+
+
+@pytest.mark.asyncio
+async def test_async_scim_requires_its_own_credential() -> None:
+    """Never use an ordinary API credential for provisioning."""
+    async with AsyncHackerRank(api_key="synthetic") as client:
+        with pytest.raises(
+            expected_exception=ValueError, match="separate scim_api_key"
+        ):
+            _ = await client.api.call(
+                operation="api_scim_list_users", scim_api_key=" "
+            )
