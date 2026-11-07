@@ -4,6 +4,7 @@ Codepair
 Deprovision
 MCQ
 MyST
+SDK's
 Towncrier
 Ubuntu
 Unprocessable
@@ -21,8 +22,10 @@ backoff
 beartype
 behaviour
 bool
+booleans
 callables
 caplog
+catalogue
 changelog
 codestubs
 config

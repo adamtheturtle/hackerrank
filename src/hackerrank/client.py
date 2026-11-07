@@ -2,6 +2,7 @@
 
 import builtins
 from collections.abc import Mapping, Sequence
+from http import HTTPStatus
 from pathlib import Path
 from types import TracebackType
 from typing import BinaryIO, Self
@@ -35,10 +36,12 @@ from hackerrank._responses import (
     environment_response,
     interview_items,
     object_response,
+    optional_response,
     response_data,
     response_items,
 )
 from hackerrank._retries import request_with_retries
+from hackerrank.api import APIResponse, prepare_operation
 from hackerrank.transports import (
     HTTPX2Transport,
     HTTPXTransport,
@@ -47,10 +50,14 @@ from hackerrank.transports import (
 )
 from hackerrank.types import (
     AuditLog,
+    AuditLogCursorPage,
     CandidateInvite,
     CandidateSearchResult,
     Environment,
     Interview,
+    InterviewArtifacts,
+    InterviewArtifactsPending,
+    InterviewNote,
     InterviewTemplate,
     InterviewTranscript,
     Inviter,
@@ -228,6 +235,12 @@ def _make_page[T](
         first=_coerce_str(metadata.get("first")),
         last=_coerce_str(metadata.get("last")),
         total=_coerce_int(metadata.get("total")),
+        offset_window_limit=optional_response(
+            metadata.get("offset_window_limit"), int
+        ),
+        offset_window_exhausted=optional_response(
+            metadata.get("offset_window_exhausted"), bool
+        ),
     )
 
 
@@ -615,6 +628,108 @@ class InterviewsNamespace(_Namespace):
         return InterviewTranscript.from_dict(
             data=response_data(response.json(), InterviewTranscriptDict)
         )
+
+    def get_artifacts(
+        self,
+        *,
+        interview_id: str,
+    ) -> InterviewArtifacts | InterviewArtifactsPending:
+        """Retrieve artifact metadata, or a pending result with retry
+        delay.
+
+        Args:
+            interview_id: The interview record ID.
+
+        Returns:
+            Metadata or an explicit HTTP 202 pending result.
+        """
+        response = self._request(
+            method="GET",
+            url=f"{_API_V3}/interviews/{interview_id}/artifacts",
+            params=None,
+            json=None,
+            files=None,
+            repeatable=True,
+        )
+        if response.status_code == HTTPStatus.ACCEPTED:
+            payload = object_response(value=response.json())
+            delay = next(
+                (
+                    value
+                    for key, value in response.headers.items()
+                    if key.lower() == "retry-after"
+                ),
+                None,
+            )
+            return InterviewArtifactsPending(
+                message=response_data(payload["message"], str),
+                retry_after=int(delay) if delay is not None else None,
+            )
+        return InterviewArtifacts.from_dict(data=response.json())
+
+    def get_notes(
+        self,
+        *,
+        interview_id: str,
+        note_ids: Sequence[int] | None = None,
+    ) -> builtins.list[InterviewNote]:
+        """Retrieve the interviewer notes visible to this user.
+
+        Args:
+            interview_id: The interview record ID.
+            note_ids: Optional note IDs, encoded as a comma-separated array.
+
+        Returns:
+            The visible notes.
+        """
+        response = self._request(
+            method="GET",
+            url=f"{_API_V3}/interviews/{interview_id}/notes",
+            params={
+                "note_ids": ",".join(
+                    str(object=note_id) for note_id in note_ids
+                )
+            }
+            if note_ids is not None
+            else None,
+            json=None,
+            files=None,
+            repeatable=True,
+        )
+        payload = object_response(value=response.json())
+        return [
+            InterviewNote.from_dict(data=note)
+            for note in response_data(
+                payload.get("notes", []), builtins.list[object]
+            )
+        ]
+
+    def update_note(
+        self,
+        *,
+        interview_id: str,
+        content: str,
+    ) -> InterviewNote:
+        """Create or replace the current user's interviewer note.
+
+        Safe to retry: each call replaces the current user's note content.
+
+        Args:
+            interview_id: The interview record ID.
+            content: Exact note content; an empty string clears it.
+
+        Returns:
+            The saved content and update timestamp.
+        """
+        response = self._request(
+            method="PATCH",
+            url=f"{_API_V3}/interviews/{interview_id}/notes",
+            params=None,
+            json={"content": content},
+            files=None,
+            repeatable=True,
+        )
+        return InterviewNote.from_dict(data=response.json())
 
 
 @beartype
@@ -2844,41 +2959,142 @@ class AuditLogsNamespace(_Namespace):
         limit: int | None = None,
         offset: int | None = None,
         user_id: str | None = None,
+        user: str | None = None,
+        source_type: str | None = None,
+        source_id: str | None = None,
+        created_at: str | None = None,
+        sort: str | None = None,
+        expand: str | None = None,
     ) -> Page[AuditLog]:
-        """List audit logs.
+        """List audit logs within the documented offset window.
 
         Args:
-            limit: Number of records to fetch.
-            offset: Offset of records.
-            user_id: Filter to a specific user.
+            limit: Page size, up to 100.
+            offset: Number of records to skip.
+            user_id: Alias for user, sent with the documented query key.
+            user: Filter to the user who made the change.
+            source_type: Changed object type.
+            source_id: Changed object ID; requires source_type.
+            created_at: Exclusive timestamp range in from..to form.
+            sort: created_at for descending or -created_at for ascending.
+            expand: Set to user to expand actor details.
 
         Returns:
-            A page of audit logs.
+            Audit records, pagination and any offset-window metadata.
         """
-        extra: dict[str, str | int] = {}
-        if user_id is not None:
-            extra["user_id"] = user_id
+        extra = self._filters(
+            user=user,
+            user_id=user_id,
+            source_type=source_type,
+            source_id=source_id,
+            created_at=created_at,
+            sort=sort,
+            expand=expand,
+        )
         response = self._request(
             method="GET",
             url=f"{_API_V3}/audit_log",
-            params=_list_params(
-                limit=limit,
-                offset=offset,
-                extra=extra,
-            ),
+            params=_list_params(limit=limit, offset=offset, extra=extra),
             json=None,
             files=None,
             repeatable=True,
         )
         payload = object_response(value=response.json())
         raw_items = response_items(
-            value=payload.get("data", []),
-            item_type=AuditLogDict,
+            value=payload.get("data", []), item_type=AuditLogDict
         )
-        items: list[AuditLog] = [
-            AuditLog.from_dict(data=item) for item in raw_items
-        ]
-        return _make_page(items, payload)
+        return _make_page(
+            [AuditLog.from_dict(data=item) for item in raw_items], payload
+        )
+
+    @staticmethod
+    def _filters(
+        *,
+        user: str | None,
+        user_id: str | None,
+        source_type: str | None,
+        source_id: str | None,
+        created_at: str | None,
+        sort: str | None,
+        expand: str | None,
+    ) -> dict[str, str | int]:
+        """Build the documented audit filters and reject ambiguous aliases."""
+        if user is not None and user_id is not None and user != user_id:
+            message = "user and user_id must identify the same user."
+            raise ValueError(message)
+        if source_id is not None and source_type is None:
+            message = "source_type is required with source_id."
+            raise ValueError(message)
+        values = {
+            "user": user if user is not None else user_id,
+            "source_type": source_type,
+            "source_id": source_id,
+            "created_at": created_at,
+            "sort": sort,
+            "expand": expand,
+        }
+        return {
+            key: value for key, value in values.items() if value is not None
+        }
+
+    def list_cursor(
+        self,
+        *,
+        cursor: str | None = None,
+        include_total: bool | None = None,
+        user: str | None = None,
+        source_type: str | None = None,
+        source_id: str | None = None,
+        created_at: str | None = None,
+        sort: str | None = None,
+        expand: str | None = None,
+    ) -> AuditLogCursorPage:
+        """Retrieve an audit page using the server's opaque cursor.
+
+        Args:
+            cursor: Previous next_cursor; continuation sends only this value.
+            include_total: Request an exact count on the initial page.
+            user: Filter to the user who made the change.
+            source_type: Changed object type.
+            source_id: Changed object ID; requires source_type.
+            created_at: Exclusive timestamp range in from..to form.
+            sort: created_at for descending or -created_at for ascending.
+            expand: Set to user to expand actor details.
+
+        Returns:
+            Records, continuation token and optional exact total.
+        """
+        if cursor is not None:
+            params: dict[str, str | int] = {"cursor": cursor}
+        else:
+            params = self._filters(
+                user=user,
+                user_id=None,
+                source_type=source_type,
+                source_id=source_id,
+                created_at=created_at,
+                sort=sort,
+                expand=expand,
+            )
+            if include_total is not None:
+                params["include_total"] = str(object=include_total).lower()
+        response = self._request(
+            method="GET",
+            url=f"{_API_V3}/audit_log/cursor",
+            params=params,
+            json=None,
+            files=None,
+            repeatable=True,
+        )
+        payload = object_response(value=response.json())
+        items = response_items(value=payload["data"], item_type=AuditLogDict)
+        return AuditLogCursorPage(
+            data=[AuditLog.from_dict(data=item) for item in items],
+            page_total=response_data(payload["page_total"], int),
+            has_more=response_data(payload["has_more"], bool),
+            next_cursor=optional_response(payload["next_cursor"], str),
+            total=optional_response(payload.get("total"), int),
+        )
 
 
 @beartype
@@ -3413,6 +3629,73 @@ class SCIMNamespace(_Namespace):
         )
 
 
+class APINamespace(_Namespace):
+    """Execute every operation in the published HackerRank API
+    contract.
+    """
+
+    scim_base_url: str = _SCIM_BASE_URL
+
+    def call(
+        self,
+        *,
+        operation: str,
+        path_parameters: Mapping[str, str | int] | None = None,
+        query: Mapping[str, JSONValue] | None = None,
+        body: Mapping[str, JSONValue] | None = None,
+        scim_api_key: str | None = None,
+    ) -> APIResponse:
+        """Execute a documented operation and retain its complete response.
+
+        GET, PUT and DELETE requests are safe to retry; POST and PATCH
+        requests are sent once. SCIM uses a separate provisioning token.
+
+        Args:
+            operation: A name from api_operations().
+            path_parameters: Values for the operation's path placeholders.
+            query: Query fields, including CSV arrays and booleans.
+            body: The complete JSON request body.
+            scim_api_key: Separate provisioning credential for SCIM operations.
+
+        Returns:
+            Status, headers and JSON data, including empty or pending results.
+        """
+        selected, path, params = prepare_operation(
+            operation=operation,
+            path_parameters=path_parameters,
+            query=query,
+            body=body,
+        )
+        headers = self.headers
+        base_url = self.base_url
+        if selected.scim:
+            if scim_api_key is None or not bool(scim_api_key.strip()):
+                message = "SCIM operations require a separate scim_api_key."
+                raise ValueError(message)
+            base_url = self.scim_base_url
+            headers = {**headers, "Authorization": f"Bearer {scim_api_key}"}
+        response = request_with_retries(
+            request=lambda: self.transport(
+                method=selected.method,
+                url=base_url + path,
+                headers=headers,
+                params=params,
+                json=body,
+                files=None,
+            ),
+            retries=self.retries,
+            repeatable=selected.method in {"GET", "PUT", "DELETE"},
+            files=None,
+        )
+        return APIResponse(
+            status=response.status_code,
+            headers=response.headers,
+            data=object_response(value=response.json())
+            if bool(response.content)
+            else None,
+        )
+
+
 @beartype
 class HackerRank:
     """A client for the HackerRank for Work API."""
@@ -3461,6 +3744,13 @@ class HackerRank:
             "Authorization": f"Bearer {api_key}",
             "Accept": "application/json",
         }
+        self.api: APINamespace = APINamespace(
+            transport=resolved_transport,
+            base_url=self.base_url,
+            headers=headers,
+            retries=retries,
+        )
+        self.api.scim_base_url = self.scim_base_url
         self.interviews: InterviewsNamespace = InterviewsNamespace(
             transport=resolved_transport,
             base_url=self.base_url,

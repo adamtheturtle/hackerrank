@@ -104,3 +104,12 @@ def response_items[ResponseItem](
         message = "Expected the response data to contain valid objects."
         raise TypeError(message)
     return value
+
+
+def optional_response[Response](
+    value: object, response_type: type[Response], /
+) -> Response | None:
+    """Validate an optional response value."""
+    if value is None:
+        return None
+    return response_data(value, response_type)
