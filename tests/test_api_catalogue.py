@@ -5,7 +5,6 @@ from __future__ import annotations
 import json
 from http import HTTPStatus
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 import pytest
 import respx
@@ -13,9 +12,7 @@ import respx
 from hackerrank.api import api_catalogue, api_operations
 from hackerrank.async_client import AsyncHackerRank
 from hackerrank.client import HackerRank
-
-if TYPE_CHECKING:
-    from hackerrank.types import JSONValue
+from hackerrank.types import JSONValue  # noqa: TC001
 
 
 def test_catalogue_matches_every_documented_operation() -> None:
