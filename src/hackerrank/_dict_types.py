@@ -69,16 +69,20 @@ class InterviewTranscriptDict(TypedDict):
 
 
 class InterviewTemplateDict(TypedDict):
-    """A HackerRank interview template."""
+    """A HackerRank interview template.
 
-    id: int | str
+    List/show responses use string IDs and integer question IDs, despite
+    the opposite types in the Swagger declarations.
+    """
+
+    id: str
     name: str
     created_at: NotRequired[str]
     status: NotRequired[int]
     user: NotRequired[int]
     roles: NotRequired[list[str]]
     team_share: NotRequired[int]
-    questions: NotRequired[list[int | str]]
+    questions: NotRequired[list[int]]
     scorecard: NotRequired[int]
     import_template: NotRequired[bool]
     editor_access: NotRequired[bool]
