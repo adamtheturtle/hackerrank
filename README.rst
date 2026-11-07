@@ -82,3 +82,20 @@ See the `full documentation <https://adamtheturtle.github.io/hackerrank/>`__.
 .. |PyPI| image:: https://badge.fury.io/py/hackerrank.svg
    :target: https://badge.fury.io/py/hackerrank
 .. |minimum-python-version| replace:: 3.13
+
+Interviews V2 and audit logs
+----------------------------
+
+``client.interviews.get_artifacts`` returns typed artifact metadata or an
+``InterviewArtifactsPending`` result with the server's retry delay.
+Signed download URLs expire; request fresh metadata when needed.
+``get_notes`` reads permitted interviewer notes and ``update_note`` replaces
+the current user's note, preserving empty content.
+
+Use ``client.audit_logs.list_cursor`` for large audit collections.
+Pass the returned ``next_cursor`` to continue; subsequent requests send only
+that opaque token.
+Both audit methods support the documented filters, including ``user``.
+The existing ``user_id`` argument sends the documented ``user`` query key.
+Offset pages expose the server's window limit and exhaustion flag.
+All operations are also available on ``AsyncHackerRank``.

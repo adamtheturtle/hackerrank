@@ -6,7 +6,7 @@ from typing import ClassVar, Self
 
 from beartype import beartype
 
-from hackerrank import _dict_types
+from hackerrank import _dict_types, _interview_results
 from hackerrank._dict_types import (
     ATSCodePairDict,
     ATSCodeScreenDict,
@@ -35,6 +35,13 @@ from hackerrank._dict_types import (
     UserDict,
     UserTeamMembershipDict,
 )
+
+InterviewArtifactDescriptor = _interview_results.InterviewArtifactDescriptor
+InterviewArtifactNote = _interview_results.InterviewArtifactNote
+InterviewArtifactQuestion = _interview_results.InterviewArtifactQuestion
+InterviewArtifacts = _interview_results.InterviewArtifacts
+InterviewArtifactsPending = _interview_results.InterviewArtifactsPending
+InterviewNote = _interview_results.InterviewNote
 
 type JSONValue = _dict_types.JSONValue
 
@@ -73,6 +80,8 @@ class Page[T](list[T]):
         first: str,
         last: str,
         total: int,
+        offset_window_limit: int | None = None,
+        offset_window_exhausted: bool | None = None,
     ) -> None:
         """Create a new page.
 
@@ -85,6 +94,9 @@ class Page[T](list[T]):
             first: URL of the first page.
             last: URL of the last page.
             total: Total number of items across all pages.
+            offset_window_limit: Maximum reachable offset window, if returned.
+            offset_window_exhausted: Whether matching records remain
+                beyond that window.
         """
         super().__init__(iterable)
         self.page_total = page_total
@@ -94,6 +106,8 @@ class Page[T](list[T]):
         self.first = first
         self.last = last
         self.total = total
+        self.offset_window_limit = offset_window_limit
+        self.offset_window_exhausted = offset_window_exhausted
 
     @property
     def data(self) -> list[T]:
@@ -1106,7 +1120,7 @@ class AuditLog:
     source_id: int
     source_type: str
     action: str
-    user: str | None = None
+    user: str | User | None = None
     modified_fields: list[str] | None = None
     modified_values: dict[str, JSONValue] | None = None
     ip_address: str | None = None
@@ -1122,11 +1136,17 @@ class AuditLog:
         Returns:
             A new instance.
         """
+        user = data.get("user")
+        actor = (
+            user
+            if user is None or isinstance(user, str)
+            else User.from_dict(data=user)
+        )
         return cls(
             source_id=data["source_id"],
             source_type=data["source_type"],
             action=data["action"],
-            user=data.get("user"),
+            user=actor,
             modified_fields=data.get("modified_fields"),
             modified_values=data.get("modified_values"),
             ip_address=data.get("ip_address"),
@@ -1392,3 +1412,15 @@ class SCIMMessage:
             message=data["message"],
             schemas=data.get("schemas"),
         )
+
+
+@beartype
+@dataclass(frozen=True, kw_only=True)
+class AuditLogCursorPage:
+    """An audit page using an opaque token rather than offset URLs."""
+
+    data: list[AuditLog]
+    page_total: int
+    has_more: bool
+    next_cursor: str | None
+    total: int | None

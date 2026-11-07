@@ -354,7 +354,7 @@ class AuditLogDict(TypedDict):
 
     source_id: int
     source_type: str
-    user: NotRequired[str]
+    user: NotRequired[str | UserDict | None]
     action: str
     modified_fields: NotRequired[list[str]]
     modified_values: NotRequired[dict[str, JSONValue]]
