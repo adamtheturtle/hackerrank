@@ -108,6 +108,7 @@ packages.find.where = [
     "src",
 ]
 package-data.hackerrank = [
+    "api_operations.json",
     "py.typed",
 ]
 zip-safe = false

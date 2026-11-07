@@ -42,6 +42,7 @@ from hackerrank._responses import (
     response_items,
 )
 from hackerrank._retries import async_request_with_retries
+from hackerrank.api import APIResponse, prepare_operation
 from hackerrank.transports import (
     AsyncHTTPX2Transport,
     AsyncHTTPXTransport,
@@ -3640,6 +3641,73 @@ class AsyncSCIMNamespace(_AsyncNamespace):
         )
 
 
+class AsyncAPINamespace(_AsyncNamespace):
+    """Execute every operation in the published HackerRank API
+    contract.
+    """
+
+    scim_base_url: str = _SCIM_BASE_URL
+
+    async def call(
+        self,
+        *,
+        operation: str,
+        path_parameters: Mapping[str, str | int] | None = None,
+        query: Mapping[str, JSONValue] | None = None,
+        body: Mapping[str, JSONValue] | None = None,
+        scim_api_key: str | None = None,
+    ) -> APIResponse:
+        """Execute a documented operation and retain its complete response.
+
+        GET, PUT and DELETE requests are safe to retry; POST and PATCH
+        requests are sent once. SCIM uses a separate provisioning token.
+
+        Args:
+            operation: A name from api_operations().
+            path_parameters: Values for the operation's path placeholders.
+            query: Query fields, including CSV arrays and booleans.
+            body: The complete JSON request body.
+            scim_api_key: Separate provisioning credential for SCIM operations.
+
+        Returns:
+            Status, headers and JSON data, including empty or pending results.
+        """
+        selected, path, params = prepare_operation(
+            operation=operation,
+            path_parameters=path_parameters,
+            query=query,
+            body=body,
+        )
+        headers = self.headers
+        base_url = self.base_url
+        if selected.scim:
+            if scim_api_key is None or not bool(scim_api_key.strip()):
+                message = "SCIM operations require a separate scim_api_key."
+                raise ValueError(message)
+            base_url = self.scim_base_url
+            headers = {**headers, "Authorization": f"Bearer {scim_api_key}"}
+        response = await async_request_with_retries(
+            request=lambda: self.transport(
+                method=selected.method,
+                url=base_url + path,
+                headers=headers,
+                params=params,
+                json=body,
+                files=None,
+            ),
+            retries=self.retries,
+            repeatable=selected.method in {"GET", "PUT", "DELETE"},
+            files=None,
+        )
+        return APIResponse(
+            status=response.status_code,
+            headers=response.headers,
+            data=object_response(value=response.json())
+            if bool(response.content)
+            else None,
+        )
+
+
 @beartype
 class AsyncHackerRank:
     """An async client for the HackerRank for Work API."""
@@ -3688,6 +3756,13 @@ class AsyncHackerRank:
             "Authorization": f"Bearer {api_key}",
             "Accept": "application/json",
         }
+        self.api: AsyncAPINamespace = AsyncAPINamespace(
+            transport=resolved_transport,
+            base_url=self.base_url,
+            headers=headers,
+            retries=retries,
+        )
+        self.api.scim_base_url = self.scim_base_url
         self.interviews: AsyncInterviewsNamespace = AsyncInterviewsNamespace(
             transport=resolved_transport,
             base_url=self.base_url,
