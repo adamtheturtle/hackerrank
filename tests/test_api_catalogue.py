@@ -200,14 +200,13 @@ def test_invalid_requests_fail_before_transport(
     """Reject missing inputs and non-scalar query fields before
     sending.
     """
-    with HackerRank(api_key="synthetic") as client:
-        with pytest.raises(expected_exception=ValueError, match=message):
-            _ = client.api.call(
-                operation=operation,
-                path_parameters=path,
-                query=query,
-                body=body,
-            )
+    with (
+        HackerRank(api_key="synthetic") as client,
+        pytest.raises(expected_exception=ValueError, match=message),
+    ):
+        _ = client.api.call(
+            operation=operation, path_parameters=path, query=query, body=body
+        )
 
 
 def test_query_preserves_scalar_types_and_arrays() -> None:
