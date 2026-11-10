@@ -493,7 +493,7 @@ async def test_prepared_question_writes_match_wire(
     parameters: dict[str, str] | None,
     expected_path: str,
 ) -> None:
-    """Generic preflight plans describe the exact path sent by the
+    """Prepared operations describe the exact path sent by the
     client.
     """
     selected, path, query = prepare_operation(
