@@ -121,3 +121,11 @@ Reference
    release-process
    unreleased
    changelog
+
+Question answer representations
+-------------------------------
+
+``Question.answer`` preserves the API's answer representation: a string, an integer, a list of integers, or ``None`` for an absent or null answer.
+``QuestionAnswer`` describes the three non-null forms accepted by typed question creation and updates.
+Strings are neither parsed as numbers nor split into characters.
+An omitted or ``None`` answer on creation remains omitted from the request.

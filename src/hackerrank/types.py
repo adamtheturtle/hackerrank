@@ -67,6 +67,11 @@ class QuestionType(StrEnum):
         return self is QuestionType.FULLSTACK
 
 
+type QuestionAnswer = _dict_types.QuestionAnswer
+
+"""A question answer in its original API representation."""
+
+
 type JSONValue = _dict_types.JSONValue
 
 """A JSON-compatible value.
@@ -557,7 +562,7 @@ class Question:
     tags: list[str] | None = None
     max_score: float | None = None
     options: list[str] | None = None
-    answer: int | list[int] | None = None
+    answer: QuestionAnswer | None = None
     test_case_count: int | None = None
     role_type: str | None = None
     environment_id: int | None = None
