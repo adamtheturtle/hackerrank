@@ -51,10 +51,10 @@ def test_sync_prompt(prompt: str | None, question_type: str) -> None:
     nesting.
     """
     with respx.mock(assert_all_called=True) as router:
-        create = router.post(url=_BASE).respond(
+        create = router.post(url=_BASE + "/").respond(
             status_code=200, json=_QUESTION
         )
-        update = router.put(url=f"{_BASE}/q1").respond(
+        update = router.put(url=f"{_BASE}/q1/").respond(
             status_code=200, json=_QUESTION
         )
         with HackerRank(api_key="test-key") as client:
@@ -95,10 +95,10 @@ def test_sync_prompt(prompt: str | None, question_type: str) -> None:
 async def test_async_prompt(prompt: str | None, question_type: str) -> None:
     """Async create and update have the same prompt semantics."""
     with respx.mock(assert_all_called=True) as router:
-        create = router.post(url=_BASE).respond(
+        create = router.post(url=_BASE + "/").respond(
             status_code=200, json=_QUESTION
         )
-        update = router.put(url=f"{_BASE}/q1").respond(
+        update = router.put(url=f"{_BASE}/q1/").respond(
             status_code=200, json=_QUESTION
         )
         async with AsyncHackerRank(api_key="test-key") as client:

@@ -48,7 +48,7 @@ async def test_enum_writes_are_plain_api_strings(
     """Every enum member is accepted by both public typed clients."""
     with respx.mock(assert_all_called=True) as router:
         route = router.post(
-            url="https://www.hackerrank.com/x/api/v3/questions"
+            url="https://www.hackerrank.com/x/api/v3/questions/"
         ).respond(
             status_code=200,
             json={"id": "1", "name": "Example", "type": wire_type},

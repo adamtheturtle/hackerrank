@@ -19,7 +19,7 @@ from hackerrank.async_client import AsyncHackerRank
 from hackerrank.client import HackerRank
 from hackerrank.types import JSONValue
 
-_URL = "https://www.hackerrank.com/x/api/v3/questions/q1/upload_project_zip"
+_URL = "https://www.hackerrank.com/x/api/v3/questions/q1/upload_project_zip/"
 _RESPONSE: dict[str, JSONValue] = {
     "file_url": "https://example.com/project.zip",
     "file_path": "question_projects/q1/project.zip",

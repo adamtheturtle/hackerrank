@@ -12,6 +12,7 @@ import httpx2
 from beartype import BeartypeConf, beartype
 
 from hackerrank._request_types import MultipartFiles
+from hackerrank._request_urls import project_upload_question_url
 from hackerrank.types import JSONValue
 
 DEFAULT_TIMEOUT_SECONDS = 60.0
@@ -124,6 +125,7 @@ class HTTPXTransport:
         self,
         *,
         timeout: httpx.Timeout | float = DEFAULT_TIMEOUT_SECONDS,
+        project_upload_timeout: httpx.Timeout | float | None = None,
     ) -> None:
         """Create a new HTTPX transport.
 
@@ -132,8 +134,12 @@ class HTTPXTransport:
                 a number of seconds or an ``httpx.Timeout``.
                 Defaults to
                 :data:`DEFAULT_TIMEOUT_SECONDS` seconds.
+            project_upload_timeout: Optional timeout for project ZIP uploads.
+                None inherits the normal timeout. Verification reads always
+                use the normal timeout.
         """
         self._client = httpx.Client(timeout=timeout)
+        self._project_upload_timeout = project_upload_timeout
 
     def close(self) -> None:
         """Close the underlying HTTP client."""
@@ -187,6 +193,13 @@ class HTTPXTransport:
             params=params,
             json=json,
             files=files,
+            timeout=(
+                self._project_upload_timeout
+                if self._project_upload_timeout is not None
+                and project_upload_question_url(method=method, url=url)
+                is not None
+                else self._client.timeout
+            ),
         )
         return TransportResponse(
             status_code=response.status_code,
@@ -207,6 +220,7 @@ class HTTPX2Transport:
         self,
         *,
         timeout: httpx2.Timeout | float = DEFAULT_TIMEOUT_SECONDS,
+        project_upload_timeout: httpx2.Timeout | float | None = None,
     ) -> None:
         """Create a new HTTPX2 transport.
 
@@ -215,8 +229,12 @@ class HTTPX2Transport:
                 a number of seconds or an ``httpx2.Timeout``.
                 Defaults to
                 :data:`DEFAULT_TIMEOUT_SECONDS` seconds.
+            project_upload_timeout: Optional timeout for project ZIP uploads.
+                None inherits the normal timeout. Verification reads always
+                use the normal timeout.
         """
         self._client = httpx2.Client(timeout=timeout)
+        self._project_upload_timeout = project_upload_timeout
 
     def close(self) -> None:
         """Close the underlying HTTP client."""
@@ -270,6 +288,13 @@ class HTTPX2Transport:
             params=params,
             json=json,
             files=files,
+            timeout=(
+                self._project_upload_timeout
+                if self._project_upload_timeout is not None
+                and project_upload_question_url(method=method, url=url)
+                is not None
+                else self._client.timeout
+            ),
         )
         return TransportResponse(
             status_code=response.status_code,
@@ -317,6 +342,7 @@ class AsyncHTTPXTransport:
         self,
         *,
         timeout: httpx.Timeout | float = DEFAULT_TIMEOUT_SECONDS,
+        project_upload_timeout: httpx.Timeout | float | None = None,
     ) -> None:
         """Create a new async HTTPX transport.
 
@@ -325,8 +351,12 @@ class AsyncHTTPXTransport:
                 a number of seconds or an ``httpx.Timeout``.
                 Defaults to
                 :data:`DEFAULT_TIMEOUT_SECONDS` seconds.
+            project_upload_timeout: Optional timeout for project ZIP uploads.
+                None inherits the normal timeout. Verification reads always
+                use the normal timeout.
         """
         self._client = httpx.AsyncClient(timeout=timeout)
+        self._project_upload_timeout = project_upload_timeout
 
     async def aclose(self) -> None:
         """Close the underlying async HTTP client."""
@@ -381,6 +411,13 @@ class AsyncHTTPXTransport:
             params=params,
             json=json,
             files=files,
+            timeout=(
+                self._project_upload_timeout
+                if self._project_upload_timeout is not None
+                and project_upload_question_url(method=method, url=url)
+                is not None
+                else self._client.timeout
+            ),
         )
         return TransportResponse(
             status_code=response.status_code,
@@ -397,6 +434,7 @@ class AsyncHTTPX2Transport:
         self,
         *,
         timeout: httpx2.Timeout | float = DEFAULT_TIMEOUT_SECONDS,
+        project_upload_timeout: httpx2.Timeout | float | None = None,
     ) -> None:
         """Create a new async HTTPX2 transport.
 
@@ -405,8 +443,12 @@ class AsyncHTTPX2Transport:
                 a number of seconds or an ``httpx2.Timeout``.
                 Defaults to
                 :data:`DEFAULT_TIMEOUT_SECONDS` seconds.
+            project_upload_timeout: Optional timeout for project ZIP uploads.
+                None inherits the normal timeout. Verification reads always
+                use the normal timeout.
         """
         self._client = httpx2.AsyncClient(timeout=timeout)
+        self._project_upload_timeout = project_upload_timeout
 
     async def aclose(self) -> None:
         """Close the underlying async HTTP client."""
@@ -461,6 +503,13 @@ class AsyncHTTPX2Transport:
             params=params,
             json=json,
             files=files,
+            timeout=(
+                self._project_upload_timeout
+                if self._project_upload_timeout is not None
+                and project_upload_question_url(method=method, url=url)
+                is not None
+                else self._client.timeout
+            ),
         )
         return TransportResponse(
             status_code=response.status_code,

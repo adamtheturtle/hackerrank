@@ -10,6 +10,7 @@ from urllib.parse import quote
 from beartype.door import TypeHint
 
 from hackerrank._question_validation import validate_question_prompt_body
+from hackerrank._request_urls import question_write_url
 from hackerrank._responses import object_response, response_data
 from hackerrank.types import JSONValue
 
@@ -152,7 +153,11 @@ def prepare_operation(
         "api_update_question",
     }:
         validate_question_prompt_body(body=body)
-    return selected, path, params
+    return (
+        selected,
+        question_write_url(method=selected.method, url=path),
+        params,
+    )
 
 
 def parse_api_object(*, text: str) -> dict[str, JSONValue]:

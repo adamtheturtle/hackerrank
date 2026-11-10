@@ -36,6 +36,12 @@ Use ``client.questions.upload_project_directory(question_id=..., directory=Path(
 The client includes every file, including hidden files, with its relative path and original bytes.
 It builds a ZIP in memory and delegates to ``upload_project_zip``, preserving the API response and retry behavior.
 No temporary archive is created.
+After a read timeout, both upload methods check the stored archive before retrying.
+Matching file names and contents prove success even if HackerRank repackaged the ZIP.
+Unverified uploads retain the original timeout and configured retry policy.
+Archive downloads omit the API authorization header.
+Built-in transports accept ``project_upload_timeout`` to tune uploads independently of ordinary requests and verification reads.
+Omitting it preserves the normal transport timeout.
 The asynchronous method performs file operations and compression in a worker thread.
 Missing directories and regular files raise :class:`NotADirectoryError`.
 Symbolic links within the directory raise :class:`ValueError`.

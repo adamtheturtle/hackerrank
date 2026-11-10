@@ -31,8 +31,10 @@ from hackerrank._dict_types import (
 )
 from hackerrank._internal_notes import internal_notes_body
 from hackerrank._project_archive import project_archive
+from hackerrank._question_requests import question_request
 from hackerrank._question_validation import validate_custom_system_prompt
 from hackerrank._request_types import MultipartFiles
+from hackerrank._request_urls import question_write_url
 from hackerrank._responses import (
     environment_response,
     interview_items,
@@ -157,9 +159,10 @@ class _Namespace:
             HackerRankError: If the response has an error
                 or redirect status code.
         """
-        full_url = self.base_url + url
+        full_url = self.base_url + question_write_url(method=method, url=url)
         return request_with_retries(
-            request=lambda: self.transport(
+            request=lambda: question_request(
+                transport=self.transport,
                 method=method,
                 url=full_url,
                 headers=self.headers,
@@ -1435,6 +1438,10 @@ class QuestionsNamespace(_Namespace):
 
         Safe to retry: uploading again replaces the project archive.
 
+        After a read timeout, matching stored file names and contents prove
+        the upload succeeded without sending it again. An unverified
+        upload retains the original timeout and configured retry policy.
+
         Args:
             question_id: The id of the question.
             directory: Directory containing the files to upload. All files,
@@ -1464,6 +1471,10 @@ class QuestionsNamespace(_Namespace):
         """Upload a project zip for a fullstack question.
 
         Safe to retry: uploading again replaces the project archive.
+
+        After a read timeout, matching stored file names and contents prove
+        the upload succeeded without sending it again. An unverified
+        upload retains the original timeout and configured retry policy.
 
         Args:
             question_id: The id of the question.
