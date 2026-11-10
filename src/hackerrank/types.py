@@ -2,6 +2,7 @@
 
 from collections.abc import Iterable
 from dataclasses import asdict, dataclass
+from enum import StrEnum
 from typing import ClassVar, Self
 
 from beartype import beartype
@@ -42,6 +43,29 @@ InterviewArtifactQuestion = _interview_results.InterviewArtifactQuestion
 InterviewArtifacts = _interview_results.InterviewArtifacts
 InterviewArtifactsPending = _interview_results.InterviewArtifactsPending
 InterviewNote = _interview_results.InterviewNote
+
+
+class QuestionType(StrEnum):
+    """Known API question types, including project questions.
+
+    String arguments and unknown response types remain supported by the
+    client so new server types do not break existing integrations.
+    """
+
+    CODE = "code"
+    APPROX = "approx"
+    MCQ = "mcq"
+    MULTIPLE_MCQ = "multiple_mcq"
+    WHITEBOARD = "whiteboard"
+    FILE_UPLOAD = "file_upload"
+    TEXT_ANSWER = "textAns"
+    FULLSTACK = "fullstack"
+
+    @property
+    def supports_custom_system_prompt(self) -> bool:
+        """Whether this type supports a project AI assistant prompt."""
+        return self is QuestionType.FULLSTACK
+
 
 type JSONValue = _dict_types.JSONValue
 
@@ -546,6 +570,16 @@ class Question:
     has_valid_stacks: bool | None = None
     fullstack_project_details: dict[str, JSONValue] | None = None
     custom_system_prompt: str | None = None
+
+    @property
+    def supports_custom_system_prompt(self) -> bool:
+        """Whether the client recognizes this question's prompt
+        support.
+        """
+        return (
+            self.type in QuestionType
+            and QuestionType(value=self.type).supports_custom_system_prompt
+        )
 
     @classmethod
     def from_dict(cls, data: QuestionDict) -> Self:

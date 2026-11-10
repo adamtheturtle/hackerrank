@@ -31,6 +31,7 @@ from hackerrank._dict_types import (
 )
 from hackerrank._internal_notes import internal_notes_body
 from hackerrank._project_archive import project_archive
+from hackerrank._question_validation import validate_custom_system_prompt
 from hackerrank._request_types import MultipartFiles
 from hackerrank._responses import (
     environment_response,
@@ -271,14 +272,11 @@ def _list_params(
     return params
 
 
-_MAX_CUSTOM_SYSTEM_PROMPT_LENGTH = 15_000
-
-
 @beartype
 def _question_body(
     *,
     name: str | None,
-    question_type: str | None,
+    question_type: str,
     internal_notes: str | None,
     languages: builtins.list[str] | None,
     problem_statement: str | None,
@@ -298,19 +296,16 @@ def _question_body(
     custom_system_prompt: str | None,
 ) -> dict[str, JSONValue]:
     """Build a JSON body for question create/update calls."""
-    if (
-        custom_system_prompt is not None
-        and len(custom_system_prompt) > _MAX_CUSTOM_SYSTEM_PROMPT_LENGTH
-    ):
-        msg = "custom_system_prompt must be at most 15,000 characters."
-        raise ValueError(msg)
+    validate_custom_system_prompt(
+        question_type=question_type, custom_system_prompt=custom_system_prompt
+    )
     answer_value = (
         answer if isinstance(answer, int) or answer is None else list(answer)
     )
     return _drop_none(
         {
             "name": name,
-            "type": question_type,
+            "type": str(object=question_type),
             "internal_notes": internal_notes,
             "languages": (list(languages) if languages is not None else None),
             "problem_statement": problem_statement,
@@ -1216,7 +1211,7 @@ class QuestionsNamespace(_Namespace):
 
         Args:
             name: Question name.
-            type: Question type (``code``, ``mcq``, ...).
+            type: A QuestionType value or an API type string.
             internal_notes: Private notes.
             languages: Supported languages.
             problem_statement: Problem statement.
@@ -1235,7 +1230,8 @@ class QuestionsNamespace(_Namespace):
             testcases: Project scoring test cases.
             custom_system_prompt: AI assistant prompt for project questions,
                 up to 15,000 characters. None omits the field; an empty string
-                explicitly clears it. Whitespace is preserved.
+                explicitly clears it. Whitespace is preserved. Known
+                unsupported question types raise ValueError before a request.
 
         Returns:
             The created question.
@@ -1345,7 +1341,8 @@ class QuestionsNamespace(_Namespace):
             testcases: New project scoring test cases.
             custom_system_prompt: AI assistant prompt for project questions,
                 up to 15,000 characters. None omits the field; an empty string
-                explicitly clears it. Whitespace is preserved.
+                explicitly clears it. Whitespace is preserved. Known
+                unsupported question types raise ValueError before a request.
 
         Returns:
             The updated question when returned by the API, otherwise
