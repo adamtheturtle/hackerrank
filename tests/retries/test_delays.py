@@ -4,6 +4,7 @@ from http import HTTPStatus
 
 import pytest
 
+from hackerrank._retries import delay_seconds
 from hackerrank.client import HackerRank
 from hackerrank.exceptions import (
     HackerRankError,
@@ -11,6 +12,13 @@ from hackerrank.exceptions import (
 )
 from tests.retries.responses import PAGE_BODY, error, ok, response
 from tests.retries.transports import ScriptedTransport
+
+
+def test_backoff_float_limit() -> None:
+    """Large attempts preserve the documented overflow behavior."""
+    assert delay_seconds(attempt=1024, headers=None) == 2.0**1022
+    with pytest.raises(expected_exception=OverflowError):
+        _ = delay_seconds(attempt=1025, headers=None)
 
 
 def test_backoff_is_exponential(sleeps: list[float]) -> None:
