@@ -29,10 +29,10 @@ from hackerrank._dict_types import (
     UserDict,
     UserTeamMembershipDict,
 )
-from hackerrank._internal_notes import internal_notes_body
 from hackerrank._pagination import iter_items
 from hackerrank._project_archive import project_archive
 from hackerrank._question_requests import question_request
+from hackerrank._question_updates import question_update_body
 from hackerrank._question_validation import validate_custom_system_prompt
 from hackerrank._request_types import MultipartFiles
 from hackerrank._request_urls import question_write_url
@@ -69,6 +69,7 @@ from hackerrank.types import (
     Page,
     Question,
     QuestionAnswer,
+    QuestionChanges,
     SCIMMessage,
     SCIMPage,
     SCIMTeam,
@@ -1505,13 +1506,42 @@ class QuestionsNamespace(_Namespace):
         Raises:
             ValueError: If required fields are absent.
         """
+        return self.update_metadata(
+            question_id=question_id,
+            changes=QuestionChanges(internal_notes=internal_notes),
+        )
+
+    def update_metadata(
+        self,
+        *,
+        question_id: str,
+        changes: QuestionChanges,
+    ) -> Question | None:
+        """Read current metadata and apply selected changes.
+
+        Send required fields and only the selected optional fields.
+        None preserves a field; empty strings and lists explicitly clear it.
+        Every call writes the merged metadata, even if unchanged.
+        The read and write are separate requests without a concurrency lock.
+
+        Safe to retry: the write replaces the selected and required fields.
+
+        Args:
+            question_id: The id of the question.
+            changes: Metadata fields to replace.
+
+        Returns:
+            The updated question when returned by the API, otherwise None.
+
+        Raises:
+            ValueError: If required fields are absent after applying changes,
+                or a custom system prompt is invalid for the question.
+        """
         current = self.get(question_id=question_id)
         response = self._request(
             method="PUT",
             url=f"{_API_V3}/questions/{question_id}",
-            json=internal_notes_body(
-                question=current, internal_notes=internal_notes
-            ),
+            json=question_update_body(question=current, changes=changes),
             params=None,
             files=None,
             repeatable=True,

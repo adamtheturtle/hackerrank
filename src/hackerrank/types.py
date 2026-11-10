@@ -625,6 +625,47 @@ class Question:
 
 @beartype
 @dataclass(frozen=True, kw_only=True)
+class QuestionChanges:
+    """Selected metadata changes for an existing question.
+
+    None preserves a field. Empty strings and lists explicitly clear it.
+    Question identifiers and types cannot be changed by this model.
+    """
+
+    name: str | None = None
+    internal_notes: str | None = None
+    languages: list[str] | None = None
+    problem_statement: str | None = None
+    recommended_duration: int | None = None
+    tags: list[str] | None = None
+    options: list[str] | None = None
+    answer: QuestionAnswer | None = None
+    score: float | None = None
+    environment_id: int | None = None
+    role_type: str | None = None
+    scoring_command: str | None = None
+    scoring_files: list[str] | None = None
+    readonly_paths: list[str] | None = None
+    default_files: list[str] | None = None
+    configuration: dict[str, JSONValue] | None = None
+    testcases: list[dict[str, JSONValue]] | None = None
+    custom_system_prompt: str | None = None
+
+    def to_dict(self) -> dict[str, JSONValue]:
+        """Serialize explicit changes, omitting None values.
+
+        Returns:
+            A JSON-compatible copy of the selected changes.
+        """
+        return {
+            key: value
+            for key, value in _json_object(value=asdict(obj=self)).items()
+            if value is not None
+        }
+
+
+@beartype
+@dataclass(frozen=True, kw_only=True)
 class TestCandidateDetailField:
     """A candidate-detail field descriptor configured on a test."""
 
