@@ -12,7 +12,7 @@ from beartype import beartype
 
 from hackerrank.async_client import AsyncHackerRank
 from hackerrank.client import HackerRank
-from hackerrank.types import JSONValue, Question
+from hackerrank.types import JSONValue, Question, QuestionType
 
 _BASE = "https://www.hackerrank.com/x/api/v3/questions"
 _QUESTION = {"id": "q1", "type": "fullstack", "name": "Project"}
@@ -42,7 +42,11 @@ def _assert_prompt(*, route: respx.Route, prompt: str | None) -> None:
     argvalues=_PROMPTS,
     ids=["omitted", "empty", "multiline", "unicode-limit"],
 )
-def test_sync_prompt(prompt: str | None) -> None:
+@pytest.mark.parametrize(
+    argnames="question_type",
+    argvalues=[QuestionType.FULLSTACK, "fullstack", "future_project"],
+)
+def test_sync_prompt(prompt: str | None, question_type: str) -> None:
     """Sync create and update serialize prompts without trimming or
     nesting.
     """
@@ -56,7 +60,7 @@ def test_sync_prompt(prompt: str | None) -> None:
         with HackerRank(api_key="test-key") as client:
             _ = client.questions.create(
                 name="Project",
-                type="fullstack",
+                type=question_type,
                 problem_statement="Build it.",
                 recommended_duration=60,
                 custom_system_prompt=prompt,
@@ -64,7 +68,7 @@ def test_sync_prompt(prompt: str | None) -> None:
             _ = client.questions.update(
                 question_id="q1",
                 name="Project",
-                type="fullstack",
+                type=question_type,
                 internal_notes="",
                 languages=[],
                 problem_statement="Build it.",
@@ -84,7 +88,11 @@ def test_sync_prompt(prompt: str | None) -> None:
     argvalues=_PROMPTS,
     ids=["omitted", "empty", "multiline", "unicode-limit"],
 )
-async def test_async_prompt(prompt: str | None) -> None:
+@pytest.mark.parametrize(
+    argnames="question_type",
+    argvalues=[QuestionType.FULLSTACK, "fullstack", "future_project"],
+)
+async def test_async_prompt(prompt: str | None, question_type: str) -> None:
     """Async create and update have the same prompt semantics."""
     with respx.mock(assert_all_called=True) as router:
         create = router.post(url=_BASE).respond(
@@ -96,7 +104,7 @@ async def test_async_prompt(prompt: str | None) -> None:
         async with AsyncHackerRank(api_key="test-key") as client:
             _ = await client.questions.create(
                 name="Project",
-                type="fullstack",
+                type=question_type,
                 problem_statement="Build it.",
                 recommended_duration=60,
                 custom_system_prompt=prompt,
@@ -104,7 +112,7 @@ async def test_async_prompt(prompt: str | None) -> None:
             _ = await client.questions.update(
                 question_id="q1",
                 name="Project",
-                type="fullstack",
+                type=question_type,
                 internal_notes="",
                 languages=[],
                 problem_statement="Build it.",
@@ -118,25 +126,37 @@ async def test_async_prompt(prompt: str | None) -> None:
         _assert_prompt(route=update, prompt=prompt)
 
 
-def test_sync_rejects_long_prompt() -> None:
+@pytest.mark.parametrize(
+    argnames=("question_type", "prompt", "message"),
+    argvalues=[(QuestionType.FULLSTACK, "x" * 15_001, "15,000")]
+    + [
+        (kind, prompt, "not supported")
+        for kind in QuestionType
+        if not kind.supports_custom_system_prompt
+        for prompt in ("", "Hints")
+    ],
+)
+def test_sync_rejects_invalid_prompt(
+    question_type: str, prompt: str, message: str
+) -> None:
     """Overlong prompts fail before any sync request."""
     with (
         respx.mock(assert_all_mocked=True) as router,
         HackerRank(api_key="test-key") as client,
     ):
-        with pytest.raises(expected_exception=ValueError, match="15,000"):
+        with pytest.raises(expected_exception=ValueError, match=message):
             _ = client.questions.create(
                 name="Project",
-                type="fullstack",
+                type=question_type,
                 problem_statement="Build it.",
                 recommended_duration=60,
-                custom_system_prompt="x" * 15_001,
+                custom_system_prompt=prompt,
             )
-        with pytest.raises(expected_exception=ValueError, match="15,000"):
+        with pytest.raises(expected_exception=ValueError, match=message):
             _ = client.questions.update(
                 question_id="q1",
                 name="Project",
-                type="fullstack",
+                type=question_type,
                 internal_notes="",
                 languages=[],
                 problem_statement="Build it.",
@@ -144,29 +164,41 @@ def test_sync_rejects_long_prompt() -> None:
                 tags=[],
                 options=[],
                 answer=[],
-                custom_system_prompt="x" * 15_001,
+                custom_system_prompt=prompt,
             )
         assert len(router.calls) == 0
 
 
 @pytest.mark.asyncio
-async def test_async_rejects_long_prompt() -> None:
+@pytest.mark.parametrize(
+    argnames=("question_type", "prompt", "message"),
+    argvalues=[(QuestionType.FULLSTACK, "x" * 15_001, "15,000")]
+    + [
+        (kind, prompt, "not supported")
+        for kind in QuestionType
+        if not kind.supports_custom_system_prompt
+        for prompt in ("", "Hints")
+    ],
+)
+async def test_async_rejects_invalid_prompt(
+    question_type: str, prompt: str, message: str
+) -> None:
     """Overlong prompts fail before any async request."""
     with respx.mock(assert_all_mocked=True) as router:
         async with AsyncHackerRank(api_key="test-key") as client:
-            with pytest.raises(expected_exception=ValueError, match="15,000"):
+            with pytest.raises(expected_exception=ValueError, match=message):
                 _ = await client.questions.create(
                     name="Project",
-                    type="fullstack",
+                    type=question_type,
                     problem_statement="Build it.",
                     recommended_duration=60,
-                    custom_system_prompt="x" * 15_001,
+                    custom_system_prompt=prompt,
                 )
-            with pytest.raises(expected_exception=ValueError, match="15,000"):
+            with pytest.raises(expected_exception=ValueError, match=message):
                 _ = await client.questions.update(
                     question_id="q1",
                     name="Project",
-                    type="fullstack",
+                    type=question_type,
                     internal_notes="",
                     languages=[],
                     problem_statement="Build it.",
@@ -174,7 +206,7 @@ async def test_async_rejects_long_prompt() -> None:
                     tags=[],
                     options=[],
                     answer=[],
-                    custom_system_prompt="x" * 15_001,
+                    custom_system_prompt=prompt,
                 )
         assert len(router.calls) == 0
 

@@ -72,6 +72,18 @@ Existing HTTPX users can keep their current configuration, but HTTPX2 transports
 Migrating to HTTPX2 only requires selecting the new transport.
 HackerRank client methods and returned models are unchanged.
 
+Question types and AI prompts
+-----------------------------
+
+Use ``hackerrank.types.QuestionType`` for known API question types.
+The clients continue to accept strings, and ``Question.type`` preserves unknown response values so newer server types remain readable.
+``QuestionType.supports_custom_system_prompt`` and ``Question.supports_custom_system_prompt`` report known prompt support.
+
+Typed and generic question writes reject prompts longer than 15,000 characters and prompts supplied for known unsupported types before sending a request.
+Generic partial updates can omit the type.
+The server then decides whether the field applies.
+No supplied prompt is silently removed from an invalid request.
+
 Full Documentation
 ------------------
 
