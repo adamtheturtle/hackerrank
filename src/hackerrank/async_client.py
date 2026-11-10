@@ -68,6 +68,7 @@ from hackerrank.types import (
     JSONValue,
     Page,
     Question,
+    QuestionAnswer,
     SCIMMessage,
     SCIMPage,
     SCIMTeam,
@@ -246,7 +247,7 @@ def _question_body(
     recommended_duration: int | None,
     tags: builtins.list[str] | None,
     options: builtins.list[str] | None,
-    answer: int | Sequence[int] | None,
+    answer: QuestionAnswer | None,
     score: float | None,
     environment_id: int | None,
     role_type: str | None,
@@ -263,7 +264,9 @@ def _question_body(
         question_type=question_type, custom_system_prompt=custom_system_prompt
     )
     answer_value = (
-        answer if isinstance(answer, int) or answer is None else list(answer)
+        answer
+        if isinstance(answer, int | str) or answer is None
+        else list(answer)
     )
     return _drop_none(
         {
@@ -1254,7 +1257,7 @@ class AsyncQuestionsNamespace(_AsyncNamespace):
         languages: builtins.list[str] | None = None,
         tags: builtins.list[str] | None = None,
         options: builtins.list[str] | None = None,
-        answer: int | builtins.list[int] | None = None,
+        answer: QuestionAnswer | None = None,
         score: float | None = None,
         environment_id: int | None = None,
         role_type: str | None = None,
@@ -1281,7 +1284,8 @@ class AsyncQuestionsNamespace(_AsyncNamespace):
             recommended_duration: Recommended duration.
             tags: Tags.
             options: MCQ options.
-            answer: Correct MCQ answer.
+            answer: Correct MCQ answer in its original string, integer,
+                or integer-list form.
             score: Maximum score for project questions.
             environment_id: Environment id for a fullstack question.
             role_type: Role type for a fullstack question.
@@ -1344,7 +1348,7 @@ class AsyncQuestionsNamespace(_AsyncNamespace):
         recommended_duration: int,
         tags: builtins.list[str],
         options: builtins.list[str],
-        answer: int | builtins.list[int],
+        answer: QuestionAnswer,
         score: float | None = None,
         environment_id: int | None = None,
         role_type: str | None = None,
@@ -1370,7 +1374,8 @@ class AsyncQuestionsNamespace(_AsyncNamespace):
             recommended_duration: New recommended duration.
             tags: New tags.
             options: New MCQ options.
-            answer: New MCQ answer.
+            answer: New MCQ answer in its original string, integer,
+                or integer-list form.
             score: New maximum score.
             environment_id: New environment id.
             role_type: New role type.

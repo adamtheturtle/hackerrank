@@ -106,6 +106,9 @@ class EnvironmentDict(TypedDict):
     sample_project_url: NotRequired[str]
 
 
+type QuestionAnswer = int | str | list[int]
+
+
 class QuestionDict(TypedDict):
     """A HackerRank question."""
 
@@ -123,7 +126,7 @@ class QuestionDict(TypedDict):
     tags: NotRequired[list[str]]
     max_score: NotRequired[float]
     options: NotRequired[list[str]]
-    answer: NotRequired[int | list[int]]
+    answer: NotRequired[QuestionAnswer | None]
     test_case_count: NotRequired[int]
     role_type: NotRequired[str]
     environment_id: NotRequired[int]
