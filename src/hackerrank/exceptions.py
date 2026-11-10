@@ -8,6 +8,10 @@ from beartype import beartype
 from hackerrank.transports import TransportResponse
 
 
+class PaginationError(RuntimeError):
+    """Raised when listing cannot advance or reach remaining results."""
+
+
 @beartype
 class HackerRankError(Exception):
     """Base exception for all HackerRank API errors.
