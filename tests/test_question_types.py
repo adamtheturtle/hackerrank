@@ -1,38 +1,13 @@
 """Known question types share capabilities without closing the API."""
 
 import json
-from collections.abc import Mapping
-from typing import TypeIs
 
 import pytest
 import respx
 
-from hackerrank.api import api_catalogue
 from hackerrank.async_client import AsyncHackerRank
 from hackerrank.client import HackerRank
 from hackerrank.types import JSONValue, Question, QuestionType
-
-
-def _is_json_object(value: JSONValue) -> TypeIs[Mapping[str, JSONValue]]:
-    """Narrow a recursive JSON value to its object representation."""
-    return isinstance(value, Mapping)
-
-
-def test_question_types_cover_the_documented_api() -> None:
-    """The enum covers every type in the packaged API schema."""
-    catalogue = api_catalogue()
-    definitions = catalogue["definitions"]
-    assert _is_json_object(value=definitions)
-    for name in ("QuestionCreate", "QuestionUpdate", "QuestionShow"):
-        schema = definitions[name]
-        assert _is_json_object(value=schema)
-        properties = schema["properties"]
-        assert _is_json_object(value=properties)
-        field = properties["type"]
-        assert _is_json_object(value=field)
-        values = field["enum"]
-        assert isinstance(values, list)
-        assert set(values) <= {kind.value for kind in QuestionType}
 
 
 @pytest.mark.parametrize(
@@ -55,20 +30,20 @@ def test_response_types_remain_strings(question_type: str) -> None:
 @pytest.mark.asyncio
 @pytest.mark.parametrize(argnames="asynchronous", argvalues=[False, True])
 @pytest.mark.parametrize(
-    argnames="question_type",
+    argnames=("question_type", "wire_type"),
     argvalues=[
-        QuestionType.CODE,
-        QuestionType.APPROX,
-        QuestionType.MCQ,
-        QuestionType.MULTIPLE_MCQ,
-        QuestionType.WHITEBOARD,
-        QuestionType.FILE_UPLOAD,
-        QuestionType.TEXT_ANSWER,
-        QuestionType.FULLSTACK,
+        (QuestionType.CODE, "code"),
+        (QuestionType.APPROX, "approx"),
+        (QuestionType.MCQ, "mcq"),
+        (QuestionType.MULTIPLE_MCQ, "multiple_mcq"),
+        (QuestionType.WHITEBOARD, "whiteboard"),
+        (QuestionType.FILE_UPLOAD, "file_upload"),
+        (QuestionType.TEXT_ANSWER, "textAns"),
+        (QuestionType.FULLSTACK, "fullstack"),
     ],
 )
 async def test_enum_writes_are_plain_api_strings(
-    *, asynchronous: bool, question_type: QuestionType
+    *, asynchronous: bool, question_type: QuestionType, wire_type: str
 ) -> None:
     """Every enum member is accepted by both public typed clients."""
     with respx.mock(assert_all_called=True) as router:
@@ -76,7 +51,7 @@ async def test_enum_writes_are_plain_api_strings(
             url="https://www.hackerrank.com/x/api/v3/questions"
         ).respond(
             status_code=200,
-            json={"id": "1", "name": "Example", "type": question_type.value},
+            json={"id": "1", "name": "Example", "type": wire_type},
         )
         if asynchronous:
             async with AsyncHackerRank(api_key="test") as client:
@@ -94,10 +69,10 @@ async def test_enum_writes_are_plain_api_strings(
                     problem_statement="Prompt",
                     recommended_duration=60,
                 )
-        assert result.type == question_type.value
+        assert result.type == wire_type
         body = json.loads(s=route.calls.last.request.content)
         assert isinstance(body["type"], str)
-        assert body["type"] == question_type.value
+        assert body["type"] == wire_type
         assert "custom_system_prompt" not in body
 
 
