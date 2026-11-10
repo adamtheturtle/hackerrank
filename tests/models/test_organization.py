@@ -59,7 +59,7 @@ def test_interview_template_from_dict() -> None:
         data={
             "id": "template-1",
             "name": "Standard",
-            "questions": [2687118, "2687119"],
+            "questions": [2687118, 2687119],
         },
     )
     assert template.id == "template-1"

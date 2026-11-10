@@ -468,18 +468,14 @@ class InterviewTemplate:
             A new instance.
         """
         return cls(
-            id=str(object=data["id"]),
+            id=data["id"],
             name=data["name"],
             created_at=data.get("created_at"),
             status=data.get("status"),
             user=data.get("user"),
             roles=data.get("roles"),
             team_share=data.get("team_share"),
-            questions=(
-                [int(question_id) for question_id in data["questions"]]
-                if "questions" in data
-                else None
-            ),
+            questions=data.get("questions"),
             scorecard=data.get("scorecard"),
             import_template=data.get("import_template"),
             editor_access=data.get("editor_access"),
