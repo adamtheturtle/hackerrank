@@ -1,4 +1,4 @@
-"""Preserve verified template wire types through both SDK clients."""
+"""Preserve verified template wire types through both clients."""
 
 import pytest
 import respx
