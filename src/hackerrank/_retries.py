@@ -203,6 +203,7 @@ def delay_seconds(*, attempt: int, headers: Mapping[str, str] | None) -> float:
     """The delay before the next attempt.
 
     pre: attempt >= 1
+    raises: OverflowError
     post[]:
         _ >= 0.0
         bool(headers) or _ == 2.0 ** (attempt - 2)
@@ -216,6 +217,9 @@ def delay_seconds(*, attempt: int, headers: Mapping[str, str] | None) -> float:
     Returns:
         The number of seconds to wait, taking ``Retry-After`` over
         the exponential backoff when the server sent one.
+
+    Raises:
+        OverflowError: The exponential backoff exceeds the float range.
     """
     if headers is not None:
         retry_after = _retry_after_seconds(headers=headers)
