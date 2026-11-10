@@ -146,3 +146,19 @@ Next-page URLs from responses are not followed.
 
 A repeated page or an exhausted server offset window raises ``hackerrank.exceptions.PaginationError`` rather than presenting partial inventory as complete.
 Narrow the listing filters when the API offset window prevents reaching every result.
+
+Selected question metadata updates
+----------------------------------
+
+Use ``questions.update_metadata(question_id=..., changes=QuestionChanges(...))`` to replace selected fields without rebuilding the required update payload.
+``QuestionChanges`` is available from ``hackerrank.types`` on both clients.
+The helper reads the current question, preserves its identifier and type, and sends required metadata with the selected changes.
+Other optional fields are omitted so project settings and existing assistant prompts remain untouched.
+
+``None`` preserves a field; empty strings, empty lists, and zero are explicit changes.
+If the resulting metadata lacks a problem statement or recommended duration, the helper raises ``ValueError`` before writing.
+Custom system prompts use the same type and length validation as ordinary question updates.
+Every call sends the merged metadata, even if unchanged.
+The read and write are separate API requests.
+Concurrent edits are not locked.
+The existing ``update_internal_notes`` helper now calls ``update_metadata``.
