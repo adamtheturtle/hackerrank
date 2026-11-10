@@ -1,2 +1,0 @@
-Question answers preserve string, integer, integer-list, and null response values without coercion.
-Typed question creation and updates accept string answers unchanged, allowing responses to be read and written without bypassing the client.
