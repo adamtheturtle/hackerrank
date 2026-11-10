@@ -79,7 +79,7 @@ async def test_notes_update(
     returned = {**current, "internal_notes": "Server-formatted notes"}
     with respx.mock(assert_all_called=True) as router:
         get = router.get(url=_URL).respond(status_code=200, json=current)
-        put = router.put(url=_URL).mock(
+        put = router.put(url=_URL + "/").mock(
             return_value=httpx.Response(status_code=200, json=returned)
             if response_body
             else httpx.Response(status_code=204)
@@ -125,7 +125,7 @@ async def test_notes_are_always_written(
     """Unchanged and empty notes still produce an update request."""
     with respx.mock(assert_all_called=True) as router:
         get = router.get(url=_URL).respond(status_code=200, json=_question())
-        put = router.put(url=_URL).respond(status_code=204)
+        put = router.put(url=_URL + "/").respond(status_code=204)
         assert await _update(use_async=use_async, notes=notes) is None
         assert (
             json.loads(s=put.calls.last.request.content)["internal_notes"]

@@ -202,7 +202,10 @@ def fixture_stub_router() -> Generator[respx.MockRouter]:
             for path, payload in paths.items():
                 _ = router.route(
                     method=method,
-                    path__regex=f"^{path}$",
+                    path__regex=f"^{path}/$"
+                    if method in {"POST", "PUT"}
+                    and path.startswith(r"/x/api/v3/questions")
+                    else f"^{path}$",
                 ).respond(status_code=200, json=payload)
         _ = router.route(method="POST", path__regex=r".*/archive$").respond(
             status_code=204,
