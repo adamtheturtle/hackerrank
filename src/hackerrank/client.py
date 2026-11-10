@@ -1,7 +1,7 @@
 """HackerRank for Work API client."""
 
 import builtins
-from collections.abc import Mapping, Sequence
+from collections.abc import Iterator, Mapping, Sequence
 from http import HTTPStatus
 from pathlib import Path
 from types import TracebackType
@@ -30,6 +30,7 @@ from hackerrank._dict_types import (
     UserTeamMembershipDict,
 )
 from hackerrank._internal_notes import internal_notes_body
+from hackerrank._pagination import iter_items
 from hackerrank._project_archive import project_archive
 from hackerrank._question_requests import question_request
 from hackerrank._question_validation import validate_custom_system_prompt
@@ -834,6 +835,36 @@ class InterviewTemplatesNamespace(_Namespace):
             )
         )
 
+    def iter_all(
+        self,
+        *,
+        page_size: int = 100,
+        filter: str | None = None,  # noqa: A002  # pylint: disable=redefined-builtin
+    ) -> Iterator[InterviewTemplate]:
+        """Iterate through all interview templates.
+
+        Args:
+            page_size: Maximum records requested per page. Must be positive.
+            filter: Ownership filter accepted by list.
+
+        Returns:
+            An iterator of interview templates.
+
+        Raises:
+            ValueError: If page_size is not positive.
+            RuntimeError: If listing repeats a page or hits a server limit.
+        """
+
+        def _fetch(offset: int, /) -> Page[InterviewTemplate]:
+            """Fetch a page with the original listing filters."""
+            return self.list(
+                limit=page_size,
+                offset=offset,
+                filter=filter,
+            )
+
+        return iter_items(fetch=_fetch, page_size=page_size)
+
     def list(
         self,
         *,
@@ -1113,6 +1144,64 @@ class EnvironmentsNamespace(_Namespace):
 @beartype
 class QuestionsNamespace(_Namespace):
     """Namespace for question operations."""
+
+    def iter_all(
+        self,
+        *,
+        page_size: int = 100,
+        status: str | None = None,
+        access: builtins.list[str] | None = None,
+        difficulty: builtins.list[str] | None = None,
+        type: builtins.list[str] | None = None,  # noqa: A002  # pylint: disable=redefined-builtin
+        owner: builtins.list[str] | None = None,
+        tags: builtins.list[str] | None = None,
+        skills: builtins.list[str] | None = None,
+        languages: builtins.list[str] | None = None,
+    ) -> Iterator[Question]:
+        """Iterate through all questions.
+
+        Args:
+            page_size: Maximum records requested per page. Must be positive.
+            status: The same status filter accepted by list.
+            access: The same access filter accepted by list.
+            difficulty: The same difficulty filter accepted by list.
+            type: The same type filter accepted by list.
+            owner: The same owner filter accepted by list.
+            tags: The same tags filter accepted by list.
+            skills: The same skills filter accepted by list.
+            languages: The same languages filter accepted by list.
+
+        Returns:
+            An iterator of questions.
+
+        Raises:
+            ValueError: If page_size is not positive.
+            RuntimeError: If listing repeats a page or hits a server limit.
+        """
+        access = None if access is None else list(access)
+        difficulty = None if difficulty is None else list(difficulty)
+        type_values = None if type is None else list(type)
+        owner = None if owner is None else list(owner)
+        tags = None if tags is None else list(tags)
+        skills = None if skills is None else list(skills)
+        languages = None if languages is None else list(languages)
+
+        def _fetch(offset: int, /) -> Page[Question]:
+            """Fetch a page with the original listing filters."""
+            return self.list(
+                limit=page_size,
+                offset=offset,
+                status=status,
+                access=access,
+                difficulty=difficulty,
+                type=type_values,
+                owner=owner,
+                tags=tags,
+                skills=skills,
+                languages=languages,
+            )
+
+        return iter_items(fetch=_fetch, page_size=page_size)
 
     def list(
         self,
@@ -2801,6 +2890,33 @@ class TeamsNamespace(_Namespace):
             headers=headers,
             retries=retries,
         )
+
+    def iter_all(
+        self,
+        *,
+        page_size: int = 100,
+    ) -> Iterator[Team]:
+        """Iterate through all teams.
+
+        Args:
+            page_size: Maximum records requested per page. Must be positive.
+
+        Returns:
+            An iterator of teams.
+
+        Raises:
+            ValueError: If page_size is not positive.
+            RuntimeError: If listing repeats a page or hits a server limit.
+        """
+
+        def _fetch(offset: int, /) -> Page[Team]:
+            """Fetch a page with the original listing filters."""
+            return self.list(
+                limit=page_size,
+                offset=offset,
+            )
+
+        return iter_items(fetch=_fetch, page_size=page_size)
 
     def list(
         self,

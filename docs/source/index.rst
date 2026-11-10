@@ -129,3 +129,20 @@ Question answer representations
 ``QuestionAnswer`` describes the three non-null forms accepted by typed question creation and updates.
 Strings are neither parsed as numbers nor split into characters.
 An omitted or ``None`` answer on creation remains omitted from the request.
+
+Inventory pagination
+--------------------
+
+``client.questions.iter_all()``, ``client.interview_templates.iter_all()``, and ``client.teams.iter_all()`` read all reachable inventory records.
+Use the existing listing filters, such as ``status="active"`` for questions or ``filter="owned"`` for templates.
+The positive ``page_size`` argument defaults to 100.
+Async clients return asynchronous iterators for ``async for``.
+
+Requests are lazy and use the client's normal retry policy.
+Filter lists are copied when the iterator is created.
+Each request advances by the number of records actually returned, so short pages do not discard later results.
+Missing totals are handled by continuing until an empty page.
+Next-page URLs from responses are not followed.
+
+A repeated page or an exhausted server offset window raises ``hackerrank.exceptions.PaginationError`` rather than presenting partial inventory as complete.
+Narrow the listing filters when the API offset window prevents reaching every result.
