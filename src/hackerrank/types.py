@@ -49,7 +49,7 @@ class QuestionType(StrEnum):
     """Known API question types, including project questions.
 
     String arguments and unknown response types remain supported by the
-    client so new server types do not break existing integrations.
+    client so new server types do not break existing clients.
     """
 
     CODE = "code"

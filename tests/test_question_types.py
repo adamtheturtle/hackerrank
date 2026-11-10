@@ -1,6 +1,8 @@
 """Known question types share capabilities without closing the API."""
 
 import json
+from collections.abc import Mapping
+from typing import TypeIs
 
 import pytest
 import respx
@@ -11,18 +13,23 @@ from hackerrank.client import HackerRank
 from hackerrank.types import JSONValue, Question, QuestionType
 
 
+def _is_json_object(value: JSONValue) -> TypeIs[Mapping[str, JSONValue]]:
+    """Narrow a recursive JSON value to its object representation."""
+    return isinstance(value, Mapping)
+
+
 def test_question_types_cover_the_documented_api() -> None:
     """The enum covers every type in the packaged API schema."""
     catalogue = api_catalogue()
     definitions = catalogue["definitions"]
-    assert isinstance(definitions, dict)
+    assert _is_json_object(value=definitions)
     for name in ("QuestionCreate", "QuestionUpdate", "QuestionShow"):
         schema = definitions[name]
-        assert isinstance(schema, dict)
+        assert _is_json_object(value=schema)
         properties = schema["properties"]
-        assert isinstance(properties, dict)
+        assert _is_json_object(value=properties)
         field = properties["type"]
-        assert isinstance(field, dict)
+        assert _is_json_object(value=field)
         values = field["enum"]
         assert isinstance(values, list)
         assert set(values) <= {kind.value for kind in QuestionType}
@@ -37,7 +44,8 @@ def test_response_types_remain_strings(question_type: str) -> None:
     question = Question.from_dict(
         data={"id": "1", "name": "Example", "type": question_type}
     )
-    assert type(question.type) is str
+    assert isinstance(question.type, str)
+    assert not isinstance(question.type, QuestionType)
     assert question.type == question_type
     assert question.supports_custom_system_prompt == (
         question_type == "fullstack"
@@ -88,7 +96,7 @@ async def test_enum_writes_are_plain_api_strings(
                 )
         assert result.type == question_type.value
         body = json.loads(s=route.calls.last.request.content)
-        assert type(body["type"]) is str
+        assert isinstance(body["type"], str)
         assert body["type"] == question_type.value
         assert "custom_system_prompt" not in body
 
