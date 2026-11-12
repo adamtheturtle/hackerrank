@@ -128,15 +128,15 @@ class Page[T](list[T]):
                 beyond that window.
         """
         super().__init__(iterable)
-        self.page_total = page_total
-        self.offset = offset
-        self.previous = previous
-        self.next = next_
-        self.first = first
-        self.last = last
-        self.total = total
-        self.offset_window_limit = offset_window_limit
-        self.offset_window_exhausted = offset_window_exhausted
+        self.page_total: int = page_total
+        self.offset: int = offset
+        self.previous: str = previous
+        self.next: str = next_
+        self.first: str = first
+        self.last: str = last
+        self.total: int = total
+        self.offset_window_limit: int | None = offset_window_limit
+        self.offset_window_exhausted: bool | None = offset_window_exhausted
 
     @property
     def data(self) -> list[T]:
@@ -175,10 +175,10 @@ class SCIMPage[T](list[T]):
             total_results: Total number of items.
         """
         super().__init__(iterable)
-        self.schemas = schemas
-        self.start_index = start_index
-        self.items_per_page = items_per_page
-        self.total_results = total_results
+        self.schemas: list[str] = schemas
+        self.start_index: int = start_index
+        self.items_per_page: int = items_per_page
+        self.total_results: int = total_results
 
 
 @beartype

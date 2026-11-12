@@ -41,8 +41,8 @@ class HTTPStatusError(Exception):
         """
         message = f"HTTP {status_code}"
         super().__init__(message)
-        self.status_code = status_code
-        self.content = content
+        self.status_code: int = status_code
+        self.content: bytes = content
 
 
 @beartype
