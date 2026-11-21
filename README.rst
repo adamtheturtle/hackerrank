@@ -42,7 +42,7 @@ Updating private notes
 
 Use ``client.questions.update_internal_notes(question_id=..., internal_notes=...)`` to change private interviewer notes.
 The same operation is available on ``AsyncHackerRank``.
-Every call reads the current required question fields and writes the requested notes, including identical or empty notes.
+Each call reads the required question fields before writing the requested notes, including identical or empty notes.
 The operation returns the question supplied by the update response, or ``None`` for an empty response.
 It raises ``ValueError`` if fields required by the update request are absent.
 
@@ -68,7 +68,8 @@ The standard ``hackerrank`` installation includes both client families.
 
 Use ``AsyncHTTPX2Transport`` with ``AsyncHackerRank`` for asynchronous calls.
 The ``timeout`` argument accepts an HTTPX2 timeout object or a number of seconds.
-Existing HTTPX users can keep their current configuration, but HTTPX2 transports require timeout objects from HTTPX2 when passing them across the package boundary.
+Existing HTTPX configurations continue to work.
+Pass HTTPX2 timeout objects to HTTPX2 transports.
 Migrating to HTTPX2 only requires selecting the new transport.
 HackerRank client methods and returned models are unchanged.
 
@@ -81,8 +82,8 @@ The clients continue to accept strings, and ``Question.type`` preserves unknown 
 
 Typed and generic question writes reject prompts longer than 15,000 characters and prompts supplied for known unsupported types before sending a request.
 Generic partial updates can omit the type.
-The server then decides whether the field applies.
-No supplied prompt is silently removed from an invalid request.
+The server validates whether the field applies.
+Invalid requests retain the supplied prompt.
 
 Full Documentation
 ------------------
