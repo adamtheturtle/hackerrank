@@ -35,14 +35,14 @@ Project directory uploads
 Use ``client.questions.upload_project_directory(question_id=..., directory=Path(...))`` to upload a prepared directory for a fullstack question.
 The client includes every file, including hidden files, with its relative path and original bytes.
 It builds a ZIP in memory and delegates to ``upload_project_zip``, preserving the API response and retry behavior.
-No temporary archive is created.
+The client builds the archive in memory.
 After a read timeout, both upload methods check the stored archive before retrying.
 Matching file names and contents prove success even if HackerRank repackaged the ZIP.
 Unverified uploads retain the original timeout and configured retry policy.
 Archive downloads omit the API authorization header.
 Built-in transports accept ``project_upload_timeout`` to tune uploads independently of ordinary requests and verification reads.
 Omitting it preserves the normal transport timeout.
-The asynchronous method performs file operations and compression in a worker thread.
+The asynchronous method uses a worker thread to read and compress files.
 Missing directories and regular files raise :class:`NotADirectoryError`.
 Symbolic links within the directory raise :class:`ValueError`.
 An empty directory produces an empty ZIP.
@@ -101,7 +101,8 @@ The standard ``hackerrank`` installation includes both client families.
 
 Use ``AsyncHTTPX2Transport`` with ``AsyncHackerRank`` for asynchronous calls.
 The ``timeout`` argument accepts an HTTPX2 timeout object or a number of seconds.
-Existing HTTPX users can keep their current configuration, but HTTPX2 transports require timeout objects from HTTPX2 when passing them across the package boundary.
+Existing HTTPX configurations continue to work.
+Pass HTTPX2 timeout objects to HTTPX2 transports.
 Migrating to HTTPX2 only requires selecting the new transport.
 HackerRank client methods and returned models are unchanged.
 
@@ -144,8 +145,8 @@ Each request advances by the number of records actually returned, so short pages
 Missing totals are handled by continuing until an empty page.
 Next-page URLs from responses are not followed.
 
-A repeated page or an exhausted server offset window raises ``hackerrank.exceptions.PaginationError`` rather than presenting partial inventory as complete.
-Narrow the listing filters when the API offset window prevents reaching every result.
+The client raises ``hackerrank.exceptions.PaginationError`` if the API repeats a page or exhausts the range of valid offsets.
+Narrow the filters if the result set exceeds the number of items the API allows you to page through.
 
 Selected question metadata updates
 ----------------------------------

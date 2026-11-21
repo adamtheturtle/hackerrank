@@ -58,7 +58,7 @@ Run ``pytest``:
 Changelog entries
 -----------------
 
-Add one news fragment per user-facing change, as :file:`newsfragments/<issue-number>.change.md`, containing a single sentence in the past or present tense.
+Add one news fragment per user-facing change, as :file:`newsfragments/<issue-number>.change.md`, with one sentence in the past or present tense.
 
 Write fragments in GitHub-compatible Markdown.
 Use ``+name.change.md`` for a change without an issue number.
@@ -94,4 +94,4 @@ Release notes
 
 Write user-facing changes as Markdown in ``newsfragments/<issue>.change.md``.
 Towncrier writes one Markdown file per version, used directly for GitHub release notes.
-Invalid fragment names fail release assembly.
+Release assembly fails if a fragment name is invalid.
