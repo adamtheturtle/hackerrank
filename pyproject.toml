@@ -556,7 +556,9 @@ num_workers = "auto"
 
 [tool.pyrefly]
 search-path = [ "." ]
+errors.explicit-any-use = "warn"
 errors.non-exhaustive-match = "error"
+errors.partially-unknown-type = "warn"
 enabled-ignores = [ "pyrefly" ]
 preset = "all"
 
