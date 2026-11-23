@@ -5,8 +5,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import pytest
-import pytest_asyncio
 import respx
+from pytest_asyncio import fixture as async_fixture
 
 from hackerrank.async_client import AsyncHackerRank
 from hackerrank.client import HackerRank
@@ -95,7 +95,7 @@ def fixture_hackerrank_client(
         client.close()
 
 
-@pytest_asyncio.fixture(name="async_hackerrank_client")
+@async_fixture(name="async_hackerrank_client")
 async def fixture_async_hackerrank_client(
     mock_hackerrank_api: respx.MockRouter,
 ) -> AsyncGenerator[AsyncHackerRank]:
@@ -235,7 +235,7 @@ def fixture_sync_client(
         client.close()
 
 
-@pytest_asyncio.fixture(name="async_client")
+@async_fixture(name="async_client")
 async def fixture_async_client(
     stub_router: respx.MockRouter,
 ) -> AsyncGenerator[AsyncHackerRank]:
