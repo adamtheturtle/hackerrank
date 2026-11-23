@@ -85,7 +85,7 @@ def fixture_connection(
     """Use each family's HTTP interception with the real client
     methods.
     """
-    mode = request.param
+    mode: object = request.param
     assert isinstance(mode, _Mode)
     return _Connection(
         mode=mode, router=httpx2_mock if mode.httpx2 else respx_mock

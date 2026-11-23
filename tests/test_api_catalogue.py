@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-import json
 from http import HTTPStatus
 from pathlib import Path
 
 import pytest
 import respx
 
-from hackerrank.api import api_catalogue, api_operations
+from hackerrank._responses import object_response
+from hackerrank.api import api_catalogue, api_operations, parse_api_object
 from hackerrank.async_client import AsyncHackerRank
 from hackerrank.client import HackerRank
 from hackerrank.types import JSONValue  # noqa: TC001
@@ -19,15 +19,18 @@ def test_catalogue_matches_every_documented_operation() -> None:
     """Exclude introduction pseudo-routes while retaining all real
     routes.
     """
-    spec = json.loads(
-        s=(Path(__file__).parents[1] / "openapi.json").read_text()
+    spec = parse_api_object(
+        text=(Path(__file__).parents[1] / "openapi.json").read_text()
     )
-    expected = {
-        (method.upper(), path.split("?")[0])
-        for path, methods in spec["paths"].items()
-        for method in methods
-        if method in {"get", "post", "put", "patch", "delete"}
-    }
+    paths = object_response(value=spec["paths"])
+    supported_methods = {"get", "post", "put", "patch", "delete"}
+    expected: set[tuple[str, str]] = set()
+    for path, operations_by_method in paths.items():
+        methods = object_response(value=operations_by_method)
+        expected.update(
+            (method.upper(), path.split(sep="?")[0])
+            for method in methods.keys() & supported_methods
+        )
     operations = api_operations()
     assert {
         (value.method, value.path) for value in operations.values()

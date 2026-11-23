@@ -2,21 +2,21 @@
 
 from __future__ import annotations
 
-import json
 from typing import TYPE_CHECKING
 
 import pytest
 import respx
-from beartype import beartype
 
+from hackerrank.api import parse_api_object
 from hackerrank.async_client import AsyncHackerRank
 from hackerrank.client import HackerRank
-from hackerrank.types import JSONValue
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
     import httpx
+
+    from hackerrank.types import JSONValue
 
 _BASE = "https://www.hackerrank.com/x/api/v3"
 _EMPTY_DATA: list[JSONValue] = []
@@ -56,16 +56,10 @@ def _last_route_request(*, route: respx.Route) -> httpx.Request:
     return call.request
 
 
-@beartype
-def _as_json_object(*, value: dict[str, JSONValue]) -> dict[str, JSONValue]:
-    """Return ``value`` as a runtime-validated JSON object."""
-    return value
-
-
 def _last_route_json(*, route: respx.Route) -> dict[str, JSONValue]:
     """Return decoded JSON body from the last captured ``route`` call."""
-    return _as_json_object(
-        value=json.loads(s=_last_route_request(route=route).content),
+    return parse_api_object(
+        text=_last_route_request(route=route).content.decode()
     )
 
 

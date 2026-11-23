@@ -162,4 +162,5 @@ def prepare_operation(
 
 def parse_api_object(*, text: str) -> dict[str, JSONValue]:
     """Parse a JSON object using the SDK's runtime response validation."""
-    return object_response(value=json.loads(s=text))
+    decoded: object = json.loads(s=text)
+    return object_response(value=decoded)

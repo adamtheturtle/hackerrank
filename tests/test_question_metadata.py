@@ -2,12 +2,10 @@
 boundary.
 """
 
-import json
-
 import pytest
 import respx
-from beartype import beartype
 
+from hackerrank.api import parse_api_object
 from hackerrank.async_client import AsyncHackerRank
 from hackerrank.client import HackerRank
 from hackerrank.exceptions import HackerRankError
@@ -44,12 +42,6 @@ def _current() -> dict[str, JSONValue]:
             "configuration": {"menu": {"run": "run"}}
         },
     }
-
-
-@beartype
-def _body(*, value: dict[str, JSONValue]) -> dict[str, JSONValue]:
-    """Validate decoded request data before making assertions."""
-    return value
 
 
 async def _update(
@@ -96,7 +88,7 @@ async def test_preserves_required_fields(
             )
             is None
         )
-        body = _body(value=json.loads(s=put.calls.last.request.content))
+        body = parse_api_object(text=put.calls.last.request.content.decode())
         assert body == {
             "name": current["name"],
             "type": "fullstack",
@@ -172,7 +164,7 @@ async def test_applies_every_supported_change(*, asynchronous: bool) -> None:
         assert result is not None
         assert result.name == "New name"
         assert (
-            _body(value=json.loads(s=put.calls.last.request.content))
+            parse_api_object(text=put.calls.last.request.content.decode())
             == expected
         )
 
@@ -249,7 +241,7 @@ async def test_empty_changes_still_write_required_metadata(
             await _update(asynchronous=asynchronous, changes=QuestionChanges())
             is None
         )
-        body = _body(value=json.loads(s=put.calls.last.request.content))
+        body = parse_api_object(text=put.calls.last.request.content.decode())
         assert body["name"] == current["name"]
         assert body["answer"] == "0"
         assert "custom_system_prompt" not in body

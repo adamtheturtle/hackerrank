@@ -5,8 +5,8 @@ import json
 import httpx
 import pytest
 import respx
-from beartype import beartype
 
+from hackerrank.api import parse_api_object
 from hackerrank.async_client import AsyncHackerRank
 from hackerrank.client import HackerRank
 from hackerrank.transports import AsyncHTTPXTransport, HTTPXTransport
@@ -35,12 +35,6 @@ def _question() -> dict[str, JSONValue]:
             "configuration": {"menu": {"run": "python3 solution.py"}}
         },
     }
-
-
-@beartype
-def _json_object(*, value: dict[str, JSONValue]) -> dict[str, JSONValue]:
-    """Check JSON at the outgoing request boundary."""
-    return value
 
 
 async def _update(*, use_async: bool, notes: str) -> Question | None:
@@ -85,7 +79,7 @@ async def test_notes_update(
             else httpx.Response(status_code=204)
         )
         result = await _update(use_async=use_async, notes="New notes")
-        body = _json_object(value=json.loads(s=put.calls.last.request.content))
+        body = parse_api_object(text=put.calls.last.request.content.decode())
         assert set(body) == {
             "name",
             "type",

@@ -74,7 +74,9 @@ class ScriptedCalls:
         self.urls.append(url)
         for part in file_parts(files=files):
             if isinstance(part, io.IOBase):
-                self.file_contents.append(part.read())
+                contents: object = part.read()
+                assert isinstance(contents, bytes)
+                self.file_contents.append(contents)
             elif isinstance(part, bytes):
                 self.file_contents.append(part)
         result = self._script[index]
