@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-from typing import Any
 
 import httpx
 import pytest
@@ -13,8 +12,7 @@ from beartype.roar import BeartypeCallHintParamViolation
 from hackerrank.async_client import AsyncHackerRank
 from hackerrank.client import HackerRank
 from hackerrank.types import TestsUpdate, UserUpdate
-
-_BAD_BODY: Any = {}  # pyrefly: ignore [explicit-any]
+from tests.runtime_call import call_with_unchecked_arguments
 
 
 def _user_update() -> UserUpdate:
@@ -78,10 +76,9 @@ def test_user_update_body_omission_rejected_by_constructor() -> None:
 
     ``UserUpdate`` construction and client serialization.
     """
-    user_update_ctor: Any = UserUpdate  # pyrefly: ignore [explicit-any]
     with pytest.raises(expected_exception=TypeError):
         # Intentionally incomplete to assert required kwargs.
-        user_update_ctor(firstname="Alice")  # pylint: disable=no-value-for-parameter
+        _ = call_with_unchecked_arguments(UserUpdate, firstname="Alice")
 
 
 def test_user_update_body_omission_rejected_by_beartype(
@@ -92,9 +89,10 @@ def test_user_update_body_omission_rejected_by_beartype(
     ``UserUpdate`` construction and client serialization.
     """
     with pytest.raises(expected_exception=BeartypeCallHintParamViolation):
-        sync_client.users.update(
+        call_with_unchecked_arguments(
+            sync_client.users.update,
             user_id="u1",
-            body=_BAD_BODY,
+            body={},
         )
 
 
@@ -178,9 +176,10 @@ async def test_user_update_body_async_omission_rejected_by_beartype(
     ``UserUpdate`` construction and client serialization.
     """
     with pytest.raises(expected_exception=BeartypeCallHintParamViolation):
-        await async_client.users.update(
+        await call_with_unchecked_arguments(
+            async_client.users.update,
             user_id="u1",
-            body=_BAD_BODY,
+            body={},
         )
 
 
@@ -189,10 +188,9 @@ def test_tests_update_body_omission_rejected_by_constructor() -> None:
 
     ``TestsUpdate`` construction and client serialization.
     """
-    tests_update_ctor: Any = TestsUpdate  # pyrefly: ignore [explicit-any]
     with pytest.raises(expected_exception=TypeError):
         # Intentionally incomplete to assert required kwargs.
-        tests_update_ctor(name="T")  # pylint: disable=no-value-for-parameter
+        _ = call_with_unchecked_arguments(TestsUpdate, name="T")
 
 
 def test_tests_update_body_omission_rejected_by_beartype(
@@ -203,9 +201,10 @@ def test_tests_update_body_omission_rejected_by_beartype(
     ``TestsUpdate`` construction and client serialization.
     """
     with pytest.raises(expected_exception=BeartypeCallHintParamViolation):
-        sync_client.tests.update(
+        call_with_unchecked_arguments(
+            sync_client.tests.update,
             test_id="t1",
-            body=_BAD_BODY,
+            body={},
         )
 
 
@@ -305,7 +304,8 @@ async def test_tests_update_body_async_omission_rejected_by_beartype(
     ``TestsUpdate`` construction and client serialization.
     """
     with pytest.raises(expected_exception=BeartypeCallHintParamViolation):
-        await async_client.tests.update(
+        await call_with_unchecked_arguments(
+            async_client.tests.update,
             test_id="t1",
-            body=_BAD_BODY,
+            body={},
         )
