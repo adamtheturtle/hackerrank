@@ -5,6 +5,7 @@ import json
 import pytest
 import respx
 
+from hackerrank.api import parse_api_object
 from hackerrank.async_client import AsyncHackerRank
 from hackerrank.client import HackerRank
 from hackerrank.types import JSONValue, Question, QuestionType
@@ -70,7 +71,7 @@ async def test_enum_writes_are_plain_api_strings(
                     recommended_duration=60,
                 )
         assert result.type == wire_type
-        body = json.loads(s=route.calls.last.request.content)
+        body = parse_api_object(text=route.calls.last.request.content.decode())
         assert isinstance(body["type"], str)
         assert body["type"] == wire_type
         assert "custom_system_prompt" not in body

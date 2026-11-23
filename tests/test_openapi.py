@@ -67,7 +67,8 @@ def _assert_remote_openapi_matches_checked_in(*, url: str) -> None:
     checked = normalize_openapi(spec=_load_checked_in_document())
     response = httpx.get(url=url, timeout=30.0)
     _ = response.raise_for_status()
-    live = normalize_openapi(spec=response.json())
+    payload: object = response.json()
+    live = normalize_openapi(spec=payload)
     assert checked == live
 
 
