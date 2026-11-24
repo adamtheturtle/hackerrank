@@ -35,7 +35,6 @@ from hackerrank._pagination import async_iter_items
 from hackerrank._project_archive import project_archive
 from hackerrank._question_requests import async_question_request
 from hackerrank._question_updates import question_update_body
-from hackerrank._question_validation import validate_custom_system_prompt
 from hackerrank._request_types import MultipartFiles
 from hackerrank._request_urls import question_write_url
 from hackerrank._responses import (
@@ -49,6 +48,7 @@ from hackerrank._responses import (
 from hackerrank._retries import async_request_with_retries
 from hackerrank.api import APIResponse, prepare_operation
 from hackerrank.exceptions import NotFoundError
+from hackerrank.question_validation import validate_custom_system_prompt
 from hackerrank.transports import (
     AsyncHTTPX2Transport,
     AsyncHTTPXTransport,
