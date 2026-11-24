@@ -37,3 +37,5 @@ API Reference
 
 .. automodule:: hackerrank.projects
    :members:
+
+.. autofunction:: hackerrank.question_validation.validate_custom_system_prompt

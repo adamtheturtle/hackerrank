@@ -10,6 +10,7 @@ import respx
 from hackerrank.api import parse_api_object
 from hackerrank.async_client import AsyncHackerRank
 from hackerrank.client import HackerRank
+from hackerrank.question_validation import validate_custom_system_prompt
 from hackerrank.types import Question, QuestionType
 
 _BASE = "https://www.hackerrank.com/x/api/v3/questions"
@@ -225,3 +226,15 @@ def test_question_response(prompt: str | None) -> None:
         ).custom_system_prompt
         is None
     )
+
+
+def test_validate_composed_prompt_offline() -> None:
+    """A caller can validate an assembled prompt without knowing the type."""
+    prompt = "x" * 15_000
+    validate_custom_system_prompt(
+        question_type=None, custom_system_prompt=prompt
+    )
+    with pytest.raises(expected_exception=ValueError, match="15,000"):
+        validate_custom_system_prompt(
+            question_type=None, custom_system_prompt=prompt + "x"
+        )
