@@ -93,6 +93,8 @@ Call ``to_yaml()`` to render the configuration as UTF-8 YAML bytes.
 
 .. code-block:: python
 
+   """Render a HackerRank project configuration."""
+
    from hackerrank.project_configuration import ProjectConfiguration
 
    configuration = ProjectConfiguration(
@@ -107,6 +109,7 @@ Call ``to_yaml()`` to render the configuration as UTF-8 YAML bytes.
            },
        },
    ).to_yaml()
+   assert configuration.startswith(b"version: 1.0\n")
 
 Pass the configuration bytes and an existing project ZIP to ``hackerrank.project_configuration.configure_project_archive``.
 Pass the resulting ZIP bytes to ``client.questions.upload_project_zip``.
