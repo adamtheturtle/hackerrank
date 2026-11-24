@@ -1,6 +1,7 @@
 """Offline project archive creation."""
 
 from io import BytesIO
+from operator import methodcaller
 from pathlib import Path
 from zipfile import ZipFile
 
@@ -8,7 +9,6 @@ import pytest
 from beartype.roar import BeartypeCallHintParamViolation
 
 from hackerrank.projects import build_project_archive
-from tests.runtime_call import call_with_unchecked_arguments
 
 
 def test_build_archive(tmp_path: Path) -> None:
@@ -68,6 +68,6 @@ def test_reject_file_as_directory(tmp_path: Path) -> None:
 def test_build_archive_requires_path() -> None:
     """Reject a directory string at the public archive boundary."""
     with pytest.raises(expected_exception=BeartypeCallHintParamViolation):
-        _ = call_with_unchecked_arguments(
-            build_project_archive, directory="starter", files=[]
+        _ = methodcaller("__call__", directory="starter", files=[])(
+            build_project_archive
         )
