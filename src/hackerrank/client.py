@@ -43,7 +43,7 @@ from hackerrank._responses import (
     response_data,
     response_items,
 )
-from hackerrank._retries import request_with_retries
+from hackerrank._retries import request_with_retries, retry_question_read
 from hackerrank.api import APIResponse, prepare_operation
 from hackerrank.question_validation import validate_custom_system_prompt
 from hackerrank.transports import (
@@ -1386,6 +1386,28 @@ class QuestionsNamespace(_Namespace):
         return Question.from_dict(
             data=response_data(response.json(), QuestionDict)
         )
+
+    def wait_until_readable(
+        self, *, question_id: str, retry_delays: Sequence[float | int]
+    ) -> Question:
+        """Read a recently created question, retrying a 404 on a schedule.
+
+        The first read is immediate. Each delay allows one more read.
+        Other errors propagate from the ordinary question read.
+
+        Args:
+            question_id: The ID returned by question creation.
+            retry_delays: Finite, non-negative delays in seconds.
+
+        Returns:
+            The question once it becomes readable.
+
+        Raises:
+            ValueError: If any retry delay is negative or non-finite.
+            NotFoundError: If the final read still returns a 404.
+        """
+        read = retry_question_read(read=self.get, retry_delays=retry_delays)
+        return read(question_id=question_id)
 
     def update(
         self,
