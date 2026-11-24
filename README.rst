@@ -85,6 +85,35 @@ Generic partial updates can omit the type.
 The server validates whether the field applies.
 Invalid requests retain the supplied prompt.
 
+Native project configuration
+----------------------------
+
+Pass the version and nested settings of a native ``hackerrank.yml`` to ``ProjectConfiguration``.
+Call ``to_yaml()`` to render the configuration as UTF-8 YAML bytes.
+
+.. code-block:: python
+
+   """Render a HackerRank project configuration."""
+
+   from hackerrank.project_configuration import ProjectConfiguration
+
+   configuration = ProjectConfiguration(
+       version=1.0,
+       configuration={
+           "has_webserver": False,
+           "readonly_paths": ["tests"],
+           "scoring": {"command": "grade", "files": ["report.xml"]},
+           "ide_config": {
+               "default_open_files": ["solution.py"],
+               "project_menu": {"run": "python solution.py"},
+           },
+       },
+   ).to_yaml()
+   assert configuration.startswith(b"version: 1.0\n")
+
+Pass the configuration bytes and an existing project ZIP to ``hackerrank.project_configuration.configure_project_archive``.
+Pass the resulting ZIP bytes to ``client.questions.upload_project_zip``.
+
 Full Documentation
 ------------------
 
