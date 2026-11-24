@@ -2,7 +2,6 @@
 
 import asyncio
 import builtins
-import math
 from collections.abc import AsyncIterator, Mapping, Sequence
 from http import HTTPStatus
 from pathlib import Path
@@ -45,9 +44,8 @@ from hackerrank._responses import (
     response_data,
     response_items,
 )
-from hackerrank._retries import async_request_with_retries
+from hackerrank._retries import async_request_with_retries, retry_question_read
 from hackerrank.api import APIResponse, prepare_operation
-from hackerrank.exceptions import NotFoundError
 from hackerrank.question_validation import validate_custom_system_prompt
 from hackerrank.transports import (
     AsyncHTTPX2Transport,
@@ -1357,19 +1355,8 @@ class AsyncQuestionsNamespace(_AsyncNamespace):
             ValueError: If any retry delay is negative or non-finite.
             NotFoundError: If the final read still returns a 404.
         """
-        if any(
-            delay < 0 or not math.isfinite(delay) for delay in retry_delays
-        ):
-            message = (
-                "Question read retry delays must be finite and non-negative."
-            )
-            raise ValueError(message)
-        for delay in retry_delays:
-            try:
-                return await self.get(question_id=question_id)
-            except NotFoundError:
-                await asyncio.sleep(delay=delay)
-        return await self.get(question_id=question_id)
+        read = retry_question_read(read=self.get, retry_delays=retry_delays)
+        return await read(question_id=question_id)
 
     async def create(
         self,

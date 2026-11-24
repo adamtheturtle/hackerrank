@@ -2,8 +2,9 @@
 
 import asyncio
 import logging
+import math
 import time
-from collections.abc import Awaitable, Callable, Iterator, Mapping
+from collections.abc import Awaitable, Callable, Iterator, Mapping, Sequence
 from http import HTTPStatus
 from typing import Protocol
 
@@ -15,12 +16,16 @@ from tenacity import (
     before_sleep_log,
     retry,
     retry_if_exception,
+    retry_if_exception_type,
     stop_after_attempt,
+    wait_chain,
     wait_exception,
+    wait_fixed,
+    wait_none,
 )
 
 from hackerrank._request_types import MultipartContent, MultipartFiles
-from hackerrank.exceptions import HackerRankError
+from hackerrank.exceptions import HackerRankError, NotFoundError
 from hackerrank.transports import TransportResponse
 
 _LOGGER = logging.getLogger(name="hackerrank")
@@ -279,6 +284,37 @@ def _attempts(*, retries: int, repeatable: bool, files: MultipartFiles) -> int:
     if not repeatable or not _files_are_repeatable(files=files):
         return 1
     return max(1, 1 + retries)
+
+
+def retry_question_read[**P, ResultT](
+    *, read: Callable[P, ResultT], retry_delays: Sequence[float | int]
+) -> Callable[P, ResultT]:
+    """Wrap a synchronous or asynchronous question read with 404 retries.
+
+    Args:
+        read: The ordinary question read.
+        retry_delays: Finite, non-negative delays in seconds.
+
+    Returns:
+        The same read operation with the requested retry schedule.
+
+    Raises:
+        ValueError: If any retry delay is negative or non-finite.
+    """
+    delays = tuple(retry_delays)
+    if any(delay < 0 or not math.isfinite(delay) for delay in delays):
+        message = "Question read retry delays must be finite and non-negative."
+        raise ValueError(message)
+    return retry(
+        retry=retry_if_exception_type(exception_types=NotFoundError),
+        stop=stop_after_attempt(max_attempt_number=len(delays) + 1),
+        wait=(
+            wait_chain(*(wait_fixed(wait=delay) for delay in delays))
+            if delays
+            else wait_none()
+        ),
+        reraise=True,
+    )(read)
 
 
 @beartype

@@ -56,14 +56,19 @@ async def test_wait_for_readable_question(
 @pytest.mark.asyncio
 @pytest.mark.parametrize(argnames="asynchronous", argvalues=[False, True])
 @pytest.mark.parametrize(
-    argnames=("status", "error", "count"),
-    argvalues=[(403, ForbiddenError, 1), (404, NotFoundError, 2)],
+    argnames=("status", "error", "retry_delays", "count"),
+    argvalues=[
+        (403, ForbiddenError, (0.0,), 1),
+        (404, NotFoundError, (), 1),
+        (404, NotFoundError, (0.0, 0.0), 3),
+    ],
 )
 async def test_wait_for_readable_question_errors(
     *,
     asynchronous: bool,
     status: int,
     error: type[HackerRankError],
+    retry_delays: tuple[float, ...],
     count: int,
 ) -> None:
     """Only a 404 uses the retry schedule. The last error is preserved."""
@@ -76,7 +81,9 @@ async def test_wait_for_readable_question_errors(
     with respx.mock(assert_all_called=True) as router:
         route = router.get(url=_URL).mock(side_effect=responses)
         with pytest.raises(expected_exception=error) as exc_info:
-            _ = await _wait(asynchronous=asynchronous, retry_delays=(0,))
+            _ = await _wait(
+                asynchronous=asynchronous, retry_delays=retry_delays
+            )
 
     assert route.call_count == count
     assert exc_info.value.content == f"response {count - 1}".encode()
