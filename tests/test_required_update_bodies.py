@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from operator import methodcaller
 
 import httpx
 import pytest
@@ -12,7 +13,6 @@ from beartype.roar import BeartypeCallHintParamViolation
 from hackerrank.async_client import AsyncHackerRank
 from hackerrank.client import HackerRank
 from hackerrank.types import TestsUpdate, UserUpdate
-from tests.runtime_call import call_with_unchecked_arguments
 
 
 def _user_update() -> UserUpdate:
@@ -78,7 +78,7 @@ def test_user_update_body_omission_rejected_by_constructor() -> None:
     """
     with pytest.raises(expected_exception=TypeError):
         # Intentionally incomplete to assert required kwargs.
-        _ = call_with_unchecked_arguments(UserUpdate, firstname="Alice")
+        _ = methodcaller("__call__", firstname="Alice")(UserUpdate)
 
 
 def test_user_update_body_omission_rejected_by_beartype(
@@ -89,11 +89,11 @@ def test_user_update_body_omission_rejected_by_beartype(
     ``UserUpdate`` construction and client serialization.
     """
     with pytest.raises(expected_exception=BeartypeCallHintParamViolation):
-        call_with_unchecked_arguments(
-            sync_client.users.update,
+        methodcaller(
+            "update",
             user_id="u1",
             body={},
-        )
+        )(sync_client.users)
 
 
 def test_user_update_body_to_dict_serializes_all_required_fields() -> None:
@@ -176,11 +176,11 @@ async def test_user_update_body_async_omission_rejected_by_beartype(
     ``UserUpdate`` construction and client serialization.
     """
     with pytest.raises(expected_exception=BeartypeCallHintParamViolation):
-        await call_with_unchecked_arguments(
-            async_client.users.update,
+        await methodcaller(
+            "update",
             user_id="u1",
             body={},
-        )
+        )(async_client.users)
 
 
 def test_tests_update_body_omission_rejected_by_constructor() -> None:
@@ -190,7 +190,7 @@ def test_tests_update_body_omission_rejected_by_constructor() -> None:
     """
     with pytest.raises(expected_exception=TypeError):
         # Intentionally incomplete to assert required kwargs.
-        _ = call_with_unchecked_arguments(TestsUpdate, name="T")
+        _ = methodcaller("__call__", name="T")(TestsUpdate)
 
 
 def test_tests_update_body_omission_rejected_by_beartype(
@@ -201,11 +201,11 @@ def test_tests_update_body_omission_rejected_by_beartype(
     ``TestsUpdate`` construction and client serialization.
     """
     with pytest.raises(expected_exception=BeartypeCallHintParamViolation):
-        call_with_unchecked_arguments(
-            sync_client.tests.update,
+        methodcaller(
+            "update",
             test_id="t1",
             body={},
-        )
+        )(sync_client.tests)
 
 
 def test_tests_update_body_to_dict_serializes_all_required_fields() -> None:
@@ -304,8 +304,8 @@ async def test_tests_update_body_async_omission_rejected_by_beartype(
     ``TestsUpdate`` construction and client serialization.
     """
     with pytest.raises(expected_exception=BeartypeCallHintParamViolation):
-        await call_with_unchecked_arguments(
-            async_client.tests.update,
+        await methodcaller(
+            "update",
             test_id="t1",
             body={},
-        )
+        )(async_client.tests)

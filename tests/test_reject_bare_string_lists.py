@@ -8,6 +8,7 @@ that mistake on both clients.
 
 from __future__ import annotations
 
+from operator import methodcaller
 from typing import TYPE_CHECKING
 
 import pytest
@@ -15,11 +16,11 @@ from beartype.roar import BeartypeCallHintParamViolation
 
 from hackerrank.async_client import AsyncHackerRank
 from hackerrank.client import HackerRank
-from tests.runtime_call import call_with_unchecked_arguments
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
 
+# Resolve methods at runtime to test rejection of invalid inputs.
 _BARE = "not-a-list"
 
 
@@ -30,182 +31,182 @@ def _sync_calls(
     return [
         (
             "interviews.interviewers",
-            lambda: call_with_unchecked_arguments(
-                client.interviews.create,
+            lambda: methodcaller(
+                "create",
                 title="t",
                 interviewers=_BARE,
-            ),
+            )(client.interviews),
         ),
         (
             "questions.languages",
-            lambda: call_with_unchecked_arguments(
-                client.questions.create,
+            lambda: methodcaller(
+                "create",
                 name="n",
                 type="coding",
                 problem_statement="ps",
                 recommended_duration=10,
                 languages=_BARE,
-            ),
+            )(client.questions),
         ),
         (
             "questions.tags",
-            lambda: call_with_unchecked_arguments(
-                client.questions.create,
+            lambda: methodcaller(
+                "create",
                 name="n",
                 type="coding",
                 problem_statement="ps",
                 recommended_duration=10,
                 tags=_BARE,
-            ),
+            )(client.questions),
         ),
         (
             "questions.options",
-            lambda: call_with_unchecked_arguments(
-                client.questions.create,
+            lambda: methodcaller(
+                "create",
                 name="n",
                 type="mcq",
                 problem_statement="ps",
                 recommended_duration=10,
                 options=_BARE,
-            ),
+            )(client.questions),
         ),
         (
             "questions.scoring_files",
-            lambda: call_with_unchecked_arguments(
-                client.questions.create,
+            lambda: methodcaller(
+                "create",
                 name="n",
                 type="coding",
                 problem_statement="ps",
                 recommended_duration=10,
                 scoring_files=_BARE,
-            ),
+            )(client.questions),
         ),
         (
             "questions.readonly_paths",
-            lambda: call_with_unchecked_arguments(
-                client.questions.create,
+            lambda: methodcaller(
+                "create",
                 name="n",
                 type="coding",
                 problem_statement="ps",
                 recommended_duration=10,
                 readonly_paths=_BARE,
-            ),
+            )(client.questions),
         ),
         (
             "questions.default_files",
-            lambda: call_with_unchecked_arguments(
-                client.questions.create,
+            lambda: methodcaller(
+                "create",
                 name="n",
                 type="coding",
                 problem_statement="ps",
                 recommended_duration=10,
                 default_files=_BARE,
-            ),
+            )(client.questions),
         ),
         (
             "candidates.tags",
-            lambda: call_with_unchecked_arguments(
-                client.tests.candidates.invite,
+            lambda: methodcaller(
+                "invite",
                 test_id="t1",
                 email="a@b.com",
                 tags=_BARE,
-            ),
+            )(client.tests.candidates),
         ),
         (
             "tests.languages",
-            lambda: call_with_unchecked_arguments(
-                client.tests.create,
+            lambda: methodcaller(
+                "create",
                 name="t",
                 duration=60,
                 role_ids=["r"],
                 experience=["junior"],
                 languages=_BARE,
-            ),
+            )(client.tests),
         ),
         (
             "tests.candidate_details",
-            lambda: call_with_unchecked_arguments(
-                client.tests.create,
+            lambda: methodcaller(
+                "create",
                 name="t",
                 duration=60,
                 role_ids=["r"],
                 experience=["junior"],
                 candidate_details=_BARE,
-            ),
+            )(client.tests),
         ),
         (
             "tests.tags",
-            lambda: call_with_unchecked_arguments(
-                client.tests.create,
+            lambda: methodcaller(
+                "create",
                 name="t",
                 duration=60,
                 role_ids=["r"],
                 experience=["junior"],
                 tags=_BARE,
-            ),
+            )(client.tests),
         ),
         (
             "tests.role_ids",
-            lambda: call_with_unchecked_arguments(
-                client.tests.create,
+            lambda: methodcaller(
+                "create",
                 name="t",
                 duration=60,
                 role_ids=_BARE,
                 experience=["junior"],
-            ),
+            )(client.tests),
         ),
         (
             "tests.experience",
-            lambda: call_with_unchecked_arguments(
-                client.tests.create,
+            lambda: methodcaller(
+                "create",
                 name="t",
                 duration=60,
                 role_ids=["r"],
                 experience=_BARE,
-            ),
+            )(client.tests),
         ),
         (
             "tests.questions",
-            lambda: call_with_unchecked_arguments(
-                client.tests.create,
+            lambda: methodcaller(
+                "create",
                 name="t",
                 duration=60,
                 role_ids=["r"],
                 experience=["junior"],
                 questions=_BARE,
-            ),
+            )(client.tests),
         ),
         (
             "tests.test_admins",
-            lambda: call_with_unchecked_arguments(
-                client.tests.create,
+            lambda: methodcaller(
+                "create",
                 name="t",
                 duration=60,
                 role_ids=["r"],
                 experience=["junior"],
                 test_admins=_BARE,
-            ),
+            )(client.tests),
         ),
         (
             "users.teams",
-            lambda: call_with_unchecked_arguments(
-                client.users.create,
+            lambda: methodcaller(
+                "create",
                 email="a@b.com",
                 firstname="A",
                 role="recruiter",
                 teams=_BARE,
-            ),
+            )(client.users),
         ),
         (
             "teams.locations",
-            lambda: call_with_unchecked_arguments(
-                client.teams.create, name="t", locations=_BARE
+            lambda: methodcaller("create", name="t", locations=_BARE)(
+                client.teams
             ),
         ),
         (
             "teams.departments",
-            lambda: call_with_unchecked_arguments(
-                client.teams.create, name="t", departments=_BARE
+            lambda: methodcaller("create", name="t", departments=_BARE)(
+                client.teams
             ),
         ),
     ]
@@ -218,182 +219,182 @@ def _async_calls(
     return [
         (
             "interviews.interviewers",
-            lambda: call_with_unchecked_arguments(
-                client.interviews.create,
+            lambda: methodcaller(
+                "create",
                 title="t",
                 interviewers=_BARE,
-            ),
+            )(client.interviews),
         ),
         (
             "questions.languages",
-            lambda: call_with_unchecked_arguments(
-                client.questions.create,
+            lambda: methodcaller(
+                "create",
                 name="n",
                 type="coding",
                 problem_statement="ps",
                 recommended_duration=10,
                 languages=_BARE,
-            ),
+            )(client.questions),
         ),
         (
             "questions.tags",
-            lambda: call_with_unchecked_arguments(
-                client.questions.create,
+            lambda: methodcaller(
+                "create",
                 name="n",
                 type="coding",
                 problem_statement="ps",
                 recommended_duration=10,
                 tags=_BARE,
-            ),
+            )(client.questions),
         ),
         (
             "questions.options",
-            lambda: call_with_unchecked_arguments(
-                client.questions.create,
+            lambda: methodcaller(
+                "create",
                 name="n",
                 type="mcq",
                 problem_statement="ps",
                 recommended_duration=10,
                 options=_BARE,
-            ),
+            )(client.questions),
         ),
         (
             "questions.scoring_files",
-            lambda: call_with_unchecked_arguments(
-                client.questions.create,
+            lambda: methodcaller(
+                "create",
                 name="n",
                 type="coding",
                 problem_statement="ps",
                 recommended_duration=10,
                 scoring_files=_BARE,
-            ),
+            )(client.questions),
         ),
         (
             "questions.readonly_paths",
-            lambda: call_with_unchecked_arguments(
-                client.questions.create,
+            lambda: methodcaller(
+                "create",
                 name="n",
                 type="coding",
                 problem_statement="ps",
                 recommended_duration=10,
                 readonly_paths=_BARE,
-            ),
+            )(client.questions),
         ),
         (
             "questions.default_files",
-            lambda: call_with_unchecked_arguments(
-                client.questions.create,
+            lambda: methodcaller(
+                "create",
                 name="n",
                 type="coding",
                 problem_statement="ps",
                 recommended_duration=10,
                 default_files=_BARE,
-            ),
+            )(client.questions),
         ),
         (
             "candidates.tags",
-            lambda: call_with_unchecked_arguments(
-                client.tests.candidates.invite,
+            lambda: methodcaller(
+                "invite",
                 test_id="t1",
                 email="a@b.com",
                 tags=_BARE,
-            ),
+            )(client.tests.candidates),
         ),
         (
             "tests.languages",
-            lambda: call_with_unchecked_arguments(
-                client.tests.create,
+            lambda: methodcaller(
+                "create",
                 name="t",
                 duration=60,
                 role_ids=["r"],
                 experience=["junior"],
                 languages=_BARE,
-            ),
+            )(client.tests),
         ),
         (
             "tests.candidate_details",
-            lambda: call_with_unchecked_arguments(
-                client.tests.create,
+            lambda: methodcaller(
+                "create",
                 name="t",
                 duration=60,
                 role_ids=["r"],
                 experience=["junior"],
                 candidate_details=_BARE,
-            ),
+            )(client.tests),
         ),
         (
             "tests.tags",
-            lambda: call_with_unchecked_arguments(
-                client.tests.create,
+            lambda: methodcaller(
+                "create",
                 name="t",
                 duration=60,
                 role_ids=["r"],
                 experience=["junior"],
                 tags=_BARE,
-            ),
+            )(client.tests),
         ),
         (
             "tests.role_ids",
-            lambda: call_with_unchecked_arguments(
-                client.tests.create,
+            lambda: methodcaller(
+                "create",
                 name="t",
                 duration=60,
                 role_ids=_BARE,
                 experience=["junior"],
-            ),
+            )(client.tests),
         ),
         (
             "tests.experience",
-            lambda: call_with_unchecked_arguments(
-                client.tests.create,
+            lambda: methodcaller(
+                "create",
                 name="t",
                 duration=60,
                 role_ids=["r"],
                 experience=_BARE,
-            ),
+            )(client.tests),
         ),
         (
             "tests.questions",
-            lambda: call_with_unchecked_arguments(
-                client.tests.create,
+            lambda: methodcaller(
+                "create",
                 name="t",
                 duration=60,
                 role_ids=["r"],
                 experience=["junior"],
                 questions=_BARE,
-            ),
+            )(client.tests),
         ),
         (
             "tests.test_admins",
-            lambda: call_with_unchecked_arguments(
-                client.tests.create,
+            lambda: methodcaller(
+                "create",
                 name="t",
                 duration=60,
                 role_ids=["r"],
                 experience=["junior"],
                 test_admins=_BARE,
-            ),
+            )(client.tests),
         ),
         (
             "users.teams",
-            lambda: call_with_unchecked_arguments(
-                client.users.create,
+            lambda: methodcaller(
+                "create",
                 email="a@b.com",
                 firstname="A",
                 role="recruiter",
                 teams=_BARE,
-            ),
+            )(client.users),
         ),
         (
             "teams.locations",
-            lambda: call_with_unchecked_arguments(
-                client.teams.create, name="t", locations=_BARE
+            lambda: methodcaller("create", name="t", locations=_BARE)(
+                client.teams
             ),
         ),
         (
             "teams.departments",
-            lambda: call_with_unchecked_arguments(
-                client.teams.create, name="t", departments=_BARE
+            lambda: methodcaller("create", name="t", departments=_BARE)(
+                client.teams
             ),
         ),
     ]
