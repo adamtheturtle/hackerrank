@@ -8,7 +8,7 @@ that mistake on both clients.
 
 from __future__ import annotations
 
-from operator import methodcaller
+import json
 from typing import TYPE_CHECKING
 
 import pytest
@@ -20,8 +20,8 @@ from hackerrank.client import HackerRank
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
 
-# Resolve methods at runtime to test rejection of invalid inputs.
-_BARE = "not-a-list"
+# Decode the input without a schema so it can be checked at runtime.
+_BARE = json.loads(s='"not-a-list"')
 
 
 def _sync_calls(
@@ -31,183 +31,163 @@ def _sync_calls(
     return [
         (
             "interviews.interviewers",
-            lambda: methodcaller(
-                "create",
+            lambda: client.interviews.create(
                 title="t",
                 interviewers=_BARE,
-            )(client.interviews),
+            ),
         ),
         (
             "questions.languages",
-            lambda: methodcaller(
-                "create",
+            lambda: client.questions.create(
                 name="n",
                 type="coding",
                 problem_statement="ps",
                 recommended_duration=10,
                 languages=_BARE,
-            )(client.questions),
+            ),
         ),
         (
             "questions.tags",
-            lambda: methodcaller(
-                "create",
+            lambda: client.questions.create(
                 name="n",
                 type="coding",
                 problem_statement="ps",
                 recommended_duration=10,
                 tags=_BARE,
-            )(client.questions),
+            ),
         ),
         (
             "questions.options",
-            lambda: methodcaller(
-                "create",
+            lambda: client.questions.create(
                 name="n",
                 type="mcq",
                 problem_statement="ps",
                 recommended_duration=10,
                 options=_BARE,
-            )(client.questions),
+            ),
         ),
         (
             "questions.scoring_files",
-            lambda: methodcaller(
-                "create",
+            lambda: client.questions.create(
                 name="n",
                 type="coding",
                 problem_statement="ps",
                 recommended_duration=10,
                 scoring_files=_BARE,
-            )(client.questions),
+            ),
         ),
         (
             "questions.readonly_paths",
-            lambda: methodcaller(
-                "create",
+            lambda: client.questions.create(
                 name="n",
                 type="coding",
                 problem_statement="ps",
                 recommended_duration=10,
                 readonly_paths=_BARE,
-            )(client.questions),
+            ),
         ),
         (
             "questions.default_files",
-            lambda: methodcaller(
-                "create",
+            lambda: client.questions.create(
                 name="n",
                 type="coding",
                 problem_statement="ps",
                 recommended_duration=10,
                 default_files=_BARE,
-            )(client.questions),
+            ),
         ),
         (
             "candidates.tags",
-            lambda: methodcaller(
-                "invite",
+            lambda: client.tests.candidates.invite(
                 test_id="t1",
                 email="a@b.com",
                 tags=_BARE,
-            )(client.tests.candidates),
+            ),
         ),
         (
             "tests.languages",
-            lambda: methodcaller(
-                "create",
+            lambda: client.tests.create(
                 name="t",
                 duration=60,
                 role_ids=["r"],
                 experience=["junior"],
                 languages=_BARE,
-            )(client.tests),
+            ),
         ),
         (
             "tests.candidate_details",
-            lambda: methodcaller(
-                "create",
+            lambda: client.tests.create(
                 name="t",
                 duration=60,
                 role_ids=["r"],
                 experience=["junior"],
                 candidate_details=_BARE,
-            )(client.tests),
+            ),
         ),
         (
             "tests.tags",
-            lambda: methodcaller(
-                "create",
+            lambda: client.tests.create(
                 name="t",
                 duration=60,
                 role_ids=["r"],
                 experience=["junior"],
                 tags=_BARE,
-            )(client.tests),
+            ),
         ),
         (
             "tests.role_ids",
-            lambda: methodcaller(
-                "create",
+            lambda: client.tests.create(
                 name="t",
                 duration=60,
                 role_ids=_BARE,
                 experience=["junior"],
-            )(client.tests),
+            ),
         ),
         (
             "tests.experience",
-            lambda: methodcaller(
-                "create",
+            lambda: client.tests.create(
                 name="t",
                 duration=60,
                 role_ids=["r"],
                 experience=_BARE,
-            )(client.tests),
+            ),
         ),
         (
             "tests.questions",
-            lambda: methodcaller(
-                "create",
+            lambda: client.tests.create(
                 name="t",
                 duration=60,
                 role_ids=["r"],
                 experience=["junior"],
                 questions=_BARE,
-            )(client.tests),
+            ),
         ),
         (
             "tests.test_admins",
-            lambda: methodcaller(
-                "create",
+            lambda: client.tests.create(
                 name="t",
                 duration=60,
                 role_ids=["r"],
                 experience=["junior"],
                 test_admins=_BARE,
-            )(client.tests),
+            ),
         ),
         (
             "users.teams",
-            lambda: methodcaller(
-                "create",
+            lambda: client.users.create(
                 email="a@b.com",
                 firstname="A",
                 role="recruiter",
                 teams=_BARE,
-            )(client.users),
+            ),
         ),
         (
             "teams.locations",
-            lambda: methodcaller("create", name="t", locations=_BARE)(
-                client.teams
-            ),
+            lambda: client.teams.create(name="t", locations=_BARE),
         ),
         (
             "teams.departments",
-            lambda: methodcaller("create", name="t", departments=_BARE)(
-                client.teams
-            ),
+            lambda: client.teams.create(name="t", departments=_BARE),
         ),
     ]
 
@@ -219,183 +199,163 @@ def _async_calls(
     return [
         (
             "interviews.interviewers",
-            lambda: methodcaller(
-                "create",
+            lambda: client.interviews.create(
                 title="t",
                 interviewers=_BARE,
-            )(client.interviews),
+            ),
         ),
         (
             "questions.languages",
-            lambda: methodcaller(
-                "create",
+            lambda: client.questions.create(
                 name="n",
                 type="coding",
                 problem_statement="ps",
                 recommended_duration=10,
                 languages=_BARE,
-            )(client.questions),
+            ),
         ),
         (
             "questions.tags",
-            lambda: methodcaller(
-                "create",
+            lambda: client.questions.create(
                 name="n",
                 type="coding",
                 problem_statement="ps",
                 recommended_duration=10,
                 tags=_BARE,
-            )(client.questions),
+            ),
         ),
         (
             "questions.options",
-            lambda: methodcaller(
-                "create",
+            lambda: client.questions.create(
                 name="n",
                 type="mcq",
                 problem_statement="ps",
                 recommended_duration=10,
                 options=_BARE,
-            )(client.questions),
+            ),
         ),
         (
             "questions.scoring_files",
-            lambda: methodcaller(
-                "create",
+            lambda: client.questions.create(
                 name="n",
                 type="coding",
                 problem_statement="ps",
                 recommended_duration=10,
                 scoring_files=_BARE,
-            )(client.questions),
+            ),
         ),
         (
             "questions.readonly_paths",
-            lambda: methodcaller(
-                "create",
+            lambda: client.questions.create(
                 name="n",
                 type="coding",
                 problem_statement="ps",
                 recommended_duration=10,
                 readonly_paths=_BARE,
-            )(client.questions),
+            ),
         ),
         (
             "questions.default_files",
-            lambda: methodcaller(
-                "create",
+            lambda: client.questions.create(
                 name="n",
                 type="coding",
                 problem_statement="ps",
                 recommended_duration=10,
                 default_files=_BARE,
-            )(client.questions),
+            ),
         ),
         (
             "candidates.tags",
-            lambda: methodcaller(
-                "invite",
+            lambda: client.tests.candidates.invite(
                 test_id="t1",
                 email="a@b.com",
                 tags=_BARE,
-            )(client.tests.candidates),
+            ),
         ),
         (
             "tests.languages",
-            lambda: methodcaller(
-                "create",
+            lambda: client.tests.create(
                 name="t",
                 duration=60,
                 role_ids=["r"],
                 experience=["junior"],
                 languages=_BARE,
-            )(client.tests),
+            ),
         ),
         (
             "tests.candidate_details",
-            lambda: methodcaller(
-                "create",
+            lambda: client.tests.create(
                 name="t",
                 duration=60,
                 role_ids=["r"],
                 experience=["junior"],
                 candidate_details=_BARE,
-            )(client.tests),
+            ),
         ),
         (
             "tests.tags",
-            lambda: methodcaller(
-                "create",
+            lambda: client.tests.create(
                 name="t",
                 duration=60,
                 role_ids=["r"],
                 experience=["junior"],
                 tags=_BARE,
-            )(client.tests),
+            ),
         ),
         (
             "tests.role_ids",
-            lambda: methodcaller(
-                "create",
+            lambda: client.tests.create(
                 name="t",
                 duration=60,
                 role_ids=_BARE,
                 experience=["junior"],
-            )(client.tests),
+            ),
         ),
         (
             "tests.experience",
-            lambda: methodcaller(
-                "create",
+            lambda: client.tests.create(
                 name="t",
                 duration=60,
                 role_ids=["r"],
                 experience=_BARE,
-            )(client.tests),
+            ),
         ),
         (
             "tests.questions",
-            lambda: methodcaller(
-                "create",
+            lambda: client.tests.create(
                 name="t",
                 duration=60,
                 role_ids=["r"],
                 experience=["junior"],
                 questions=_BARE,
-            )(client.tests),
+            ),
         ),
         (
             "tests.test_admins",
-            lambda: methodcaller(
-                "create",
+            lambda: client.tests.create(
                 name="t",
                 duration=60,
                 role_ids=["r"],
                 experience=["junior"],
                 test_admins=_BARE,
-            )(client.tests),
+            ),
         ),
         (
             "users.teams",
-            lambda: methodcaller(
-                "create",
+            lambda: client.users.create(
                 email="a@b.com",
                 firstname="A",
                 role="recruiter",
                 teams=_BARE,
-            )(client.users),
+            ),
         ),
         (
             "teams.locations",
-            lambda: methodcaller("create", name="t", locations=_BARE)(
-                client.teams
-            ),
+            lambda: client.teams.create(name="t", locations=_BARE),
         ),
         (
             "teams.departments",
-            lambda: methodcaller("create", name="t", departments=_BARE)(
-                client.teams
-            ),
+            lambda: client.teams.create(name="t", departments=_BARE),
         ),
     ]
 

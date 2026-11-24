@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-from operator import methodcaller
 
 import httpx
 import pytest
@@ -77,8 +76,7 @@ def test_user_update_body_omission_rejected_by_constructor() -> None:
     ``UserUpdate`` construction and client serialization.
     """
     with pytest.raises(expected_exception=TypeError):
-        # Intentionally incomplete to assert required kwargs.
-        _ = methodcaller("__call__", firstname="Alice")(UserUpdate)
+        _ = UserUpdate(**json.loads(s='{"firstname": "Alice"}'))
 
 
 def test_user_update_body_omission_rejected_by_beartype(
@@ -89,11 +87,10 @@ def test_user_update_body_omission_rejected_by_beartype(
     ``UserUpdate`` construction and client serialization.
     """
     with pytest.raises(expected_exception=BeartypeCallHintParamViolation):
-        methodcaller(
-            "update",
+        sync_client.users.update(
             user_id="u1",
-            body={},
-        )(sync_client.users)
+            body=json.loads(s="{}"),
+        )
 
 
 def test_user_update_body_to_dict_serializes_all_required_fields() -> None:
@@ -176,11 +173,10 @@ async def test_user_update_body_async_omission_rejected_by_beartype(
     ``UserUpdate`` construction and client serialization.
     """
     with pytest.raises(expected_exception=BeartypeCallHintParamViolation):
-        await methodcaller(
-            "update",
+        await async_client.users.update(
             user_id="u1",
-            body={},
-        )(async_client.users)
+            body=json.loads(s="{}"),
+        )
 
 
 def test_tests_update_body_omission_rejected_by_constructor() -> None:
@@ -189,8 +185,7 @@ def test_tests_update_body_omission_rejected_by_constructor() -> None:
     ``TestsUpdate`` construction and client serialization.
     """
     with pytest.raises(expected_exception=TypeError):
-        # Intentionally incomplete to assert required kwargs.
-        _ = methodcaller("__call__", name="T")(TestsUpdate)
+        _ = TestsUpdate(**json.loads(s='{"name": "T"}'))
 
 
 def test_tests_update_body_omission_rejected_by_beartype(
@@ -201,11 +196,10 @@ def test_tests_update_body_omission_rejected_by_beartype(
     ``TestsUpdate`` construction and client serialization.
     """
     with pytest.raises(expected_exception=BeartypeCallHintParamViolation):
-        methodcaller(
-            "update",
+        sync_client.tests.update(
             test_id="t1",
-            body={},
-        )(sync_client.tests)
+            body=json.loads(s="{}"),
+        )
 
 
 def test_tests_update_body_to_dict_serializes_all_required_fields() -> None:
@@ -304,8 +298,7 @@ async def test_tests_update_body_async_omission_rejected_by_beartype(
     ``TestsUpdate`` construction and client serialization.
     """
     with pytest.raises(expected_exception=BeartypeCallHintParamViolation):
-        await methodcaller(
-            "update",
+        await async_client.tests.update(
             test_id="t1",
-            body={},
-        )(async_client.tests)
+            body=json.loads(s="{}"),
+        )
