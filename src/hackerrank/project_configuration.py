@@ -1,12 +1,12 @@
 """Render native HackerRank configuration and add it to project ZIPs."""
 
 from io import BytesIO
-from typing import Annotated, TypedDict, TypeIs
+from typing import TypedDict, TypeIs
 from zipfile import ZIP_DEFLATED, BadZipFile, ZipFile
 
 import yaml
 from beartype import beartype
-from pydantic import AfterValidator, BaseModel
+from pydantic import BaseModel, field_validator
 
 _CONFIGURATION_VERSION = 1.0
 
@@ -34,21 +34,22 @@ class ProjectSettings(TypedDict):
     ide_config: IDEConfiguration
 
 
-def _require_version_one(version: float) -> float:
-    """Reject versions outside the supported schema."""
-    if version != _CONFIGURATION_VERSION:
-        message = "Project configuration requires version 1.0."
-        raise ValueError(message)
-    return version
-
-
 class ProjectConfiguration(
     BaseModel, strict=True, frozen=True, extra="forbid"
 ):
     """A version-one HackerRank project configuration document."""
 
-    version: Annotated[float, AfterValidator(func=_require_version_one)]
+    version: float
     configuration: ProjectSettings
+
+    @field_validator("version")
+    @classmethod
+    def _require_version_one(cls, version: float) -> float:
+        """Reject versions outside the supported schema."""
+        if version != _CONFIGURATION_VERSION:
+            message = "Project configuration requires version 1.0."
+            raise ValueError(message)
+        return version
 
     def to_yaml(self) -> bytes:
         """Render a UTF-8 native configuration document."""

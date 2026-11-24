@@ -543,6 +543,7 @@ ignore_names = [
     "warning_is_error",
     "webhook_authentication",
 ]
+ignore_decorators = [ "@field_validator" ]
 
 [tool.pyproject-fmt]
 indent = 4
