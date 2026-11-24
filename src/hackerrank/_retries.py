@@ -310,7 +310,7 @@ def retry_question_read[**P, ResultT](
         stop=stop_after_attempt(max_attempt_number=len(delays) + 1),
         wait=(
             wait_chain(*(wait_fixed(wait=delay) for delay in delays))
-            if delays
+            if bool(delays)
             else wait_none()
         ),
         reraise=True,
