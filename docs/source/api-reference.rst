@@ -11,6 +11,11 @@ API Reference
 
 .. automodule:: hackerrank.project_configuration
    :members:
+   :exclude-members: ProjectConfiguration
+
+.. autoclass:: hackerrank.project_configuration.ProjectConfiguration
+   :class-doc-from: class
+   :members: to_yaml
 
 .. automodule:: hackerrank.transports
    :undoc-members:
