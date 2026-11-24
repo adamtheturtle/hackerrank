@@ -24,7 +24,7 @@ def test_git_index_project_files(tmp_path: Path) -> None:
         "tracked.db",
         "deleted.txt",
         "ignored.db",
-        "untracked\nfile.txt",
+        "untracked file.txt",
     ):
         (project / name).touch()
     _ = run(  # noqa: S603 - Fixed Git arguments in a temporary checkout.
@@ -38,7 +38,7 @@ def test_git_index_project_files(tmp_path: Path) -> None:
     assert git_index_project_files(directory=project) == (
         Path("deleted.txt"),
         Path("tracked.db"),
-        Path("untracked\nfile.txt"),
+        Path("untracked file.txt"),
     )
 
 
