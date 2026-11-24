@@ -1,7 +1,7 @@
 """Offline project archive creation."""
 
+import json
 from io import BytesIO
-from operator import methodcaller
 from pathlib import Path
 from zipfile import ZipFile
 
@@ -68,6 +68,6 @@ def test_reject_file_as_directory(tmp_path: Path) -> None:
 def test_build_archive_requires_path() -> None:
     """Reject a directory string at the public archive boundary."""
     with pytest.raises(expected_exception=BeartypeCallHintParamViolation):
-        _ = methodcaller("__call__", directory="starter", files=[])(
-            build_project_archive
+        _ = build_project_archive(
+            directory=json.loads(s='"starter"'), files=[]
         )
