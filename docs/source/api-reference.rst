@@ -26,3 +26,6 @@ API Reference
 
 .. automodule:: hackerrank.api
    :members:
+
+.. automodule:: hackerrank.projects
+   :members:

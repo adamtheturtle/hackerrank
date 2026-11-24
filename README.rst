@@ -119,3 +119,10 @@ Complete API operation catalogue
 ``client.api.call`` accepts the operation name, path parameters, query fields and complete JSON body, retaining the response status, headers and data.
 SCIM calls require their own ``scim_api_key`` and use the provisioning host.
 The same catalogue and execution interface are available asynchronously.
+
+
+Offline project archives
+------------------------
+
+Use ``hackerrank.projects.build_project_archive`` to build a project ZIP from explicitly chosen local files.
+Pass the resulting ZIP bytes to ``client.questions.upload_project_zip``.
