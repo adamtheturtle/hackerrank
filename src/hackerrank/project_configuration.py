@@ -47,7 +47,7 @@ class ProjectConfiguration(
 ):
     """A version-one HackerRank project configuration document."""
 
-    version: Annotated[float, AfterValidator(_require_version_one)]
+    version: Annotated[float, AfterValidator(func=_require_version_one)]
     configuration: ProjectSettings
 
     def to_yaml(self) -> bytes:
