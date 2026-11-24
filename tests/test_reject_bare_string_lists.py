@@ -8,6 +8,7 @@ that mistake on both clients.
 
 from __future__ import annotations
 
+import json
 from typing import TYPE_CHECKING
 
 import pytest
@@ -15,12 +16,12 @@ from beartype.roar import BeartypeCallHintParamViolation
 
 from hackerrank.async_client import AsyncHackerRank
 from hackerrank.client import HackerRank
-from tests.runtime_call import call_with_unchecked_arguments
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
 
-_BARE = "not-a-list"
+# Decode the input without a schema so it can be checked at runtime.
+_BARE = json.loads(s='"not-a-list"')
 
 
 def _sync_calls(
@@ -30,16 +31,14 @@ def _sync_calls(
     return [
         (
             "interviews.interviewers",
-            lambda: call_with_unchecked_arguments(
-                client.interviews.create,
+            lambda: client.interviews.create(
                 title="t",
                 interviewers=_BARE,
             ),
         ),
         (
             "questions.languages",
-            lambda: call_with_unchecked_arguments(
-                client.questions.create,
+            lambda: client.questions.create(
                 name="n",
                 type="coding",
                 problem_statement="ps",
@@ -49,8 +48,7 @@ def _sync_calls(
         ),
         (
             "questions.tags",
-            lambda: call_with_unchecked_arguments(
-                client.questions.create,
+            lambda: client.questions.create(
                 name="n",
                 type="coding",
                 problem_statement="ps",
@@ -60,8 +58,7 @@ def _sync_calls(
         ),
         (
             "questions.options",
-            lambda: call_with_unchecked_arguments(
-                client.questions.create,
+            lambda: client.questions.create(
                 name="n",
                 type="mcq",
                 problem_statement="ps",
@@ -71,8 +68,7 @@ def _sync_calls(
         ),
         (
             "questions.scoring_files",
-            lambda: call_with_unchecked_arguments(
-                client.questions.create,
+            lambda: client.questions.create(
                 name="n",
                 type="coding",
                 problem_statement="ps",
@@ -82,8 +78,7 @@ def _sync_calls(
         ),
         (
             "questions.readonly_paths",
-            lambda: call_with_unchecked_arguments(
-                client.questions.create,
+            lambda: client.questions.create(
                 name="n",
                 type="coding",
                 problem_statement="ps",
@@ -93,8 +88,7 @@ def _sync_calls(
         ),
         (
             "questions.default_files",
-            lambda: call_with_unchecked_arguments(
-                client.questions.create,
+            lambda: client.questions.create(
                 name="n",
                 type="coding",
                 problem_statement="ps",
@@ -104,8 +98,7 @@ def _sync_calls(
         ),
         (
             "candidates.tags",
-            lambda: call_with_unchecked_arguments(
-                client.tests.candidates.invite,
+            lambda: client.tests.candidates.invite(
                 test_id="t1",
                 email="a@b.com",
                 tags=_BARE,
@@ -113,8 +106,7 @@ def _sync_calls(
         ),
         (
             "tests.languages",
-            lambda: call_with_unchecked_arguments(
-                client.tests.create,
+            lambda: client.tests.create(
                 name="t",
                 duration=60,
                 role_ids=["r"],
@@ -124,8 +116,7 @@ def _sync_calls(
         ),
         (
             "tests.candidate_details",
-            lambda: call_with_unchecked_arguments(
-                client.tests.create,
+            lambda: client.tests.create(
                 name="t",
                 duration=60,
                 role_ids=["r"],
@@ -135,8 +126,7 @@ def _sync_calls(
         ),
         (
             "tests.tags",
-            lambda: call_with_unchecked_arguments(
-                client.tests.create,
+            lambda: client.tests.create(
                 name="t",
                 duration=60,
                 role_ids=["r"],
@@ -146,8 +136,7 @@ def _sync_calls(
         ),
         (
             "tests.role_ids",
-            lambda: call_with_unchecked_arguments(
-                client.tests.create,
+            lambda: client.tests.create(
                 name="t",
                 duration=60,
                 role_ids=_BARE,
@@ -156,8 +145,7 @@ def _sync_calls(
         ),
         (
             "tests.experience",
-            lambda: call_with_unchecked_arguments(
-                client.tests.create,
+            lambda: client.tests.create(
                 name="t",
                 duration=60,
                 role_ids=["r"],
@@ -166,8 +154,7 @@ def _sync_calls(
         ),
         (
             "tests.questions",
-            lambda: call_with_unchecked_arguments(
-                client.tests.create,
+            lambda: client.tests.create(
                 name="t",
                 duration=60,
                 role_ids=["r"],
@@ -177,8 +164,7 @@ def _sync_calls(
         ),
         (
             "tests.test_admins",
-            lambda: call_with_unchecked_arguments(
-                client.tests.create,
+            lambda: client.tests.create(
                 name="t",
                 duration=60,
                 role_ids=["r"],
@@ -188,8 +174,7 @@ def _sync_calls(
         ),
         (
             "users.teams",
-            lambda: call_with_unchecked_arguments(
-                client.users.create,
+            lambda: client.users.create(
                 email="a@b.com",
                 firstname="A",
                 role="recruiter",
@@ -198,15 +183,11 @@ def _sync_calls(
         ),
         (
             "teams.locations",
-            lambda: call_with_unchecked_arguments(
-                client.teams.create, name="t", locations=_BARE
-            ),
+            lambda: client.teams.create(name="t", locations=_BARE),
         ),
         (
             "teams.departments",
-            lambda: call_with_unchecked_arguments(
-                client.teams.create, name="t", departments=_BARE
-            ),
+            lambda: client.teams.create(name="t", departments=_BARE),
         ),
     ]
 
@@ -218,16 +199,14 @@ def _async_calls(
     return [
         (
             "interviews.interviewers",
-            lambda: call_with_unchecked_arguments(
-                client.interviews.create,
+            lambda: client.interviews.create(
                 title="t",
                 interviewers=_BARE,
             ),
         ),
         (
             "questions.languages",
-            lambda: call_with_unchecked_arguments(
-                client.questions.create,
+            lambda: client.questions.create(
                 name="n",
                 type="coding",
                 problem_statement="ps",
@@ -237,8 +216,7 @@ def _async_calls(
         ),
         (
             "questions.tags",
-            lambda: call_with_unchecked_arguments(
-                client.questions.create,
+            lambda: client.questions.create(
                 name="n",
                 type="coding",
                 problem_statement="ps",
@@ -248,8 +226,7 @@ def _async_calls(
         ),
         (
             "questions.options",
-            lambda: call_with_unchecked_arguments(
-                client.questions.create,
+            lambda: client.questions.create(
                 name="n",
                 type="mcq",
                 problem_statement="ps",
@@ -259,8 +236,7 @@ def _async_calls(
         ),
         (
             "questions.scoring_files",
-            lambda: call_with_unchecked_arguments(
-                client.questions.create,
+            lambda: client.questions.create(
                 name="n",
                 type="coding",
                 problem_statement="ps",
@@ -270,8 +246,7 @@ def _async_calls(
         ),
         (
             "questions.readonly_paths",
-            lambda: call_with_unchecked_arguments(
-                client.questions.create,
+            lambda: client.questions.create(
                 name="n",
                 type="coding",
                 problem_statement="ps",
@@ -281,8 +256,7 @@ def _async_calls(
         ),
         (
             "questions.default_files",
-            lambda: call_with_unchecked_arguments(
-                client.questions.create,
+            lambda: client.questions.create(
                 name="n",
                 type="coding",
                 problem_statement="ps",
@@ -292,8 +266,7 @@ def _async_calls(
         ),
         (
             "candidates.tags",
-            lambda: call_with_unchecked_arguments(
-                client.tests.candidates.invite,
+            lambda: client.tests.candidates.invite(
                 test_id="t1",
                 email="a@b.com",
                 tags=_BARE,
@@ -301,8 +274,7 @@ def _async_calls(
         ),
         (
             "tests.languages",
-            lambda: call_with_unchecked_arguments(
-                client.tests.create,
+            lambda: client.tests.create(
                 name="t",
                 duration=60,
                 role_ids=["r"],
@@ -312,8 +284,7 @@ def _async_calls(
         ),
         (
             "tests.candidate_details",
-            lambda: call_with_unchecked_arguments(
-                client.tests.create,
+            lambda: client.tests.create(
                 name="t",
                 duration=60,
                 role_ids=["r"],
@@ -323,8 +294,7 @@ def _async_calls(
         ),
         (
             "tests.tags",
-            lambda: call_with_unchecked_arguments(
-                client.tests.create,
+            lambda: client.tests.create(
                 name="t",
                 duration=60,
                 role_ids=["r"],
@@ -334,8 +304,7 @@ def _async_calls(
         ),
         (
             "tests.role_ids",
-            lambda: call_with_unchecked_arguments(
-                client.tests.create,
+            lambda: client.tests.create(
                 name="t",
                 duration=60,
                 role_ids=_BARE,
@@ -344,8 +313,7 @@ def _async_calls(
         ),
         (
             "tests.experience",
-            lambda: call_with_unchecked_arguments(
-                client.tests.create,
+            lambda: client.tests.create(
                 name="t",
                 duration=60,
                 role_ids=["r"],
@@ -354,8 +322,7 @@ def _async_calls(
         ),
         (
             "tests.questions",
-            lambda: call_with_unchecked_arguments(
-                client.tests.create,
+            lambda: client.tests.create(
                 name="t",
                 duration=60,
                 role_ids=["r"],
@@ -365,8 +332,7 @@ def _async_calls(
         ),
         (
             "tests.test_admins",
-            lambda: call_with_unchecked_arguments(
-                client.tests.create,
+            lambda: client.tests.create(
                 name="t",
                 duration=60,
                 role_ids=["r"],
@@ -376,8 +342,7 @@ def _async_calls(
         ),
         (
             "users.teams",
-            lambda: call_with_unchecked_arguments(
-                client.users.create,
+            lambda: client.users.create(
                 email="a@b.com",
                 firstname="A",
                 role="recruiter",
@@ -386,15 +351,11 @@ def _async_calls(
         ),
         (
             "teams.locations",
-            lambda: call_with_unchecked_arguments(
-                client.teams.create, name="t", locations=_BARE
-            ),
+            lambda: client.teams.create(name="t", locations=_BARE),
         ),
         (
             "teams.departments",
-            lambda: call_with_unchecked_arguments(
-                client.teams.create, name="t", departments=_BARE
-            ),
+            lambda: client.teams.create(name="t", departments=_BARE),
         ),
     ]
 

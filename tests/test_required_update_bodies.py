@@ -12,7 +12,6 @@ from beartype.roar import BeartypeCallHintParamViolation
 from hackerrank.async_client import AsyncHackerRank
 from hackerrank.client import HackerRank
 from hackerrank.types import TestsUpdate, UserUpdate
-from tests.runtime_call import call_with_unchecked_arguments
 
 
 def _user_update() -> UserUpdate:
@@ -77,8 +76,7 @@ def test_user_update_body_omission_rejected_by_constructor() -> None:
     ``UserUpdate`` construction and client serialization.
     """
     with pytest.raises(expected_exception=TypeError):
-        # Intentionally incomplete to assert required kwargs.
-        _ = call_with_unchecked_arguments(UserUpdate, firstname="Alice")
+        _ = UserUpdate(**json.loads(s='{"firstname": "Alice"}'))
 
 
 def test_user_update_body_omission_rejected_by_beartype(
@@ -89,10 +87,9 @@ def test_user_update_body_omission_rejected_by_beartype(
     ``UserUpdate`` construction and client serialization.
     """
     with pytest.raises(expected_exception=BeartypeCallHintParamViolation):
-        call_with_unchecked_arguments(
-            sync_client.users.update,
+        sync_client.users.update(
             user_id="u1",
-            body={},
+            body=json.loads(s="{}"),
         )
 
 
@@ -176,10 +173,9 @@ async def test_user_update_body_async_omission_rejected_by_beartype(
     ``UserUpdate`` construction and client serialization.
     """
     with pytest.raises(expected_exception=BeartypeCallHintParamViolation):
-        await call_with_unchecked_arguments(
-            async_client.users.update,
+        await async_client.users.update(
             user_id="u1",
-            body={},
+            body=json.loads(s="{}"),
         )
 
 
@@ -189,8 +185,7 @@ def test_tests_update_body_omission_rejected_by_constructor() -> None:
     ``TestsUpdate`` construction and client serialization.
     """
     with pytest.raises(expected_exception=TypeError):
-        # Intentionally incomplete to assert required kwargs.
-        _ = call_with_unchecked_arguments(TestsUpdate, name="T")
+        _ = TestsUpdate(**json.loads(s='{"name": "T"}'))
 
 
 def test_tests_update_body_omission_rejected_by_beartype(
@@ -201,10 +196,9 @@ def test_tests_update_body_omission_rejected_by_beartype(
     ``TestsUpdate`` construction and client serialization.
     """
     with pytest.raises(expected_exception=BeartypeCallHintParamViolation):
-        call_with_unchecked_arguments(
-            sync_client.tests.update,
+        sync_client.tests.update(
             test_id="t1",
-            body={},
+            body=json.loads(s="{}"),
         )
 
 
@@ -304,8 +298,7 @@ async def test_tests_update_body_async_omission_rejected_by_beartype(
     ``TestsUpdate`` construction and client serialization.
     """
     with pytest.raises(expected_exception=BeartypeCallHintParamViolation):
-        await call_with_unchecked_arguments(
-            async_client.tests.update,
+        await async_client.tests.update(
             test_id="t1",
-            body={},
+            body=json.loads(s="{}"),
         )

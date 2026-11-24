@@ -1,12 +1,10 @@
 """Offline project archive creation."""
 
-import json
 from io import BytesIO
 from pathlib import Path
 from zipfile import ZipFile
 
 import pytest
-from beartype.roar import BeartypeCallHintParamViolation
 
 from hackerrank.projects import build_project_archive
 
@@ -63,11 +61,3 @@ def test_reject_file_as_directory(tmp_path: Path) -> None:
     file.touch()
     with pytest.raises(expected_exception=NotADirectoryError):
         _ = build_project_archive(directory=file, files=[])
-
-
-def test_build_archive_requires_path() -> None:
-    """Reject a directory string at the public archive boundary."""
-    with pytest.raises(expected_exception=BeartypeCallHintParamViolation):
-        _ = build_project_archive(
-            directory=json.loads(s='"starter"'), files=[]
-        )

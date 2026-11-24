@@ -28,7 +28,7 @@ def build_project_archive(*, directory: Path, files: Iterable[Path]) -> bytes:
             file=buffer, mode="w", compression=ZIP_DEFLATED
         ) as archive:
             for relative in paths:
-                if relative.anchor or ".." in relative.parts:
+                if relative.anchor != "" or ".." in relative.parts:
                     message = (
                         f"Expected a relative project file path: {relative}"
                     )
