@@ -9,9 +9,6 @@ API Reference
    :undoc-members:
    :members:
 
-.. automodule:: hackerrank.projects
-   :members:
-
 .. automodule:: hackerrank.project_configuration
    :members:
    :exclude-members: ProjectConfiguration
