@@ -11,6 +11,7 @@ from pydantic import ValidationError
 
 from hackerrank.project_configuration import (
     ProjectConfiguration,
+    ProjectSettings,
     configure_project_archive,
 )
 
@@ -67,50 +68,49 @@ def test_configure_preserves_other_entries(*, existing: bool) -> None:
 
 
 def test_explicit_configuration_document() -> None:
-    """Typed values render the native hierarchy without choosing
-    policy.
-    """
+    """Render the same version and settings as the Python input."""
+    settings: ProjectSettings = {
+        "has_webserver": False,
+        "readonly_paths": ["tests"],
+        "scoring": {"command": "grade", "files": ["report.xml"]},
+        "ide_config": {
+            "default_open_files": ["solution.py"],
+            "project_menu": {
+                "install": "install",
+                "run": "run",
+                "test": "test",
+            },
+        },
+    }
     rendered = ProjectConfiguration(
-        has_webserver=False,
-        readonly_paths=["tests"],
-        scoring_command="grade",
-        scoring_files=["report.xml"],
-        default_open_files=["solution.py"],
-        project_menu={"install": "install", "run": "run", "test": "test"},
+        version=1.0, configuration=settings
     ).to_yaml()
     assert yaml.safe_load(stream=rendered) == {
         "version": 1.0,
-        "configuration": {
-            "has_webserver": False,
-            "readonly_paths": ["tests"],
-            "scoring": {"command": "grade", "files": ["report.xml"]},
-            "ide_config": {
-                "default_open_files": ["solution.py"],
-                "project_menu": {
-                    "install": "install",
-                    "run": "run",
-                    "test": "test",
-                },
-            },
-        },
+        "configuration": settings,
     }
 
 
 def test_reject_invalid_configuration_items() -> None:
-    """Validate the individual items in configuration collections."""
+    """Reject unsupported versions and malformed nested settings."""
     arguments = signature(obj=ProjectConfiguration).bind(
-        has_webserver=False,
-        readonly_paths=["tests", 42],
-        scoring_command="grade",
-        scoring_files=["report.xml"],
-        default_open_files=["solution.py"],
-        project_menu={"run": "run", "test": 42},
+        version=2.0,
+        configuration={
+            "has_webserver": False,
+            "readonly_paths": ["tests", 42],
+            "scoring": {"command": "grade", "files": ["report.xml"]},
+            "ide_config": {
+                "default_open_files": ["solution.py"],
+                "project_menu": {"run": "run", "test": 42},
+            },
+        },
     )
     with pytest.raises(expected_exception=ValidationError) as exc_info:
         _ = ProjectConfiguration(**arguments.kwargs)
     assert [error["loc"] for error in exc_info.value.errors()] == [
-        ("readonly_paths", 1),
-        ("project_menu", "test"),
+        ("version",),
+        ("configuration", "readonly_paths", 1),
+        ("configuration", "ide_config", "project_menu", "test"),
     ]
 
 

@@ -1,47 +1,58 @@
 """Render native HackerRank configuration and add it to project ZIPs."""
 
 from io import BytesIO
-from typing import TypeIs
+from typing import TypedDict, TypeIs
 from zipfile import ZIP_DEFLATED, BadZipFile, ZipFile
 
 import yaml
 from beartype import beartype
-from pydantic import ConfigDict
-from pydantic.dataclasses import dataclass
+from pydantic import BaseModel, ConfigDict, field_validator
+
+_CONFIGURATION_VERSION = 1.0
 
 
-@dataclass(config=ConfigDict(strict=True), frozen=True, kw_only=True)
-class ProjectConfiguration:
-    """Explicit values for HackerRank's native project configuration.
+class ScoringConfiguration(TypedDict):
+    """The scoring command and report files."""
 
-    All fields are required so callers choose their own project policy.
-    """
+    command: str
+    files: list[str]
 
-    has_webserver: bool
-    readonly_paths: list[str]
-    scoring_command: str
-    scoring_files: list[str]
+
+class IDEConfiguration(TypedDict):
+    """The files and menu commands displayed in the IDE."""
+
     default_open_files: list[str]
     project_menu: dict[str, str]
 
+
+class ProjectSettings(TypedDict):
+    """The settings in the native configuration mapping."""
+
+    has_webserver: bool
+    readonly_paths: list[str]
+    scoring: ScoringConfiguration
+    ide_config: IDEConfiguration
+
+
+class ProjectConfiguration(BaseModel):
+    """A version-one HackerRank project configuration document."""
+
+    model_config = ConfigDict(strict=True, frozen=True, extra="forbid")
+
+    version: float
+    configuration: ProjectSettings
+
+    @field_validator("version")
+    @classmethod
+    def _require_version_one(cls, version: float) -> float:
+        if version != _CONFIGURATION_VERSION:
+            message = "Project configuration requires version 1.0."
+            raise ValueError(message)
+        return version
+
     def to_yaml(self) -> bytes:
         """Render a UTF-8 native configuration document."""
-        document = {
-            "version": 1.0,
-            "configuration": {
-                "has_webserver": self.has_webserver,
-                "readonly_paths": self.readonly_paths,
-                "scoring": {
-                    "command": self.scoring_command,
-                    "files": self.scoring_files,
-                },
-                "ide_config": {
-                    "default_open_files": self.default_open_files,
-                    "project_menu": self.project_menu,
-                },
-            },
-        }
-        return yaml.safe_dump(data=document, sort_keys=False).encode(
+        return yaml.safe_dump(data=self.model_dump(), sort_keys=False).encode(
             encoding="utf-8"
         )
 
@@ -66,7 +77,7 @@ def validate_project_configuration(*, configuration: bytes) -> None:
     if (
         not _is_mapping(document)
         or isinstance(document.get("version"), bool)
-        or document.get("version") != 1.0
+        or document.get("version") != _CONFIGURATION_VERSION
         or not isinstance(document.get("configuration"), dict)
     ):
         message = (
