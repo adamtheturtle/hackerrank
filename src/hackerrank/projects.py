@@ -1,11 +1,60 @@
 """Build HackerRank project ZIPs from selected local files."""
 
+import os
+import subprocess
 from collections.abc import Iterable
 from io import BytesIO
 from pathlib import Path
+from shutil import which
 from zipfile import ZIP_DEFLATED, ZipFile
 
 from beartype import beartype
+
+
+@beartype
+def git_index_project_files(*, directory: Path) -> tuple[Path, ...]:
+    """List sorted, unique candidate paths relative to a Git directory.
+
+    Tracked paths are included even if ignored or absent from the working
+    tree. Paths outside the index follow repository ``.gitignore`` files.
+    Apply project exclusions and check file types before archiving.
+    Raise ValueError if Git is unavailable or cannot list the paths.
+    """
+    git = which(cmd="git")
+    if git is None:
+        message = "Project file discovery requires Git."
+        raise ValueError(message)
+    result = subprocess.run(  # noqa: S603 - Fixed Git arguments.
+        args=[
+            git,
+            "ls-files",
+            "-z",
+            "--cached",
+            "--others",
+            "--exclude-per-directory=.gitignore",
+            "--",
+            ".",
+        ],
+        cwd=directory,
+        check=False,
+        capture_output=True,
+    )
+    if result.returncode != 0:
+        detail = os.fsdecode(filename=result.stderr).strip()
+        message = (
+            f"Cannot list project files in {directory}. "
+            f"Run in a Git checkout. {detail}"
+        )
+        raise ValueError(message)
+    return tuple(
+        sorted(
+            {
+                Path(os.fsdecode(filename=name))
+                for name in result.stdout.split(sep=b"\0")
+                if name != b""
+            }
+        )
+    )
 
 
 @beartype
