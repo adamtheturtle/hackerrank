@@ -2,6 +2,7 @@
 
 import asyncio
 import builtins
+import math
 from collections.abc import AsyncIterator, Mapping, Sequence
 from http import HTTPStatus
 from pathlib import Path
@@ -47,6 +48,7 @@ from hackerrank._responses import (
 )
 from hackerrank._retries import async_request_with_retries
 from hackerrank.api import APIResponse, prepare_operation
+from hackerrank.exceptions import NotFoundError
 from hackerrank.transports import (
     AsyncHTTPX2Transport,
     AsyncHTTPXTransport,
@@ -1335,6 +1337,39 @@ class AsyncQuestionsNamespace(_AsyncNamespace):
         return Question.from_dict(
             data=response_data(response.json(), QuestionDict)
         )
+
+    async def wait_until_readable(
+        self, *, question_id: str, retry_delays: Sequence[float | int]
+    ) -> Question:
+        """Read a recently created question, retrying a 404 on a schedule.
+
+        The first read is immediate. Each delay allows one more read.
+        Other errors propagate from the ordinary question read.
+
+        Args:
+            question_id: The ID returned by question creation.
+            retry_delays: Finite, non-negative delays in seconds.
+
+        Returns:
+            The question once it becomes readable.
+
+        Raises:
+            ValueError: If any retry delay is negative or non-finite.
+            NotFoundError: If the final read still returns a 404.
+        """
+        if any(
+            delay < 0 or not math.isfinite(delay) for delay in retry_delays
+        ):
+            message = (
+                "Question read retry delays must be finite and non-negative."
+            )
+            raise ValueError(message)
+        for delay in retry_delays:
+            try:
+                return await self.get(question_id=question_id)
+            except NotFoundError:
+                await asyncio.sleep(delay=delay)
+        return await self.get(question_id=question_id)
 
     async def create(
         self,
