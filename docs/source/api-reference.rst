@@ -9,6 +9,9 @@ API Reference
    :undoc-members:
    :members:
 
+.. automodule:: hackerrank.project_configuration
+   :members:
+
 .. automodule:: hackerrank.transports
    :undoc-members:
    :members:

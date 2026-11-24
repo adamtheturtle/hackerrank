@@ -85,6 +85,13 @@ Generic partial updates can omit the type.
 The server validates whether the field applies.
 Invalid requests retain the supplied prompt.
 
+Native project configuration
+----------------------------
+
+Use ``hackerrank.project_configuration.ProjectConfiguration`` to render a native ``hackerrank.yml``.
+Pass the configuration bytes and an existing project ZIP to ``hackerrank.project_configuration.configure_project_archive``.
+Pass the resulting ZIP bytes to ``client.questions.upload_project_zip``.
+
 Full Documentation
 ------------------
 
