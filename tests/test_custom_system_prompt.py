@@ -229,7 +229,9 @@ def test_question_response(prompt: str | None) -> None:
 
 
 def test_validate_composed_prompt_offline() -> None:
-    """A caller can validate an assembled prompt without knowing the type."""
+    """A caller can validate an assembled prompt without knowing the
+    type.
+    """
     prompt = "x" * 15_000
     validate_custom_system_prompt(
         question_type=None, custom_system_prompt=prompt
