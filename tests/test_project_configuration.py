@@ -1,5 +1,6 @@
 """Native HackerRank project configuration and ZIP updates."""
 
+import stat
 from io import BytesIO
 from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
 
@@ -11,7 +12,14 @@ from hackerrank.project_configuration import (
     configure_project_archive,
 )
 
-_EXECUTABLE_MODE = 0o100755
+_EXECUTABLE_MODE = (
+    stat.S_IFREG
+    | stat.S_IRWXU
+    | stat.S_IRGRP
+    | stat.S_IXGRP
+    | stat.S_IROTH
+    | stat.S_IXOTH
+)
 _NATIVE = (
     b"version: 1.0\nconfiguration:\n"
     b"  has_webserver: false\n  future_setting: keep\n"
