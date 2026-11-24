@@ -1,1 +1,0 @@
-- Render native `hackerrank.yml` and add it to a prepared project ZIP.
