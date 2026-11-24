@@ -1,16 +1,16 @@
 """Render native HackerRank configuration and add it to project ZIPs."""
 
-from dataclasses import dataclass
 from io import BytesIO
 from typing import TypeIs
 from zipfile import ZIP_DEFLATED, BadZipFile, ZipFile
 
 import yaml
 from beartype import beartype
+from pydantic import ConfigDict
+from pydantic.dataclasses import dataclass
 
 
-@beartype
-@dataclass(frozen=True, kw_only=True)
+@dataclass(config=ConfigDict(strict=True), frozen=True, kw_only=True)
 class ProjectConfiguration:
     """Explicit values for HackerRank's native project configuration.
 

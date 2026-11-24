@@ -1,11 +1,13 @@
 """Native HackerRank project configuration and ZIP updates."""
 
 import stat
+from inspect import signature
 from io import BytesIO
 from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
 
 import pytest
 import yaml
+from pydantic import ValidationError
 
 from hackerrank.project_configuration import (
     ProjectConfiguration,
@@ -92,6 +94,24 @@ def test_explicit_configuration_document() -> None:
             },
         },
     }
+
+
+def test_reject_invalid_configuration_items() -> None:
+    """Validate the individual items in configuration collections."""
+    arguments = signature(obj=ProjectConfiguration).bind(
+        has_webserver=False,
+        readonly_paths=["tests", 42],
+        scoring_command="grade",
+        scoring_files=["report.xml"],
+        default_open_files=["solution.py"],
+        project_menu={"run": "run", "test": 42},
+    )
+    with pytest.raises(expected_exception=ValidationError) as exc_info:
+        _ = ProjectConfiguration(**arguments.kwargs)
+    assert [error["loc"] for error in exc_info.value.errors()] == [
+        ("readonly_paths", 1),
+        ("project_menu", "test"),
+    ]
 
 
 @pytest.mark.parametrize(
