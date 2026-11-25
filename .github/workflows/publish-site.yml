@@ -7,16 +7,12 @@ on:
   pull_request: {}
 
 jobs:
-  pages:
+  build:
     runs-on: ubuntu-latest
-    environment:
-      name: ${{ github.ref_name == 'main' && 'github-pages' || 'development' }}
-      url: ${{ steps.deployment.outputs.page_url }}
     permissions:
-      pages: write
-      id-token: write
+      contents: read
     steps:
-      - id: deployment
+      - id: sphinx
         uses: sphinx-notes/pages@v3
         with:
           documentation_path: docs/source
@@ -24,4 +20,25 @@ jobs:
           python_version: '3.13'
           sphinx_build_options: -W
           cache: true
-          publish: ${{ github.ref_name == 'main' }}
+          publish: false
+      - name: Upload Pages artifact
+        if: github.event_name == 'push'
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: ${{ steps.sphinx.outputs.artifact }}
+
+  deploy:
+    # Give the uploaded artifact time to become visible to deploy-pages.
+    needs: build
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      - uses: actions/configure-pages@v6
+      - id: deployment
+        uses: actions/deploy-pages@v5
