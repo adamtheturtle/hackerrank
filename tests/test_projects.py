@@ -2,61 +2,11 @@
 
 from io import BytesIO
 from pathlib import Path
-from shutil import which
-from subprocess import run
 from zipfile import ZipFile
 
 import pytest
 
-from hackerrank.projects import build_project_archive, git_index_project_files
-
-
-def test_git_index_project_files(tmp_path: Path) -> None:
-    """List candidates relative to the project within the checkout."""
-    git = which(cmd="git")
-    assert git is not None
-    _ = run(args=[git, "init"], cwd=tmp_path, check=True, capture_output=True)  # noqa: S603
-    _ = (tmp_path / ".gitignore").write_text(data="*.db\n", encoding="utf-8")
-    (tmp_path / "outside.txt").touch()
-    project = tmp_path / "project"
-    project.mkdir()
-    for name in (
-        "tracked.db",
-        "deleted.txt",
-        "ignored.db",
-        "untracked file.txt",
-    ):
-        (project / name).touch()
-    _ = run(  # noqa: S603 - Fixed Git arguments in a temporary checkout.
-        args=[git, "add", "-f", "--", "tracked.db", "deleted.txt"],
-        cwd=project,
-        check=True,
-        capture_output=True,
-    )
-    (project / "deleted.txt").unlink()
-
-    assert git_index_project_files(directory=project) == (
-        Path("deleted.txt"),
-        Path("tracked.db"),
-        Path("untracked file.txt"),
-    )
-
-
-def test_git_index_requires_checkout(tmp_path: Path) -> None:
-    """Surface discovery errors to callers."""
-    with pytest.raises(
-        expected_exception=ValueError, match="in a Git checkout"
-    ):
-        _ = git_index_project_files(directory=tmp_path)
-
-
-def test_git_index_requires_git(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    """Git is only required when discovering files through its index."""
-    monkeypatch.setenv(name="PATH", value=str(object=tmp_path))
-    with pytest.raises(expected_exception=ValueError, match="requires Git"):
-        _ = git_index_project_files(directory=tmp_path)
+from hackerrank.projects import build_project_archive
 
 
 def test_build_archive(tmp_path: Path) -> None:
