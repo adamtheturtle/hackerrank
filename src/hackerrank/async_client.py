@@ -1146,9 +1146,10 @@ class AsyncInterviewTemplatesNamespace(_AsyncNamespace):
         Duplicate IDs count once. Questions already present retain their
         order. An empty sequence removes all questions.
 
-        The requests are separate and do not lock the template. If a write
-        fails, call this method again with the same IDs to read the current
-        membership and apply any remaining changes.
+        Each request uses the client's retry policy. The separate requests
+        do not lock the template. If a write fails, call this method again
+        with the same IDs to read the current membership and apply any
+        remaining changes.
 
         Args:
             template_id: The ID of the template.
@@ -1161,18 +1162,18 @@ class AsyncInterviewTemplatesNamespace(_AsyncNamespace):
             ValueError: If the initial response omits question membership.
         """
         template = await self.get(template_id=template_id)
-        additions, removals = question_membership_changes(
+        changes = question_membership_changes(
             template=template, question_ids=question_ids
         )
-        if bool(additions):
+        if bool(changes.additions):
             _ = await self.add_questions(
-                template_id=template_id, question_ids=additions
+                template_id=template_id, question_ids=changes.additions
             )
-        for question_id in removals:
+        for question_id in changes.removals:
             _ = await self.remove_question(
                 template_id=template_id, question_id=question_id
             )
-        if bool(additions) or bool(removals):
+        if bool(changes.additions) or bool(changes.removals):
             return await self.get(template_id=template_id)
         return template
 
