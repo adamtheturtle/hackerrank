@@ -53,9 +53,10 @@ class ProjectConfiguration(
 
     def to_yaml(self) -> bytes:
         """Render a UTF-8 native configuration document."""
-        return yaml.safe_dump(data=self.model_dump(), sort_keys=False).encode(
-            encoding="utf-8"
-        )
+        # Remove the ignore once Pyright ships the `FloatInt` alias.
+        return yaml.safe_dump(  # pyright: ignore[reportUnknownMemberType]
+            data=self.model_dump(), sort_keys=False
+        ).encode(encoding="utf-8")
 
 
 def _is_mapping(value: object, /) -> TypeIs[dict[object, object]]:
