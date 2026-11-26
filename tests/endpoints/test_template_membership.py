@@ -3,7 +3,6 @@
 import json
 from contextlib import nullcontext
 from http import HTTPStatus
-from typing import TYPE_CHECKING
 
 import httpx
 import pytest
@@ -12,9 +11,6 @@ import respx
 from hackerrank.async_client import AsyncHackerRank
 from hackerrank.client import HackerRank
 from hackerrank.exceptions import ForbiddenError
-
-if TYPE_CHECKING:
-    from hackerrank.types import InterviewTemplate
 
 _TEMPLATE = "https://www.hackerrank.com/x/api/v3/interview_templates/12345"
 
@@ -86,7 +82,6 @@ async def test_reconcile_questions(
             responses.append(_response(questions=updated))
             expected_methods.append("GET")
         _ = router.get(url=_TEMPLATE).mock(side_effect=read)
-        result: InterviewTemplate | None = None
         context = (
             pytest.raises(
                 expected_exception=ValueError,
@@ -112,9 +107,8 @@ async def test_reconcile_questions(
                             question_ids=desired,
                         )
                     )
+            assert result.questions == updated
     assert [request.method for request in requests] == expected_methods
-    if result is not None:
-        assert result.questions == updated
     if len(additions) > 0:
         assert json.loads(s=requests[1].content) == {
             "question_ids": additions,
