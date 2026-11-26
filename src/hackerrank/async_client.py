@@ -2,6 +2,7 @@
 
 import asyncio
 import builtins
+from asyncio import sleep
 from collections.abc import AsyncIterator, Mapping, Sequence
 from http import HTTPStatus
 from pathlib import Path
@@ -29,6 +30,11 @@ from hackerrank._dict_types import (
     TestDict,
     UserDict,
     UserTeamMembershipDict,
+)
+from hackerrank._interview_template_questions import (
+    QUESTION_ADD_PAUSE_SECONDS,
+    question_membership_changes,
+    template_question_ids,
 )
 from hackerrank._pagination import async_iter_items
 from hackerrank._project_archive import project_archive
@@ -1130,6 +1136,123 @@ class AsyncInterviewTemplatesNamespace(_AsyncNamespace):
         return InterviewTemplate.from_dict(
             data=response_data(response.json(), InterviewTemplateDict)
         )
+
+    async def reconcile_questions(
+        self,
+        *,
+        template_id: int | str,
+        question_ids: Sequence[int],
+    ) -> InterviewTemplate:
+        """Reconcile an interview template with the desired question IDs.
+
+        Send missing IDs in the supplied order before removing extras.
+        Duplicate IDs count once. An empty sequence removes all questions.
+        An order-only change requires no writes. HackerRank controls the
+        order of the questions returned by the API.
+
+        Each request uses the client's retry policy. The separate requests
+        do not lock the template. If a write fails, call this method again
+        with the same IDs to read the current membership and apply any
+        remaining changes.
+
+        Args:
+            template_id: The ID of the template.
+            question_ids: The complete desired question membership.
+
+        Returns:
+            The template as read after any changes.
+
+        Raises:
+            ValueError: If the initial response omits question membership.
+        """
+        template = await self.get(template_id=template_id)
+        changes = question_membership_changes(
+            template=template, question_ids=question_ids
+        )
+        if bool(changes.additions):
+            _ = await self.add_questions(
+                template_id=template_id, question_ids=changes.additions
+            )
+        for question_id in changes.removals:
+            _ = await self.remove_question(
+                template_id=template_id, question_id=question_id
+            )
+        if bool(changes.additions) or bool(changes.removals):
+            return await self.get(template_id=template_id)
+        return template
+
+    async def reconcile_question_order(
+        self,
+        *,
+        template_id: int | str,
+        question_ids: Sequence[int],
+    ) -> InterviewTemplate:
+        """Bring a template's questions into the supplied order.
+
+        When membership and order match, return the template after a read.
+        Otherwise, clear its membership and add questions individually with
+        two seconds between additions. Duplicate IDs use their first position.
+        Check membership and order again after writing.
+
+        The template is temporarily empty during a rebuild. If a request
+        fails or the resulting membership is incomplete, attempt to restore
+        the previous membership. The requests use the client's retry policy.
+        Coordinate concurrent updates to the same template externally.
+
+        Args:
+            template_id: The ID of the template.
+            question_ids: The desired question IDs in order.
+
+        Returns:
+            The template with the requested question list.
+
+        Raises:
+            ValueError: If HackerRank omits membership or returns a question
+                list that differs from the requested list after rebuilding.
+        """
+        template = await self.get(template_id=template_id)
+        previous = template_question_ids(template=template)
+        expected = list(dict.fromkeys(question_ids))
+        if previous == expected:
+            return template
+
+        rebuilt = False
+        try:
+            cleared = await self.reconcile_questions(
+                template_id=template_id, question_ids=[]
+            )
+            if template_question_ids(template=cleared) != []:
+                message = (
+                    f"Interview template {template_id} did not clear its "
+                    "questions."
+                )
+                raise ValueError(message)
+            for index, question_id in enumerate(iterable=expected):
+                if index > 0:
+                    await sleep(delay=QUESTION_ADD_PAUSE_SECONDS)
+                _ = await self.add_questions(
+                    template_id=template_id, question_ids=[question_id]
+                )
+            updated = (
+                await self.get(template_id=template_id)
+                if bool(expected)
+                else cleared
+            )
+            actual = template_question_ids(template=updated)
+            rebuilt = set(actual) == set(expected)
+        finally:
+            if not rebuilt:
+                _ = await self.reconcile_questions(
+                    template_id=template_id, question_ids=previous
+                )
+
+        if actual != expected:
+            message = (
+                f"Interview template {template_id} did not retain the "
+                "requested question order."
+            )
+            raise ValueError(message)
+        return updated
 
 
 @beartype
