@@ -1,4 +1,4 @@
-"""Test interview template reconciliation through both SDK clients."""
+"""Test interview template reconciliation through both clients."""
 
 import json
 from contextlib import nullcontext
