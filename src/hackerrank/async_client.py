@@ -1142,9 +1142,10 @@ class AsyncInterviewTemplatesNamespace(_AsyncNamespace):
     ) -> InterviewTemplate:
         """Reconcile an interview template with the desired question IDs.
 
-        Add missing questions in the supplied order before removing extras.
-        Duplicate IDs count once. Questions already present retain their
-        order. An empty sequence removes all questions.
+        Send missing IDs in the supplied order before removing extras.
+        Duplicate IDs count once. An empty sequence removes all questions.
+        An order-only change requires no writes. HackerRank controls the
+        order of the questions returned by the API.
 
         Each request uses the client's retry policy. The separate requests
         do not lock the template. If a write fails, call this method again
