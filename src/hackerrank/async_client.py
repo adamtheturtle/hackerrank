@@ -1318,6 +1318,9 @@ class AsyncQuestionsNamespace(_AsyncNamespace):
     async def get(self, *, question_id: str) -> Question:
         """Retrieve a question.
 
+        If a known question ID returns HTTP 404, check
+        ``iter_all(status="archived")`` to see whether it was archived.
+
         Args:
             question_id: The id of the question.
 
@@ -1489,7 +1492,10 @@ class AsyncQuestionsNamespace(_AsyncNamespace):
             answer: New MCQ answer in its original string, integer,
                 or integer-list form.
             score: New maximum score.
-            environment_id: New environment id.
+            environment_id: Environment ID to send in the update request.
+                Choose the environment when creating a fullstack question.
+                If updating this field, read back the question to verify
+                its environment.
             role_type: New role type.
             scoring_command: New scoring command.
             scoring_files: New scoring files.
