@@ -29,6 +29,9 @@ from hackerrank._dict_types import (
     UserDict,
     UserTeamMembershipDict,
 )
+from hackerrank._interview_template_questions import (
+    question_membership_changes,
+)
 from hackerrank._pagination import iter_items
 from hackerrank._project_archive import project_archive
 from hackerrank._question_requests import question_request
@@ -1091,6 +1094,48 @@ class InterviewTemplatesNamespace(_Namespace):
         return InterviewTemplate.from_dict(
             data=response_data(response.json(), InterviewTemplateDict)
         )
+
+    def reconcile_questions(
+        self,
+        *,
+        template_id: int | str,
+        question_ids: Sequence[int],
+    ) -> InterviewTemplate:
+        """Reconcile an interview template with the desired question IDs.
+
+        Add missing questions in the supplied order before removing extras.
+        Duplicate IDs count once. Questions already present retain their
+        order. An empty sequence removes all questions.
+
+        The requests are separate and do not lock the template. If a write
+        fails, call this method again with the same IDs to read the current
+        membership and apply any remaining changes.
+
+        Args:
+            template_id: The ID of the template.
+            question_ids: The complete desired question membership.
+
+        Returns:
+            The template as read after any changes.
+
+        Raises:
+            ValueError: If the initial response omits question membership.
+        """
+        template = self.get(template_id=template_id)
+        additions, removals = question_membership_changes(
+            template=template, question_ids=question_ids
+        )
+        if bool(additions):
+            _ = self.add_questions(
+                template_id=template_id, question_ids=additions
+            )
+        for question_id in removals:
+            _ = self.remove_question(
+                template_id=template_id, question_id=question_id
+            )
+        if bool(additions) or bool(removals):
+            return self.get(template_id=template_id)
+        return template
 
 
 @beartype
