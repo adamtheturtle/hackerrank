@@ -1578,9 +1578,11 @@ class QuestionsNamespace(_Namespace):
                 or integer-list form.
             score: New maximum score.
             environment_id: Environment ID to send in the update request.
-                Choose the environment when creating a fullstack question.
-                If updating this field, read back the question to verify
-                its environment.
+                HackerRank can accept the update and retain the original
+                environment. Read back the question with ``get()`` and check
+                its ``environment_id``. To select a different environment
+                when the update leaves it unchanged, pass ``environment_id``
+                to ``create()`` when creating a replacement fullstack question.
             role_type: New role type.
             scoring_command: New scoring command.
             scoring_files: New scoring files.
